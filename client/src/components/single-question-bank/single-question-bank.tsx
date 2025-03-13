@@ -12,7 +12,7 @@ export default function SingleQuestionBank({
   allQuestions: QuestionType[];
 }) {
   const [showAns, setShowAns] = useState<boolean>(false);
-  console.log(showAns);
+  console.log(slug);
   return (
     <div className="w-full space-y-8">
       <div className="flex gap-4 justify-between items-center bg-background rounded sticky top-0 p-3 border-b-2 border-border ">
