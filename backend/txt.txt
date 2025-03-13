@@ -1,0 +1,41 @@
+{
+    "level": "10",
+    "background": "comerce",
+    "subject": "Chemistry",
+    "examName":"demo-5que",
+    "examType":"demotyp-3",
+    "chapter":"2",
+    "topic": "demo-topic-1",
+    "totalMark":40,
+    "time":20,
+    "questions": [
+        {
+        "question":"question-1?",
+        "type":"MCQ",
+        "answer":"a", 
+        "mark": 1,
+        "options": [
+            "option-1","option-2"
+            ],
+        "explanation":"demo explanation"
+        },
+        {
+        "question":"question-2?",
+        "type":"Written",
+        "answer":"Demo Answer.",
+        "mark": 2, 
+        "explanation":"demo explanation"
+        },
+        {
+        "question":"question-3?",
+        "type":"MCQ",
+        "answer":"a",
+        "mark": 1, 
+        "options": [
+            "option-1", "option-2", "option-3"       
+            ],
+        "explanation":"demo explanation"
+        }
+    ]
+
+}
