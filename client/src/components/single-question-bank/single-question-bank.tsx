@@ -1,7 +1,6 @@
 "use client";
 
 import { QuestionType } from "@/app/(pages)/(services)/question-bank/[subject]/[slug]/page";
-import SingleMcqQuestion from "@/components/single-question-bank/single-mcq-question";
 import { useState } from "react";
 import SingleCqQuestion from "./single-cq-exam";
 
