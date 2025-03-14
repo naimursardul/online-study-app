@@ -9,12 +9,6 @@ import {
 import { Bookmark, BookmarkCheck, ChevronsUpDown } from "lucide-react";
 import { QuestionType } from "@/app/(pages)/(services)/question-bank/[subject]/[slug]/page";
 import { Button } from "../ui/button";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "../ui/accordion";
 
 export default function SingleCqQuestion({
   q,
@@ -23,7 +17,7 @@ export default function SingleCqQuestion({
   q: QuestionType;
   i: number;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
+  // const [isOpen, setIsOpen] = useState(false);
 
   const [isMarked, setIsMarked] = useState<boolean>(false);
 
