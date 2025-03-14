@@ -11,7 +11,7 @@ export default function QuestionBank() {
       <div className="flex flex-col gap-3">
         <h2 className="font-semibold text-xl">Model Test</h2>
         <div className="flex flex-wrap gap-4 border-b pb-6">
-          <Link href={"/question-bank/24747220"}>
+          <Link href={"/question-bank/physics"}>
             <div className="relative size-[180px] max-md:size-[150px] max-sm:size-[120px]">
               <Image
                 src="/assets/images/biplobi.jpg"
@@ -21,7 +21,7 @@ export default function QuestionBank() {
               />
             </div>
           </Link>
-          <Link href={"/question-bank/32868236"}>
+          <Link href={"/question-bank/physics"}>
             <div className="relative size-[180px] max-md:size-[150px] max-sm:size-[120px]">
               <Image
                 src="/assets/images/biplobi.jpg"
@@ -31,7 +31,7 @@ export default function QuestionBank() {
               />
             </div>
           </Link>
-          <Link href={"/question-bank/32868236"}>
+          <Link href={"/question-bank/physics"}>
             <div className="relative size-[180px] max-md:size-[150px] max-sm:size-[120px]">
               <Image
                 src="/assets/images/biplobi.jpg"
@@ -41,7 +41,7 @@ export default function QuestionBank() {
               />
             </div>
           </Link>
-          <Link href={"/question-bank/32868236"}>
+          <Link href={"/question-bank/physics"}>
             <div className="relative size-[180px] max-md:size-[150px] max-sm:size-[120px]">
               <Image
                 src="/assets/images/biplobi.jpg"
@@ -51,7 +51,7 @@ export default function QuestionBank() {
               />
             </div>
           </Link>
-          <Link href={"/question-bank/32868236"}>
+          <Link href={"/question-bank/physics"}>
             <div className="relative size-[180px] max-md:size-[150px] max-sm:size-[120px]">
               <Image
                 src="/assets/images/biplobi.jpg"
@@ -61,7 +61,7 @@ export default function QuestionBank() {
               />
             </div>
           </Link>
-          <Link href={"/question-bank/32868236"}>
+          <Link href={"/question-bank/physics"}>
             <div className="relative size-[180px] max-md:size-[150px] max-sm:size-[120px]">
               <Image
                 src="/assets/images/biplobi.jpg"
@@ -76,7 +76,7 @@ export default function QuestionBank() {
       <div className="flex flex-col gap-3">
         <h2 className="font-semibold text-xl">Subject</h2>
         <div className="flex flex-wrap gap-4 border-b pb-6 ">
-          <Link href={"/question-bank/32868236"}>
+          <Link href={"/question-bank/physics"}>
             <div className="relative size-[180px] max-md:size-[150px] max-sm:size-[120px]">
               <Image
                 src="/assets/images/physics.png"
@@ -86,7 +86,7 @@ export default function QuestionBank() {
               />
             </div>
           </Link>
-          <Link href={"/question-bank/32868236"}>
+          <Link href={"/question-bank/physics"}>
             <div className="relative size-[180px] max-md:size-[150px] max-sm:size-[120px]">
               <Image
                 src="/assets/images/physics.png"
@@ -96,7 +96,7 @@ export default function QuestionBank() {
               />
             </div>
           </Link>
-          <Link href={"/question-bank/32868236"}>
+          <Link href={"/question-bank/physics"}>
             <div className="relative size-[180px] max-md:size-[150px] max-sm:size-[120px]">
               <Image
                 src="/assets/images/physics.png"
@@ -106,7 +106,7 @@ export default function QuestionBank() {
               />
             </div>
           </Link>
-          <Link href={"/question-bank/32868236"}>
+          <Link href={"/question-bank/physics"}>
             <div className="relative size-[180px] max-md:size-[150px] max-sm:size-[120px]">
               <Image
                 src="/assets/images/physics.png"
@@ -116,7 +116,7 @@ export default function QuestionBank() {
               />
             </div>
           </Link>
-          <Link href={"/question-bank/32868236"}>
+          <Link href={"/question-bank/physics"}>
             <div className="relative size-[180px] max-md:size-[150px] max-sm:size-[120px]">
               <Image
                 src="/assets/images/physics.png"
@@ -126,7 +126,7 @@ export default function QuestionBank() {
               />
             </div>
           </Link>
-          <Link href={"/question-bank/32868236"}>
+          <Link href={"/question-bank/physics"}>
             <div className="relative size-[180px] max-md:size-[150px] max-sm:size-[120px]">
               <Image
                 src="/assets/images/physics.png"
@@ -141,7 +141,7 @@ export default function QuestionBank() {
       <div className="flex flex-col gap-3">
         <h2 className="font-semibold text-xl">Institution</h2>
         <div className="flex flex-wrap gap-4 border-b pb-6 ">
-          <Link href={"/question-bank/32868236"}>
+          <Link href={"/question-bank/physics"}>
             <div className="relative size-[180px] max-md:size-[150px] max-sm:size-[120px]">
               <Image
                 src="/assets/images/butex.png"
@@ -151,7 +151,7 @@ export default function QuestionBank() {
               />
             </div>
           </Link>
-          <Link href={"/question-bank/32868236"}>
+          <Link href={"/question-bank/physics"}>
             <div className="relative size-[180px] max-md:size-[150px] max-sm:size-[120px]">
               <Image
                 src="/assets/images/butex.png"
@@ -161,7 +161,7 @@ export default function QuestionBank() {
               />
             </div>
           </Link>
-          <Link href={"/question-bank/32868236"}>
+          <Link href={"/question-bank/physics"}>
             <div className="relative size-[180px] max-md:size-[150px] max-sm:size-[120px]">
               <Image
                 src="/assets/images/butex.png"
@@ -171,7 +171,7 @@ export default function QuestionBank() {
               />
             </div>
           </Link>
-          <Link href={"/question-bank/32868236"}>
+          <Link href={"/question-bank/physics"}>
             <div className="relative size-[180px] max-md:size-[150px] max-sm:size-[120px]">
               <Image
                 src="/assets/images/butex.png"
@@ -181,7 +181,7 @@ export default function QuestionBank() {
               />
             </div>
           </Link>
-          <Link href={"/question-bank/32868236"}>
+          <Link href={"/question-bank/physics"}>
             <div className="relative size-[180px] max-md:size-[150px] max-sm:size-[120px]">
               <Image
                 src="/assets/images/butex.png"
@@ -191,7 +191,7 @@ export default function QuestionBank() {
               />
             </div>
           </Link>
-          <Link href={"/question-bank/32868236"}>
+          <Link href={"/question-bank/physics"}>
             <div className="relative size-[180px] max-md:size-[150px] max-sm:size-[120px]">
               <Image
                 src="/assets/images/butex.png"

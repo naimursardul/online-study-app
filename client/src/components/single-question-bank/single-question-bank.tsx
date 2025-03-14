@@ -1,8 +1,9 @@
 "use client";
 
-import { QuestionType } from "@/app/(pages)/(services)/question-bank/[slug]/page";
-import SingleQuestion from "@/components/single-question-bank/single-question";
+import { QuestionType } from "@/app/(pages)/(services)/question-bank/[subject]/[slug]/page";
+import SingleMcqQuestion from "@/components/single-question-bank/single-mcq-question";
 import { useState } from "react";
+import SingleCqQuestion from "./single-cq-exam";
 
 export default function SingleQuestionBank({
   slug,
@@ -38,7 +39,8 @@ export default function SingleQuestionBank({
         <h3 className="font-bold text-xl text-center">Physics (18)</h3>
         {allQuestions?.length > 0 &&
           allQuestions.map((q, i) => (
-            <SingleQuestion q={q} i={i + 1} key={i} showAns={showAns} />
+            // <SingleMcqQuestion q={q} i={i + 1} key={i} showAns={showAns} />
+            <SingleCqQuestion q={q} i={i + 1} key={i} showAns={showAns} />
           ))}
       </div>
       <div className="space-y-5">

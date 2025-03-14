@@ -1,4 +1,5 @@
 import SingleQuestionBank from "@/components/single-question-bank/single-question-bank";
+import SingleQuestionBankSidebar from "@/components/single-question-bank/single-question-bank-sidebar";
 
 export interface QuestionType {
   detail: string;
@@ -151,8 +152,11 @@ export default async function page({
 }) {
   const { slug } = await params;
   return (
-    <>
+    <div className="flex flex-col md:flex-row gap-3 mt-10">
+      <SingleQuestionBankSidebar slug={slug} />
+      {/* <div className="w-full"> */}
       <SingleQuestionBank slug={slug} allQuestions={allQuestions} />
-    </>
+      {/* </div> */}
+    </div>
   );
 }

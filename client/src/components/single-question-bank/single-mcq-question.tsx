@@ -7,10 +7,10 @@ import {
   CollapsibleTrigger,
 } from "../ui/collapsible";
 import { Bookmark, BookmarkCheck, ChevronsUpDown } from "lucide-react";
-import { QuestionType } from "@/app/(pages)/(services)/question-bank/[slug]/page";
+import { QuestionType } from "@/app/(pages)/(services)/question-bank/[subject]/[slug]/page";
 import { Button } from "../ui/button";
 
-export default function SingleQuestion({
+export default function SingleMcqQuestion({
   q,
   i,
   showAns,
@@ -34,7 +34,7 @@ export default function SingleQuestion({
     <div className="bg-background rounded-xl p-5 max-sm:p-4 border border-sidebar-border">
       <div className="flex flex-col gap-3">
         <div className="flex gap-3 justify-between ">
-          <p className="bg-input h-6 flex items-center px-2 py-2 text-xs rounded">
+          <p className="bg-input h-[26px] flex items-center px-2 py-2 text-xs rounded">
             {i}
           </p>
           <p className="w-full max-sm:text-sm">{q?.detail}</p>
