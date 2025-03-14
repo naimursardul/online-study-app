@@ -1,7 +1,7 @@
 "use client";
 
 import { QuestionType } from "@/app/(pages)/(services)/question-bank/[subject]/[slug]/page";
-import { useState } from "react";
+// import { useState } from "react";
 import SingleCqQuestion from "./single-cq-exam";
 
 export default function SingleQuestionBank({
@@ -27,7 +27,7 @@ export default function SingleQuestionBank({
             Show Answer
           </label>
           <input
-            onChange={(e) => setShowAns(e.target.checked)}
+            // onChange={(e) => setShowAns(e.target.checked)}
             type="checkbox"
             name="showAns"
             className="size-4 cursor-pointer"
