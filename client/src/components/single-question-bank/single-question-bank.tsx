@@ -11,7 +11,7 @@ export default function SingleQuestionBank({
   slug: string;
   allQuestions: QuestionType[];
 }) {
-  const [showAns, setShowAns] = useState<boolean>(false);
+  // const [showAns, setShowAns] = useState<boolean>(false);
   console.log(slug);
   return (
     <div className="w-full space-y-8">
