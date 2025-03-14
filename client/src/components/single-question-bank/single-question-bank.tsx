@@ -39,7 +39,7 @@ export default function SingleQuestionBank({
         {allQuestions?.length > 0 &&
           allQuestions.map((q, i) => (
             // <SingleMcqQuestion q={q} i={i + 1} key={i} showAns={showAns} />
-            <SingleCqQuestion q={q} i={i + 1} key={i} showAns={showAns} />
+            <SingleCqQuestion q={q} i={i + 1} key={i} />
           ))}
       </div>
       <div className="space-y-5">
