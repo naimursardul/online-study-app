@@ -6,8 +6,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "../ui/collapsible";
-import { ChevronsUpDown } from "lucide-react";
+import { Bookmark, BookmarkCheck, ChevronsUpDown } from "lucide-react";
 import { QuestionType } from "@/app/(pages)/(services)/question-bank/[slug]/page";
+import { Button } from "../ui/button";
 
 export default function SingleQuestion({
   q,
@@ -27,14 +28,29 @@ export default function SingleQuestion({
     3: "D",
   };
 
+  const [isMarked, setIsMarked] = useState<boolean>(false);
+
   return (
     <div className="bg-background rounded-xl p-5 max-sm:p-4 border border-sidebar-border">
       <div className="flex flex-col gap-3">
-        <div className="flex gap-3 justify-start ">
-          <p className="bg-input h-7 px-2 py-2 text-xs rounded">{i}</p>
-          <p className="max-sm:text-sm">{q?.detail}</p>
+        <div className="flex gap-3 justify-between ">
+          <p className="bg-input h-6 flex items-center px-2 py-2 text-xs rounded">
+            {i}
+          </p>
+          <p className="w-full max-sm:text-sm">{q?.detail}</p>
+          <Button
+            onClick={() => setIsMarked(!isMarked)}
+            variant={"ghost"}
+            size={"icon"}
+            className="cursor-pointer"
+          >
+            {isMarked ? (
+              <BookmarkCheck className="text-destructive" />
+            ) : (
+              <Bookmark />
+            )}
+          </Button>
         </div>
-
         {q?.tag?.length > 0 && (
           <div className="flex justify-end ">
             <p className="bg-sidebar-accent px-2 py-2 text-chart-2 text-xs max-sm:text-[11px] font-bold rounded">
@@ -42,7 +58,6 @@ export default function SingleQuestion({
             </p>
           </div>
         )}
-
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 max-sm:text-sm ">
           {q?.options?.length &&
             q.options.map((o, j) => (
@@ -54,7 +69,7 @@ export default function SingleQuestion({
                   className={`min-w-4 min-h-4 md:min-w-5 md:min-h-5 flex items-center justify-center border-1 border-primary ${
                     showAns &&
                     q?.answer === o &&
-                    "bg-destructive text-white border-none"
+                    "bg-green-500 text-white border-none"
                   } rounded-full text-xs md:text-sm`}
                 >
                   {optionSetting[j]}
@@ -63,8 +78,6 @@ export default function SingleQuestion({
               </div>
             ))}
         </div>
-
-        {/* <Button className="w-full">Show Explanation</Button> */}
         <Collapsible
           open={isOpen}
           onOpenChange={setIsOpen}

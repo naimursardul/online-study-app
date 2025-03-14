@@ -57,7 +57,7 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
-                    isActive={item.url === pathname}
+                    isActive={pathname.includes(item.url)}
                     tooltip={item.title}
                     asChild
                   >
