@@ -9,7 +9,7 @@ export default async function page({
   return (
     <div>
       Subject
-      <Link href={`/question-bank/${subject}/24747220`}>GO</Link>
+      <Link href={`/question-bank/board/${subject}/24747220`}>GO</Link>
     </div>
   );
 }

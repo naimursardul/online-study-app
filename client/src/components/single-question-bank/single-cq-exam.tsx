@@ -56,9 +56,9 @@ export default function SingleCqQuestion({
           </div>
         )}
 
-        <Collapsible className=" border-1 pb-1 px-2 py-2 rounded">
+        <Collapsible className="border-1 pl-3 pr-2 py-2 rounded">
           <div className="flex justify-between gap-2 ">
-            <span>{"A)"}</span>
+            <span className="font-semibold text-chart-2">{"(A)"}</span>
             <p className="w-full">
               Lorem ipsum dolor sit amet consectetur adipisicing elit?
             </p>
@@ -70,9 +70,9 @@ export default function SingleCqQuestion({
             {q?.explanation}
           </CollapsibleContent>
         </Collapsible>
-        <Collapsible className="border-1 pb-1 px-2 py-2 rounded">
+        <Collapsible className="border-1 pl-3 pr-2 py-2 rounded">
           <div className="flex justify-between gap-2 ">
-            <span>{"B)"}</span>
+            <span className="font-semibold text-chart-2">{"(B)"}</span>
             <p className="w-full">
               Lorem ipsum dolor sit amet consectetur adipisicing elit Lorem
               ipsum dolor sit amet consectetur adipisicing elit?
@@ -85,9 +85,9 @@ export default function SingleCqQuestion({
             {q?.explanation}
           </CollapsibleContent>
         </Collapsible>
-        <Collapsible className="border-1 pb-1 px-2 py-2 rounded">
+        <Collapsible className="border-1 pl-3 pr-2 py-2 rounded">
           <div className="flex justify-between gap-2 ">
-            <span>{"C)"}</span>
+            <span className="font-semibold text-chart-2">{"(C)"}</span>
             <p className="w-full">
               Lorem ipsum dolor sit amet consectetur adipisicing elit Lorem
               ipsum dolor sit amet consectetur adipisicing elit?
@@ -100,9 +100,9 @@ export default function SingleCqQuestion({
             {q?.explanation}
           </CollapsibleContent>
         </Collapsible>
-        <Collapsible className="border-1 pb-1 px-2 py-2 rounded">
+        <Collapsible className="border-1 pl-3 pr-2 py-2 rounded">
           <div className="flex justify-between gap-2 ">
-            <span>{"D)"}</span>
+            <span className="font-semibold text-chart-2">{"(D)"}</span>
             <p className="w-full">
               Lorem ipsum dolor sit amet consectetur adipisicing elit Lorem
               ipsum dolor sit amet consectetur adipisicing elit?

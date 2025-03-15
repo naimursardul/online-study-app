@@ -11,7 +11,7 @@ export default function QuestionBank() {
       <div className="flex flex-col gap-3">
         <h2 className="font-semibold text-xl">Model Test</h2>
         <div className="flex flex-wrap gap-4 border-b pb-6">
-          <Link href={"/question-bank/physics"}>
+          <Link href={"/question-bank/board"}>
             <div className="relative size-[180px] max-md:size-[150px] max-sm:size-[120px]">
               <Image
                 src="/assets/images/biplobi.jpg"
