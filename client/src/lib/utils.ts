@@ -10,7 +10,6 @@ export const getBoardQusetonDetails = (slug: string[]) => {
   if (Array.isArray(slug) && slug.length === 2) {
     const text = slug.join("-");
     const arr = text.split("-");
-    const record: string[] = [arr[6], arr[7]];
     const obj = {
       standard: arr[0] || "",
       class: arr[1] || "",
@@ -18,8 +17,12 @@ export const getBoardQusetonDetails = (slug: string[]) => {
       subject: arr[3] || "",
       paper: arr[4] || "",
       questionType: arr[5] || "",
-      record: [...record] || "",
+      record: [""],
     };
+    if (arr[6] && arr[7]) {
+      obj.record = [arr[6], arr[7]];
+    }
+
     return obj;
   }
 };
