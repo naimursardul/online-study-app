@@ -18,7 +18,7 @@ export const getBoardQusetonDetails = (slug: string[]) => {
       subject: arr[3] || "",
       paper: arr[4] || "",
       questionType: arr[5] || "",
-      record: [...record] || [],
+      record: [...record] || "",
     };
     return obj;
   }
