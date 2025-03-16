@@ -1,18 +1,19 @@
 "use client";
 
-import { QuestionType } from "@/app/(pages)/(services)/question-bank/[subject]/[slug]/page";
-// import { useState } from "react";
+import { useState } from "react";
+import { QuestionType } from "@/app/storage/storage-type";
 import SingleCqQuestion from "./single-cq-exam";
+import SingleMcqQuestion from "./single-mcq-question";
 
 export default function SingleQuestionBank({
-  slug,
+  qType,
   allQuestions,
 }: {
-  slug: string;
+  qType: string;
   allQuestions: QuestionType[];
 }) {
-  // const [showAns, setShowAns] = useState<boolean>(false);
-  console.log(slug);
+  const [showAns, setShowAns] = useState<boolean>(false);
+
   return (
     <div className="w-full space-y-8">
       <div className="flex gap-4 justify-between items-center bg-background rounded sticky top-0 p-3 border-b-2 border-border ">
@@ -27,7 +28,7 @@ export default function SingleQuestionBank({
             Show Answer
           </label>
           <input
-            // onChange={(e) => setShowAns(e.target.checked)}
+            onChange={(e) => setShowAns(e.target.checked)}
             type="checkbox"
             name="showAns"
             className="size-4 cursor-pointer"
@@ -36,11 +37,12 @@ export default function SingleQuestionBank({
       </div>
       <div className="space-y-5">
         <h3 className="font-bold text-xl text-center">Physics (18)</h3>
-        {allQuestions?.length > 0 &&
+        {qType === "mcq" &&
+          allQuestions?.length > 0 &&
           allQuestions.map((q, i) => (
-            // <SingleMcqQuestion q={q} i={i + 1} key={i} showAns={showAns} />
-            <SingleCqQuestion q={q} i={i + 1} key={i} />
+            <SingleMcqQuestion q={q} i={i + 1} key={i} showAns={showAns} />
           ))}
+        {qType === "cq" && <SingleCqQuestion />}
       </div>
       <div className="space-y-5">
         <h3 className="w-full font-bold text-xl text-center">Math (18)</h3>

@@ -7,8 +7,8 @@ import {
   CollapsibleTrigger,
 } from "../ui/collapsible";
 import { Bookmark, BookmarkCheck, ChevronsUpDown } from "lucide-react";
-import { QuestionType } from "@/app/(pages)/(services)/question-bank/[subject]/[slug]/page";
 import { Button } from "../ui/button";
+import { QuestionType } from "@/app/storage/storage-type";
 
 export default function SingleMcqQuestion({
   q,
@@ -33,11 +33,10 @@ export default function SingleMcqQuestion({
   return (
     <div className="bg-background rounded-xl p-5 max-sm:p-4 border border-sidebar-border">
       <div className="flex flex-col gap-3">
-        <div className="flex gap-3 justify-between ">
-          <p className="bg-input h-[26px] flex items-center px-2 py-2 text-xs rounded">
+        <div className="flex gap-3 justify-between items-start ">
+          <p className="bg-input size-5 md:size-7 flex justify-center items-center px-2 py-2 text-xs rounded">
             {i}
           </p>
-          <p className="w-full max-sm:text-sm">{q?.detail}</p>
           <Button
             onClick={() => setIsMarked(!isMarked)}
             variant={"ghost"}
@@ -51,14 +50,15 @@ export default function SingleMcqQuestion({
             )}
           </Button>
         </div>
-        {q?.tag?.length > 0 && (
+        <p className="w-full max-sm:text-sm">{q?.detail[0]}</p>
+        {q?.record?.length > 0 && (
           <div className="flex justify-end ">
             <p className="bg-sidebar-accent px-2 py-2 text-chart-2 text-xs max-sm:text-[11px] font-bold rounded">
               {q.tag.join(", ")}
             </p>
           </div>
         )}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 max-sm:text-sm ">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 ">
           {q?.options?.length &&
             q.options.map((o, j) => (
               <div
@@ -74,7 +74,7 @@ export default function SingleMcqQuestion({
                 >
                   {optionSetting[j]}
                 </div>
-                <p>{o}</p>
+                <p className="max-sm:text-sm ">{o}</p>
               </div>
             ))}
         </div>
