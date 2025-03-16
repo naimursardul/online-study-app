@@ -9,7 +9,7 @@ export default function SingleQuestionBank({
   qType,
   allQuestions,
 }: {
-  qType: string;
+  qType: string | undefined;
   allQuestions: QuestionType[];
 }) {
   const [showAns, setShowAns] = useState<boolean>(false);

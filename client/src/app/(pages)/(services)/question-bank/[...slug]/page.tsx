@@ -19,12 +19,12 @@ export default async function page({
     <div className="flex flex-col md:flex-row gap-3 mt-10">
       <SingleQuestionBankSidebar />
       {/* <div className="w-full"> */}
-      {qDetails?.questionType && (
-        <SingleQuestionBank
-          qType={qDetails?.questionType}
-          allQuestions={filteredQuestion}
-        />
-      )}
+      {/* {qDetails?.questionType && ( */}
+      <SingleQuestionBank
+        qType={qDetails?.questionType}
+        allQuestions={filteredQuestion}
+      />
+      {/* )} */}
       {/* </div> */}
     </div>
   );
