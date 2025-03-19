@@ -2,6 +2,7 @@ import { QuestionType } from "./storage-type";
 
 export const allQuestions: QuestionType[] = [
   {
+    _id: "8e9dh829382",
     class: "HSC",
     subject: "Physics",
     paper: 1,
@@ -25,11 +26,13 @@ export const allQuestions: QuestionType[] = [
       "internal energy",
     ],
     answer: "gravitational force",
+    mark: 1,
     toughness: 5,
     explanation:
       "Allah asehi banaiya hee vai. Tu samajta q nehi hee. Na bujhle, Mukhosto kor.are you. ",
   },
   {
+    _id: "32938dhd39",
     class: "HSC",
     subject: "Physics",
     paper: 1,
@@ -53,6 +56,7 @@ export const allQuestions: QuestionType[] = [
       "internal energy",
     ],
     answer: "gravitational force",
+    mark: 1,
     toughness: 5,
     explanation:
       "Allah asehi banaiya hee vai. Tu samajta q nehi hee. Na bujhle, Mukhosto kor.are you. ",

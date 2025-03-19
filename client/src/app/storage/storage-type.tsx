@@ -1,4 +1,5 @@
 export interface QuestionType {
+  _id: string;
   class: string;
   subject: string;
   paper: number;
@@ -14,5 +15,6 @@ export interface QuestionType {
   detail: string[];
   options?: string[];
   answer: string;
+  mark: number;
   explanation?: string;
 }

@@ -15,9 +15,10 @@ export default async function page({
     (q) => q.questionType === qDetails?.questionType
   );
 
+  console.log(qDetails);
   return (
     <div className="flex flex-col md:flex-row gap-3 mt-10">
-      <SingleQuestionBankSidebar />
+      <SingleQuestionBankSidebar slug={slug} />
       {/* <div className="w-full"> */}
       {/* {qDetails?.questionType && ( */}
       <SingleQuestionBank

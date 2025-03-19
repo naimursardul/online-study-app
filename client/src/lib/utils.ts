@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export const getBoardQusetonDetails = (slug: string[]) => {
   // board-hsc-science-physics-1-mcq-dhaka-2024
-  if (Array.isArray(slug) && slug.length === 2) {
+  if (Array.isArray(slug) && slug.length > 0) {
     const text = slug.join("-");
     const arr = text.split("-");
     const obj = {
