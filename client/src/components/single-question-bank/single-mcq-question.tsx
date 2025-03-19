@@ -61,7 +61,7 @@ export default function SingleMcqQuestion({
     });
   }, []);
 
-  function handleScript(e) {
+  function handleScript(e: React.ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
     setSelectedOption({ id: q._id, givenAns: e.target.value });
     setChangeOption(false);
