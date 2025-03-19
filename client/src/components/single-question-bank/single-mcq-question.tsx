@@ -110,9 +110,11 @@ export default function SingleMcqQuestion({
             <p className="bg-input size-5 md:size-7 flex justify-center items-center px-2 py-2 text-xs rounded">
               {i}
             </p>
-            {showScriptRes && selectedOption?.givenAns !== q.answer && (
-              <X className="text-red-700 " />
-            )}
+            {viewMode === "practice" &&
+              showScriptRes &&
+              selectedOption?.givenAns !== q.answer && (
+                <X className="text-red-700 " />
+              )}
           </div>
           <Button
             onClick={() => setIsMarked(!isMarked)}
