@@ -57,7 +57,9 @@ export default function SingleQuestionBank({
           </p>
         </div>
         <form
-          onChange={(e) => setViewMode(e.target?.value)}
+          onChange={(e: React.ChangeEvent<HTMLFormElement>) =>
+            setViewMode(e.target?.value)
+          }
           className="flex flex-col gap-1"
         >
           <select
