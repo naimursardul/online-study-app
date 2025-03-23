@@ -61,9 +61,16 @@ export default function SingleQuestionBank({
   //
   //
   // HANDLE PRACTICE STSRT
+  function handleRestart() {
+    setScriptRes({ correct: 0, wrong: 0, obtain: 0, total: 0 });
+    setExamStatus("ready");
+  }
+
+  //
+  //
+  // HANDLE PRACTICE STSRT
   function handleStart() {
     setAnswerScript([]);
-    setScriptRes({ correct: 0, wrong: 0, obtain: 0, total: 0 });
     setExamStatus("started");
     countdownRef.current = setInterval(() => {
       setTimeRemaining((t) => {
@@ -147,10 +154,7 @@ export default function SingleQuestionBank({
                 {/*  */}
                 {/*  */}
                 {/* RESTART BUTTON */}
-                <Button
-                  className="cursor-pointer"
-                  onClick={() => setExamStatus("ready")}
-                >
+                <Button className="cursor-pointer" onClick={handleRestart}>
                   Restart
                 </Button>
               </>
@@ -181,7 +185,6 @@ export default function SingleQuestionBank({
                       )}
                     </div>
                   ))}
-
                 {/*  */}
                 {/*  */}
                 {/* SUBMIT BUTTON */}
@@ -200,7 +203,7 @@ export default function SingleQuestionBank({
                 {viewMode === "practice" && examStatus === "ready" && (
                   <div className="flex flex-col gap-2 justify-center items-center text-chart-2 font-semibold">
                     <div>Total MCQ: 25</div>
-                    <div>Time: 25</div>
+                    <div>Time: 25 mins</div>
                     <div>Total Marks: 25</div>
 
                     {/*  */}
