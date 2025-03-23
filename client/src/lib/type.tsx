@@ -26,15 +26,10 @@ export interface ScriptResType {
   total: number;
 }
 
-export interface AnswerScriptType {
+// SingleMcqAnswerType
+export interface SingleMcqAnswerType {
   id: string;
   givenAns: string | undefined;
   mark: number;
   isCorrect: boolean;
-}
-
-// selectedOption
-export interface SelectedOptionType {
-  id: string | undefined;
-  givenAns: string | undefined;
 }

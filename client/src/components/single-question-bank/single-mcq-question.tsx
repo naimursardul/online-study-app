@@ -9,7 +9,7 @@ import {
 import { Bookmark, BookmarkCheck, ChevronsUpDown, X } from "lucide-react";
 import { Button } from "../ui/button";
 import { QuestionType } from "@/app/storage/storage-type";
-import { AnswerScriptType, SelectedOptionType } from "@/lib/type";
+import { SingleMcqAnswerType } from "@/lib/type";
 
 export default function SingleMcqQuestion({
   q,
@@ -22,11 +22,17 @@ export default function SingleMcqQuestion({
   i: number;
   viewMode: string;
   examStatus: "ready" | "started" | "finished";
-  setAnswerScript: Dispatch<SetStateAction<AnswerScriptType[]>>;
+  setAnswerScript: Dispatch<SetStateAction<SingleMcqAnswerType[]>>;
 }) {
   const [isMarked, setIsMarked] = useState<boolean>(false);
   const [changeOption, setChangeOption] = useState<boolean>(true);
-  const [selectedOption, setSelectedOption] = useState<SelectedOptionType>();
+  const [singleMcqAnswer, setSingleMcqAnswer] = useState<SingleMcqAnswerType>({
+    id: q._id,
+    givenAns: undefined,
+    mark: q.mark,
+    isCorrect: false,
+  });
+  const optionRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   //
   //
@@ -48,32 +54,33 @@ export default function SingleMcqQuestion({
   // SET ANSWER SCRIPT ARRAY WITH DEFAULT QUESTON
   useEffect(() => {
     setAnswerScript((p) => {
-      const findQ = p.find((t) => t.id === q._id);
+      const findQ = p.find((t) => t.id === singleMcqAnswer?.id);
       if (findQ) {
         return p;
       }
-      return [
-        ...p,
-        { id: q._id, givenAns: undefined, mark: q.mark, isCorrect: false },
-      ];
+      return [...p, singleMcqAnswer];
     });
   }, []);
 
   //
   //
   // HANDLE AFTER SELECTING AN OPTION
-  function handleScript(e: React.ChangeEvent<HTMLFormElement>) {
+  function handleSingleMcqSubmit(e: React.ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSelectedOption({ id: q._id, givenAns: e.target.value });
+    const singleAnsObj: SingleMcqAnswerType = {
+      id: q._id,
+      givenAns: e.target.value,
+      mark: q?.mark,
+      isCorrect: e.target.value === q.answer,
+    };
+    setSingleMcqAnswer(singleAnsObj);
     setChangeOption(false);
 
     // setting answer to answer script array
     setAnswerScript((p) => {
-      const isCorrect = e.target.value === q.answer;
       const newP = p.map((t) => {
-        if (t.id === q._id) {
-          t.givenAns = e.target.value;
-          t.isCorrect = isCorrect;
+        if (t.id === singleAnsObj.id) {
+          t = { ...singleAnsObj };
         }
         return t;
       });
@@ -81,8 +88,6 @@ export default function SingleMcqQuestion({
       return [...newP];
     });
   }
-
-  console.log(selectedOption);
 
   //
   //
@@ -94,21 +99,19 @@ export default function SingleMcqQuestion({
       }
 
       if (
-        selectedOption?.givenAns === o &&
-        selectedOption?.givenAns !== q.answer
+        singleMcqAnswer?.givenAns === o &&
+        singleMcqAnswer?.givenAns !== q.answer
       ) {
         return "bg-red-500 text-white";
       }
     }
 
-    if (selectedOption?.givenAns === o) {
+    if (singleMcqAnswer?.givenAns === o) {
       return "bg-green-500 text-white";
     }
     return "bg-sidebar-accent";
   };
 
-  console.log(selectedOption);
-  const optionRefs = useRef<(HTMLInputElement | null)[]>([]);
   return (
     <div className="bg-background rounded-xl p-5 max-sm:p-4 border border-sidebar-border">
       <div className="flex flex-col gap-3">
@@ -119,7 +122,7 @@ export default function SingleMcqQuestion({
             </p>
             {viewMode === "practice" &&
               examStatus === "finished" &&
-              selectedOption?.givenAns !== q.answer && (
+              singleMcqAnswer?.givenAns !== q.answer && (
                 <X className="text-red-700 " />
               )}
           </div>
@@ -147,7 +150,7 @@ export default function SingleMcqQuestion({
         {viewMode === "practice" ? (
           <>
             <form
-              onChange={handleScript}
+              onChange={handleSingleMcqSubmit}
               className="grid grid-cols-1 sm:grid-cols-2 gap-1 "
             >
               {q?.options?.length &&
@@ -161,7 +164,7 @@ export default function SingleMcqQuestion({
                   >
                     <div
                       className={`min-w-4 min-h-4 md:min-w-5 md:min-h-5 flex items-center justify-center border-1 border-primary rounded-full text-xs md:text-sm ${
-                        selectedOption?.givenAns === o ||
+                        singleMcqAnswer?.givenAns === o ||
                         (examStatus === "finished" && q?.answer === o)
                           ? "border-white"
                           : "border-primary"

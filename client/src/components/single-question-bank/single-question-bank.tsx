@@ -5,7 +5,7 @@ import { QuestionType } from "@/app/storage/storage-type";
 import SingleCqQuestion from "./single-cq-exam";
 import SingleMcqQuestion from "./single-mcq-question";
 import { Button } from "../ui/button";
-import { AnswerScriptType, ScriptResType } from "@/lib/type";
+import { ScriptResType, SingleMcqAnswerType } from "@/lib/type";
 import FormatTime from "../format-time";
 import { MousePointerClick, TextSelect } from "lucide-react";
 
@@ -26,7 +26,7 @@ export default function SingleQuestionBank({
   const [examStatus, setExamStatus] = useState<
     "ready" | "started" | "finished"
   >("ready");
-  const [answerScript, setAnswerScript] = useState<AnswerScriptType[]>([]);
+  const [answerScript, setAnswerScript] = useState<SingleMcqAnswerType[]>([]);
   const [scriptRes, setScriptRes] = useState<ScriptResType>({
     correct: 0,
     wrong: 0,
@@ -38,7 +38,9 @@ export default function SingleQuestionBank({
   //
   //
   // HANDLE MCQ SUBMIT
+  console.log(answerScript);
   function handleMcqSubmit() {
+    console.log("inside: ", answerScript);
     if (countdownRef.current) {
       clearInterval(countdownRef.current);
       countdownRef.current = null;
@@ -66,6 +68,7 @@ export default function SingleQuestionBank({
     setExamStatus("ready");
   }
 
+  const submitRef = useRef<HTMLInputElement | null>(null);
   //
   //
   // HANDLE PRACTICE STSRT
@@ -75,7 +78,9 @@ export default function SingleQuestionBank({
     countdownRef.current = setInterval(() => {
       setTimeRemaining((t) => {
         if (t === 0) {
-          handleMcqSubmit();
+          if (submitRef?.current) {
+            submitRef.current.click();
+          }
           return 10 * 1000;
         }
         return t - 1000;
@@ -190,6 +195,7 @@ export default function SingleQuestionBank({
                 {/* SUBMIT BUTTON */}
                 {viewMode === "practice" && examStatus === "started" && (
                   <Button
+                    ref={submitRef}
                     className="w-full cursor-pointer"
                     onClick={handleMcqSubmit}
                   >
