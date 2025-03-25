@@ -67,7 +67,7 @@ export default function SingleQuestionBank({
     setExamStatus("ready");
   }
 
-  const submitRef = useRef<HTMLInputElement | null>(null);
+  const submitRef = useRef<HTMLButtonElement | null>(null);
   //
   //
   // HANDLE PRACTICE STSRT
@@ -79,6 +79,7 @@ export default function SingleQuestionBank({
         if (t === 0) {
           if (submitRef?.current) {
             submitRef.current.click();
+            submitRef.current = null;
           }
           return 10 * 1000;
         }
