@@ -3,12 +3,19 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="w-full h-screen flex justify-center items-center">
+    <div className="w-full h-screen flex justify-center items-center gap-5">
       <Link
         className="flex gap-2 items-center hover:opacity-80 cursor-pointer bg-foreground text-background font-semibold px-4 py-3 rounded-2xl"
         href={"/question-bank"}
       >
         <span>Question bank</span>
+        <ArrowRight />
+      </Link>
+      <Link
+        className="flex gap-2 items-center hover:opacity-80 cursor-pointer bg-foreground text-background font-semibold px-4 py-3 rounded-2xl"
+        href={"/admin"}
+      >
+        <span>Admin</span>
         <ArrowRight />
       </Link>
     </div>
