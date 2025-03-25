@@ -8,8 +8,7 @@ import {
 } from "../ui/collapsible";
 import { Bookmark, BookmarkCheck, ChevronsUpDown, X } from "lucide-react";
 import { Button } from "../ui/button";
-import { QuestionType } from "@/app/storage/storage-type";
-import { SingleMcqAnswerType } from "@/lib/type";
+import { QuestionType, SingleMcqAnswerType } from "@/lib/type";
 
 export default function SingleMcqQuestion({
   q,
