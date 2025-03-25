@@ -1,3 +1,5 @@
+import { JSX } from "react";
+
 export interface QuestionType {
   _id: string;
   class: string;
@@ -17,6 +19,7 @@ export interface QuestionType {
   answer: string;
   mark: number;
   explanation?: string;
+  time: number;
 }
 
 export interface ScriptResType {
@@ -32,4 +35,11 @@ export interface SingleMcqAnswerType {
   givenAns: string | undefined;
   mark: number;
   isCorrect: boolean;
+}
+
+export interface SidebarItemType {
+  title: string;
+  url: string;
+  icon: JSX.Element;
+  subItem: { title: string; url: string }[];
 }

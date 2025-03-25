@@ -1,4 +1,4 @@
-import { QuestionType } from "./storage-type";
+import { QuestionType } from "@/lib/type";
 
 export const allQuestions: QuestionType[] = [
   {
@@ -30,6 +30,7 @@ export const allQuestions: QuestionType[] = [
     toughness: 5,
     explanation:
       "Allah asehi banaiya hee vai. Tu samajta q nehi hee. Na bujhle, Mukhosto kor.are you. ",
+    time: 1,
   },
   {
     _id: "32938dhd39",
@@ -60,6 +61,7 @@ export const allQuestions: QuestionType[] = [
     toughness: 5,
     explanation:
       "Allah asehi banaiya hee vai. Tu samajta q nehi hee. Na bujhle, Mukhosto kor.are you. ",
+    time: 1,
   },
   //   {
   //     class: "HSC",

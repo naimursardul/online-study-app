@@ -115,7 +115,19 @@ export default function SingleMcqQuestion({
   return (
     <div className="bg-background rounded-xl p-5 max-sm:p-4 border border-sidebar-border">
       <div className="flex flex-col gap-3">
+        {/*  */}
+        {/*  */}
+        {/*  */}
+        {/* NUMBERING + BOOKMARK BUTTON */}
+        {/*  */}
+        {/*  */}
         <div className="flex gap-3 justify-between items-start ">
+          {/*  */}
+          {/*  */}
+          {/*  */}
+          {/* NUMBERING */}
+          {/*  */}
+          {/*  */}
           <div className="flex gap-2">
             <p className="bg-input size-5 md:size-7 flex justify-center items-center px-2 py-2 text-xs rounded">
               {i}
@@ -126,6 +138,12 @@ export default function SingleMcqQuestion({
                 <X className="text-red-700 " />
               )}
           </div>
+          {/*  */}
+          {/*  */}
+          {/*  */}
+          {/* BOOKMAR BUTTON */}
+          {/*  */}
+          {/*  */}
           <Button
             onClick={() => setIsMarked(!isMarked)}
             variant={"ghost"}
@@ -139,7 +157,19 @@ export default function SingleMcqQuestion({
             )}
           </Button>
         </div>
+        {/*  */}
+        {/*  */}
+        {/*  */}
+        {/* QUESTION DETAILS */}
+        {/*  */}
+        {/*  */}
         <p className="w-full max-sm:text-sm">{q?.detail[0]}</p>
+        {/*  */}
+        {/*  */}
+        {/*  */}
+        {/* RECORDS */}
+        {/*  */}
+        {/*  */}
         {q?.record?.length > 0 && (
           <div className="flex justify-end ">
             <p className="bg-sidebar-accent px-2 py-2 text-chart-2 text-xs max-sm:text-[11px] font-bold rounded">
@@ -147,8 +177,15 @@ export default function SingleMcqQuestion({
             </p>
           </div>
         )}
+
         {viewMode === "practice" ? (
           <>
+            {/*  */}
+            {/*  */}
+            {/*  */}
+            {/* MCQ FORM */}
+            {/*  */}
+            {/*  */}
             <form
               onChange={handleSingleMcqSubmit}
               className="grid grid-cols-1 sm:grid-cols-2 gap-1 "
@@ -162,6 +199,12 @@ export default function SingleMcqQuestion({
                       o
                     )}`}
                   >
+                    {/*  */}
+                    {/*  */}
+                    {/*  */}
+                    {/* OPTION NUMBERING */}
+                    {/*  */}
+                    {/*  */}
                     <div
                       className={`min-w-4 min-h-4 md:min-w-5 md:min-h-5 flex items-center justify-center border-1 border-primary rounded-full text-xs md:text-sm ${
                         singleMcqAnswer?.givenAns === o ||
@@ -172,6 +215,12 @@ export default function SingleMcqQuestion({
                     >
                       {optionSetting[j]}
                     </div>
+                    {/*  */}
+                    {/*  */}
+                    {/*  */}
+                    {/* OPTION INPUT */}
+                    {/*  */}
+                    {/*  */}
                     <input
                       hidden
                       ref={(el) => {
@@ -183,10 +232,22 @@ export default function SingleMcqQuestion({
                       id="mcq"
                       value={o}
                     />
+                    {/*  */}
+                    {/*  */}
+                    {/*  */}
+                    {/* OPTION DETAILS */}
+                    {/*  */}
+                    {/*  */}
                     <p className="max-sm:text-sm ">{o}</p>
                   </div>
                 ))}
             </form>
+            {/*  */}
+            {/*  */}
+            {/*  */}
+            {/* MCQ EXPLANATION (PRACTICE) */}
+            {/*  */}
+            {/*  */}
             {examStatus === "finished" && (
               <Collapsible
                 open={isOpen}
@@ -204,6 +265,12 @@ export default function SingleMcqQuestion({
             )}
           </>
         ) : (
+          //
+          //
+          //
+          // MCQ (VIEW ONLY + SHOW ANSWER MODE)
+          //
+          //
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 ">
             {q?.options?.length &&
               q.options.map((o, j) => (
@@ -215,6 +282,12 @@ export default function SingleMcqQuestion({
                       : "bg-sidebar-accent"
                   }`}
                 >
+                  {/*  */}
+                  {/*  */}
+                  {/*  */}
+                  {/* OPTION NUMBERING */}
+                  {/*  */}
+                  {/*  */}
                   <div
                     className={`min-w-4 min-h-4 md:min-w-5 md:min-h-5 flex items-center justify-center border-1  ${
                       viewMode === "showAns" && q?.answer === o
@@ -224,12 +297,23 @@ export default function SingleMcqQuestion({
                   >
                     {optionSetting[j]}
                   </div>
+                  {/*  */}
+                  {/*  */}
+                  {/*  */}
+                  {/* OPTION DETAILS */}
+                  {/*  */}
+                  {/*  */}
                   <p className="max-sm:text-sm ">{o}</p>
                 </div>
               ))}
           </div>
         )}
-
+        {/*  */}
+        {/*  */}
+        {/*  */}
+        {/* MCQ EXPLANATION */}
+        {/*  */}
+        {/*  */}
         {viewMode === "showAns" && (
           <Collapsible
             open={isOpen}
