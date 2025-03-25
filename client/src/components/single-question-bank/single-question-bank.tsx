@@ -1,11 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { QuestionType } from "@/app/storage/storage-type";
 import SingleCqQuestion from "./single-cq-exam";
 import SingleMcqQuestion from "./single-mcq-question";
 import { Button } from "../ui/button";
-import { ScriptResType, SingleMcqAnswerType } from "@/lib/type";
+import { QuestionType, ScriptResType, SingleMcqAnswerType } from "@/lib/type";
 import FormatTime from "../format-time";
 import { MousePointerClick, TextSelect } from "lucide-react";
 
