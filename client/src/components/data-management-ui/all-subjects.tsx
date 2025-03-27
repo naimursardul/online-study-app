@@ -19,28 +19,24 @@ import {
   TableRow,
 } from "../ui/table";
 import { useState, useEffect } from "react";
-import { ChapterType } from "@/lib/type";
+import { SubjectType } from "@/lib/type";
 
-export default function AllChapters() {
+export default function AllSubjects() {
   const [filter, setFilter] = useState<{
     student_class?: string;
-    subject?: string;
-    chapter?: string;
   }>({});
-  const [chapters, setChapters] = useState<ChapterType[]>([]);
+  const [subjects, setSubjects] = useState<SubjectType[]>([]);
 
-  // Fetch chapters based on selected class and subject
+  // Fetch subjects based on selected student class
   useEffect(() => {
-    if (filter.student_class && filter.subject) {
-      fetch(
-        `/api/chapters?class=${filter.student_class}&subject=${filter.subject}`
-      )
+    if (filter.student_class) {
+      fetch(`/api/subjects?class=${filter.student_class}`)
         .then((res) => res.json())
-        .then((data) => setChapters(data));
+        .then((data) => setSubjects(data));
     } else {
-      setChapters([]);
+      setSubjects([]);
     }
-  }, [filter.student_class, filter.subject]);
+  }, [filter.student_class]);
 
   function handleOnChange(e: React.ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -51,7 +47,7 @@ export default function AllChapters() {
 
   return (
     <div className="w-full space-y-5">
-      <h2 className="text-xl font-bold">All Chapters</h2>
+      <h2 className="text-xl font-bold">All Subjects</h2>
       <div>
         <form onChange={handleOnChange} className="flex flex-wrap gap-3">
           <Select name="student_class">
@@ -65,38 +61,24 @@ export default function AllChapters() {
               </SelectGroup>
             </SelectContent>
           </Select>
-
-          <Select name="subject">
-            <SelectTrigger>
-              <SelectValue placeholder="Select Subject" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="physics1">Physics 1st</SelectItem>
-                <SelectItem value="chemistry2">Chemistry 2nd</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
         </form>
       </div>
 
-      {/* Table displaying chapters based on selected class and subject */}
+      {/* Table displaying subjects based on the selected class */}
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Class</TableHead>
             <TableHead>Subject</TableHead>
-            <TableHead>Chapter</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {chapters.length > 0 ? (
-            chapters.map((chapter) => (
-              <TableRow key={chapter.id}>
+          {subjects.length > 0 ? (
+            subjects.map((subject) => (
+              <TableRow key={subject.id}>
                 <TableCell>{filter.student_class?.toUpperCase()}</TableCell>
-                <TableCell>{filter.subject}</TableCell>
-                <TableCell>{chapter.name}</TableCell>
+                <TableCell>{subject.name}</TableCell>
                 <TableCell className="flex gap-3">
                   <Button
                     size="sm"
@@ -117,8 +99,8 @@ export default function AllChapters() {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={4} className="text-center">
-                No chapters available for the selected class and subject
+              <TableCell colSpan={3} className="text-center">
+                No subjects available for the selected class
               </TableCell>
             </TableRow>
           )}

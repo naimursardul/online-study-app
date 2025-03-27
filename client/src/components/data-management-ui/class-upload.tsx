@@ -1,26 +1,62 @@
 "use client";
 
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 import { PlusCircle } from "lucide-react";
+import { useState, FormEvent } from "react";
 import SubmitBtn from "../submit-btn";
-import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
+import { ClassType } from "@/lib/type";
 
-export default function StudentClassUpload() {
-  function handleFormSubmit(formData: FormData) {
-    const { title, value } = Object.fromEntries(formData);
-    console.log({ title, value });
-  }
+export default function TopicUpload() {
+  const [formData, setFormData] = useState<ClassType>({
+    title: "",
+    details: "",
+  });
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    console.log("Form Data Submitted:", formData);
+  };
 
   return (
-    <div className="mt-5 w-full max-w-[350px] space-y-8 bg-background px-6 py-8 rounded-xl">
-      <h2 className="flex gap-2 items-center justify-center text-xl font-bold">
-        <PlusCircle />
-        <span>Create a Class</span>
-      </h2>
-      <form action={handleFormSubmit} className="space-y-2">
-        <Input type="text" name="title" placeholder="Title" />
-        <Input type="text" name="value" placeholder="Value" />
-        <SubmitBtn className="w-full" />
-      </form>
-    </div>
+    <Card className="max-w-md min-w-xs mx-auto p-4 mt-5 shadow-md">
+      <CardContent>
+        <h2 className="text-xl font-semibold text-center mb-5 flex items-center justify-center gap-2">
+          <PlusCircle />
+          <span>Create a Class</span>
+        </h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="title">Title</Label>
+            <Input
+              id="title"
+              name="title"
+              value={formData.title}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
+              placeholder="Enter Title"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="value">Details</Label>
+            <Textarea
+              id="details"
+              name="details"
+              value={formData.details}
+              onChange={(e) =>
+                setFormData({ ...formData, details: e.target.value })
+              }
+              placeholder="Enter details about the class"
+            />
+          </div>
+
+          <SubmitBtn />
+        </form>
+      </CardContent>
+    </Card>
   );
 }

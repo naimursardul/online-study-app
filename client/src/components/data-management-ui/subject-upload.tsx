@@ -1,8 +1,8 @@
 "use client";
 
-import { PlusCircle } from "lucide-react";
-import SubmitBtn from "../submit-btn";
-import { Input } from "../ui/input";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -10,45 +10,66 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
+} from "@/components/ui/select";
+import { PlusCircle } from "lucide-react";
+import { useState, FormEvent } from "react";
+import SubmitBtn from "../submit-btn";
+import { SubjectType } from "@/lib/type";
 
-export default function ChapterUpload() {
-  function handleFormSubmit(formData: FormData) {
-    const { student_class, subject, chapter, title, value } =
-      Object.fromEntries(formData);
-    console.log({ student_class, subject, chapter, title, value });
-  }
-  function handleOnChangeClass(e: React.ChangeEvent<HTMLInputElement>) {
+export default function SubjectUpload() {
+  const [formData, setFormData] = useState<SubjectType>({
+    studentClass: "",
+    title: "",
+  });
+
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    console.log(e.target.name, e.target.value);
-  }
+    console.log("Form Data Submitted:", formData);
+  };
 
   return (
-    <div className="mt-5 w-full max-w-[350px] space-y-8 bg-background px-6 py-8 rounded-xl">
-      <h2 className="flex gap-2 items-center justify-center text-xl font-bold">
-        <PlusCircle />
-        <span>Create a Chapter</span>
-      </h2>
-      <form action={handleFormSubmit} className="space-y-2">
-        <Select>
-          <SelectTrigger className="w-full">
-            <SelectValue
-              onChange={handleOnChangeClass}
-              placeholder="Select Student class"
-            />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value="hsc">HSC</SelectItem>
-              <SelectItem value="ssc">SSC</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+    <Card className="max-w-md min-w-xs mx-auto p-4 mt-5 shadow-md">
+      <CardContent>
+        <h2 className="text-xl font-semibold text-center mb-5 flex items-center justify-center gap-2">
+          <PlusCircle />
+          <span>Create a Subject</span>
+        </h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="studentClass">Student Class</Label>
+            <Select
+              onValueChange={(value) =>
+                setFormData({ ...formData, studentClass: value })
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select Student Class" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="hsc">HSC</SelectItem>
+                  <SelectItem value="ssc">SSC</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
 
-        <Input type="text" name="title" placeholder="Title" />
-        <Input type="text" name="value" placeholder="Value" />
-        <SubmitBtn className="w-full" />
-      </form>
-    </div>
+          <div className="space-y-2">
+            <Label htmlFor="title">Subject title</Label>
+            <Input
+              id="title"
+              name="title"
+              value={formData.title}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
+              placeholder="Enter Title"
+            />
+          </div>
+
+          <SubmitBtn />
+        </form>
+      </CardContent>
+    </Card>
   );
 }
