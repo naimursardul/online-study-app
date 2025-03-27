@@ -93,10 +93,10 @@ export default function AllChapters() {
         <TableBody>
           {chapters.length > 0 ? (
             chapters.map((chapter) => (
-              <TableRow key={chapter.id}>
+              <TableRow key={chapter._id}>
                 <TableCell>{filter.student_class?.toUpperCase()}</TableCell>
                 <TableCell>{filter.subject}</TableCell>
-                <TableCell>{chapter.name}</TableCell>
+                <TableCell>{chapter.title}</TableCell>
                 <TableCell className="flex gap-3">
                   <Button
                     size="sm"

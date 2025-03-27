@@ -155,11 +155,11 @@ export default function AllTopics() {
         <TableBody>
           {topics.length > 0 ? (
             topics.map((topic) => (
-              <TableRow key={topic.id}>
-                <TableCell>{topic.class}</TableCell>
+              <TableRow key={topic._id}>
+                <TableCell>{topic.studentClass}</TableCell>
                 <TableCell>{topic.subject}</TableCell>
                 <TableCell>{topic.chapter}</TableCell>
-                <TableCell>{topic.name}</TableCell>
+                <TableCell>{topic.title}</TableCell>
                 <TableCell className="flex gap-3">
                   <Button
                     size="sm"

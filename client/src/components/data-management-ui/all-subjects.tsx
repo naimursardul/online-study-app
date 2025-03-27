@@ -76,9 +76,9 @@ export default function AllSubjects() {
         <TableBody>
           {subjects.length > 0 ? (
             subjects.map((subject) => (
-              <TableRow key={subject.id}>
+              <TableRow key={subject._id}>
                 <TableCell>{filter.student_class?.toUpperCase()}</TableCell>
-                <TableCell>{subject.name}</TableCell>
+                <TableCell>{subject.title}</TableCell>
                 <TableCell className="flex gap-3">
                   <Button
                     size="sm"
