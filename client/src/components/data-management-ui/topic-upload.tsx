@@ -52,7 +52,7 @@ export default function TopicUpload() {
   };
 
   return (
-    <Card className="max-w-md min-w-xs mx-auto p-4 mt-5 shadow-md">
+    <Card className="max-w-md w-full mx-auto p-4 mt-10 shadow-md">
       <CardContent>
         <h2 className="text-xl font-semibold text-center mb-5 flex items-center justify-center gap-2">
           <PlusCircle />

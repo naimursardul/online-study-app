@@ -3,9 +3,9 @@ import SubjectUpload from "@/components/data-management-ui/subject-upload";
 
 export default function page() {
   return (
-    <div className="w-full flex flex-col-reverse lg:flex-row max-lg:items-center gap-5">
-      <AllSubjects />
+    <div className="w-full flex flex-col items-center gap-10">
       <SubjectUpload />
+      <AllSubjects />
     </div>
   );
 }

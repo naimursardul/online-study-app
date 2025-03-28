@@ -3,9 +3,9 @@ import ClassUpload from "@/components/data-management-ui/class-upload";
 
 export default function page() {
   return (
-    <div className="w-full flex flex-col-reverse lg:flex-row max-lg:items-center gap-5">
-      <AllClasses />
+    <div className="w-full flex flex-col items-center gap-10">
       <ClassUpload />
+      <AllClasses />
     </div>
   );
 }

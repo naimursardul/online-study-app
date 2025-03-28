@@ -41,7 +41,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="w-full flex gap-4 max-md:gap-3 pl-6 pr-10 ">
           <SidebarTrigger className="mt-1 cursor-pointer" />
         </div>
-        <main className="pl-6 pr-6 py-5">{children}</main>
+        <main className="mx-6 my-6">{children}</main>
       </div>
     </SidebarProvider>
   );

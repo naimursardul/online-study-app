@@ -1,24 +1,22 @@
 import { JSX } from "react";
 
 export interface QuestionType {
-  _id: string;
-  class: string;
-  subject: string;
-  paper: number;
-  chapter: number;
-  topic: string;
+  _id?: string;
   questionType: string;
-  standard: string;
-  record: string[][];
-  tag: string[];
-  toughness: number;
+  studentClass: string;
+  subject: string;
+  chapter: string;
+  topic: string;
+  appearedInExam: boolean;
+  record: string[];
+  difficulty: "Easy" | "Medium" | "Hard";
 
   statement?: string;
-  detail: string[];
-  options?: string[];
+  question: string[];
+  options: string[];
   answer: string;
-  mark: number;
   explanation?: string;
+  mark: number;
   time: number;
 }
 
