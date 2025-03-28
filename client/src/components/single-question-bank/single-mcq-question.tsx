@@ -67,7 +67,7 @@ export default function SingleMcqQuestion({
   function handleSingleMcqSubmit(e: React.ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
     const singleAnsObj: SingleMcqAnswerType = {
-      id: q._id,
+      id: q._id || "",
       givenAns: e.target.value,
       mark: q?.mark,
       isCorrect: e.target.value === q.answer,
@@ -162,7 +162,7 @@ export default function SingleMcqQuestion({
         {/* QUESTION DETAILS */}
         {/*  */}
         {/*  */}
-        <p className="w-full max-sm:text-sm">{q?.detail[0]}</p>
+        <p className="w-full max-sm:text-sm">{q?.question[0]}</p>
         {/*  */}
         {/*  */}
         {/*  */}
@@ -172,7 +172,7 @@ export default function SingleMcqQuestion({
         {q?.record?.length > 0 && (
           <div className="flex justify-end ">
             <p className="bg-sidebar-accent px-2 py-2 text-chart-2 text-xs max-sm:text-[11px] font-bold rounded">
-              {q.tag.join(", ")}
+              {q.record.join(", ")}
             </p>
           </div>
         )}
