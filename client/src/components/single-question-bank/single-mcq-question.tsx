@@ -26,7 +26,7 @@ export default function SingleMcqQuestion({
   const [isMarked, setIsMarked] = useState<boolean>(false);
   const [changeOption, setChangeOption] = useState<boolean>(true);
   const [singleMcqAnswer, setSingleMcqAnswer] = useState<SingleMcqAnswerType>({
-    id: q._id,
+    id: q._id || "",
     givenAns: undefined,
     mark: q.mark,
     isCorrect: false,
