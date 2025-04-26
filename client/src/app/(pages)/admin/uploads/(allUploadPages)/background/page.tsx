@@ -13,21 +13,6 @@ export default function page() {
       name: "level",
     },
     {
-      label: "Background",
-      inputType: "checkbox",
-      name: "background",
-    },
-    {
-      label: "Subject",
-      inputType: "select",
-      name: "subject",
-    },
-    {
-      label: "Chapter",
-      inputType: "select",
-      name: "chapter",
-    },
-    {
       label: "Name",
       inputType: "input",
       name: "name",
@@ -40,12 +25,18 @@ export default function page() {
         <CardContent>
           <h2 className="text-xl font-semibold text-center mb-5 flex items-center justify-center gap-2">
             <PlusCircle />
-            <span>Create a Topic</span>
+            <span>Create a Background</span>
           </h2>
-          <UploadForm formInfo={createFormInfo("POST", `/api/topic`, fields)} />
+          <UploadForm
+            formInfo={createFormInfo("POST", `/api/background`, fields)}
+          />
         </CardContent>
       </Card>
-      <AllData heading={"Topic"} route={`/api/topic`} fields={fields} />
+      <AllData
+        heading={"Background"}
+        route={`/api/background`}
+        fields={fields}
+      />
     </div>
   );
 }

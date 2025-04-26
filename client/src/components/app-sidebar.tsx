@@ -21,7 +21,6 @@ import { SidebarItemType } from "@/lib/type";
 
 export function AppSidebar({ items }: { items: SidebarItemType[] }) {
   const pathname = usePathname();
-  console.log(pathname);
   return (
     <Sidebar collapsible="icon" className="w-[200px]">
       <SidebarHeader className="mt-3">

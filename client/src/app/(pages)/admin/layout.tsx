@@ -13,7 +13,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       subItem: [
         { title: "Question", url: "/admin/uploads/question" },
         { title: "Record", url: "/admin/uploads/record" },
-        { title: "Class", url: "/admin/uploads/class" },
+        { title: "Level", url: "/admin/uploads/level" },
+        { title: "Background", url: "/admin/uploads/background" },
         { title: "Subject", url: "/admin/uploads/subject" },
         { title: "Chapter", url: "/admin/uploads/chapter" },
         { title: "Topic", url: "/admin/uploads/topic" },
