@@ -102,6 +102,14 @@ export interface ICQ extends IBaseQuestion {
   subQuestions: ISubQuestions[];
 }
 
+// MCQ
+export interface IMCQ extends IBaseQuestion {
+  question: string;
+  options: string[];
+  correctAnswer: string;
+  explanation: string;
+}
+
 // Populated Type
 export interface IPopulatedData {
   _id: string;

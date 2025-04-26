@@ -1,5 +1,6 @@
 import SingleQuestionBank from "@/components/single-question-bank/single-question-bank";
 import SingleQuestionBankSidebar from "@/components/single-question-bank/single-question-bank-sidebar";
+import { IMCQ } from "@/lib/type";
 import { getBoardQusetonDetails } from "@/lib/utils";
 
 export default async function page({
@@ -10,7 +11,7 @@ export default async function page({
   const { slug } = await params;
   const qDetails = getBoardQusetonDetails(slug);
 
-  const allQuestions = [];
+  const allQuestions: ICQ | IMCQ = [];
   const filteredQuestion = allQuestions.filter(
     (q) => q.questionType === qDetails?.questionType
   );
