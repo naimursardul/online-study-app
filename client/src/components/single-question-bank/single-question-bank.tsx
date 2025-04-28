@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import SingleCqQuestion from "./single-cq-exam";
 import SingleMcqQuestion from "./single-mcq-question";
 import { Button } from "../ui/button";
-import { QuestionType, ScriptResType, SingleMcqAnswerType } from "@/lib/type";
+import { ScriptResType, SingleMcqAnswerType } from "@/lib/type";
 import FormatTime from "../format-time";
 import { MousePointerClick, TextSelect } from "lucide-react";
 
@@ -13,7 +13,7 @@ export default function SingleQuestionBank({
   allQuestions,
 }: {
   qType: string | undefined;
-  allQuestions: QuestionType[];
+  allQuestions: any[];
 }) {
   //
   //

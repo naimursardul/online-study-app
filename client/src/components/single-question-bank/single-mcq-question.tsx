@@ -8,7 +8,7 @@ import {
 } from "../ui/collapsible";
 import { Bookmark, BookmarkCheck, ChevronsUpDown, X } from "lucide-react";
 import { Button } from "../ui/button";
-import { QuestionType, SingleMcqAnswerType } from "@/lib/type";
+import { SingleMcqAnswerType } from "@/lib/type";
 
 export default function SingleMcqQuestion({
   q,
@@ -17,7 +17,7 @@ export default function SingleMcqQuestion({
   setAnswerScript,
   examStatus,
 }: {
-  q: QuestionType;
+  q: any;
   i: number;
   viewMode: string;
   examStatus: "ready" | "started" | "finished";
