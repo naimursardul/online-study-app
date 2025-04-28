@@ -1,4 +1,3 @@
-// ===== controllers/record-controller.ts =====
 import { Request, Response } from "express";
 import Record from "../models/record-model";
 import { BaseQuestion } from "../models/question-model";
@@ -37,8 +36,8 @@ export const createRecord = async (req: Request, res: Response) => {
   }
 };
 
-// Get All Records
-export const getAllRecords = async (req: Request, res: Response) => {
+// Get All record
+export const getAllRecord = async (req: Request, res: Response) => {
   try {
     const { recordType, institution, year } = req.query;
     const filter: any = {};
@@ -46,12 +45,12 @@ export const getAllRecords = async (req: Request, res: Response) => {
     if (institution) filter.institution = institution;
     if (year) filter.year = year;
 
-    const records = await Record.find(filter);
+    const record = await Record.find(filter);
 
     res.status(200).json({
       success: true,
-      message: "Records fetched successfully.",
-      data: records,
+      message: "record fetched successfully.",
+      data: record,
     });
     return;
   } catch (error) {
@@ -119,16 +118,16 @@ export const updateRecord = async (req: Request, res: Response) => {
     }
 
     // Update related BaseQuestions
-    const questions = await BaseQuestion.find({ recordsId: id });
+    const questions = await BaseQuestion.find({ recordId: id });
     for (const question of questions) {
-      // Find the index of the recordId in question.recordsId
-      const recordIndex = question.recordsId.findIndex(
+      // Find the index of the recordId in question.recordId
+      const recordIndex = question.recordId.findIndex(
         (recId) => recId.toString() === id
       );
 
       if (recordIndex !== -1) {
-        // Replace record information in question.records at the corresponding index
-        question.records[recordIndex] = {
+        // Replace record information in question.record at the corresponding index
+        question.record[recordIndex] = {
           recordType: record.recordType,
           institution: record.institution,
           year: record.year,
@@ -176,8 +175,8 @@ export const deleteRecord = async (req: Request, res: Response) => {
       { recordId: id },
       {
         $pull: {
-          recordsId: id,
-          records: {
+          recordId: id,
+          record: {
             recordType: deleted.recordType,
             institution: deleted.institution,
             year: deleted.year,

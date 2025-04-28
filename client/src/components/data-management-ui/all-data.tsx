@@ -93,40 +93,43 @@ export default function AllData({
           }
 
           try {
-            const res = await fetch(
-              `${process.env.NEXT_PUBLIC_DEVELOPMENT_API}/api/${field.name}${
-                query?.length > 0 ? "?" + query.join("&") : ""
-              }`
-            );
-            const data = await res.json();
-            if (data.success) {
-              field.optionData = data.data.map((d: Record<string, string>) => {
-                return { name: d?.name, _id: d?._id };
-              });
-              const newFields = [...fields];
-              const i: number = newFields.indexOf(field);
-              newFields.splice(i, 1, field);
-              setUpdatedFields([...newFields]);
-
-              if (
-                (typeof queryForm[field?.name] === "string" &&
-                  !queryForm[field?.name]) ||
-                (Array.isArray(queryForm[field?.name]) &&
-                  queryForm[field?.name].length <= 0)
-              ) {
-                deleteOptionData = true;
-                continue;
+            if (!field?.manualOptionData) {
+              const res = await fetch(
+                `${process.env.NEXT_PUBLIC_DEVELOPMENT_API}/api/${field.name}${
+                  query?.length > 0 ? "?" + query.join("&") : ""
+                }`
+              );
+              const data = await res.json();
+              if (data.success) {
+                field.optionData = data.data.map(
+                  (d: Record<string, string>) => {
+                    return { name: d?.name, _id: d?._id };
+                  }
+                );
+                const newFields = [...fields];
+                const i: number = newFields.indexOf(field);
+                newFields.splice(i, 1, field);
+                setUpdatedFields([...newFields]);
               }
-
-              if (
-                Array.isArray(queryForm[field?.name]) &&
-                queryForm[field?.name].length > 0
-              ) {
-                for (const qStr of queryForm[field?.name]) {
-                  query.push(`${field?.name}=${qStr}`);
-                }
-              } else query.push(`${field?.name}=${queryForm[field?.name]}`);
             }
+            if (
+              (typeof queryForm[field?.name] === "string" &&
+                !queryForm[field?.name]) ||
+              (Array.isArray(queryForm[field?.name]) &&
+                queryForm[field?.name].length <= 0)
+            ) {
+              deleteOptionData = true;
+              continue;
+            }
+
+            if (
+              Array.isArray(queryForm[field?.name]) &&
+              queryForm[field?.name].length > 0
+            ) {
+              for (const qStr of queryForm[field?.name]) {
+                query.push(`${field?.name}=${qStr}`);
+              }
+            } else query.push(`${field?.name}=${queryForm[field?.name]}`);
           } catch (error) {
             console.error(error);
           }
@@ -190,7 +193,14 @@ export default function AllData({
                     <SelectGroup>
                       {field?.optionData && field?.optionData.length > 0 ? (
                         field.optionData.map((option) => (
-                          <SelectItem key={option?._id} value={option?._id}>
+                          <SelectItem
+                            key={option?._id}
+                            value={
+                              field?.manualOptionData
+                                ? option?.name
+                                : option?._id
+                            }
+                          >
                             {option?.name}
                           </SelectItem>
                         ))

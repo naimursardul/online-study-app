@@ -1,21 +1,22 @@
 "use client";
 
 import SubmitBtn from "@/components/submit-btn";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+// import { Input } from "@/components/ui/input";
+// import { Label } from "@/components/ui/label";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectGroup,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
 import { IField, IFormInfo } from "@/lib/type";
 import { FormEvent, RefObject, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Textarea } from "../ui/textarea";
-import { Checkbox } from "../ui/checkbox";
+// import { Textarea } from "../ui/textarea";
+// import { Checkbox } from "../ui/checkbox";
+import DataField from "./data-field";
 
 export default function UploadForm({
   formInfo,
@@ -58,7 +59,6 @@ export default function UploadForm({
         return toast.warning(`${field?.name.toUpperCase()} must be filled in.`);
       }
     }
-    console.log(formInfo);
     try {
       if (formInfo.method === "POST" || formInfo.method === "PUT") {
         const res = await fetch(
@@ -93,40 +93,43 @@ export default function UploadForm({
             continue;
           }
           try {
-            const res = await fetch(
-              `${process.env.NEXT_PUBLIC_DEVELOPMENT_API}/api/${field.name}${
-                query?.length > 0 ? "?" + query.join("&") : ""
-              }`
-            );
-            const data = await res.json();
-            if (data.success) {
-              field.optionData = data.data.map((d: Record<string, string>) => {
-                return { name: d?.name, _id: d?._id };
-              });
-              setUpdatedFields((prev) => {
-                const i: number = prev.indexOf(field);
-                prev.splice(i, 1, field);
-                return [...prev];
-              });
-
-              if (
-                (typeof formData[field?.name] === "string" &&
-                  !formData[field?.name]) ||
-                (Array.isArray(formData[field?.name]) &&
-                  formData[field?.name].length <= 0)
-              ) {
-                deleteOptionData = true;
-                continue;
+            if (!field?.manualOptionData) {
+              const res = await fetch(
+                `${process.env.NEXT_PUBLIC_DEVELOPMENT_API}/api/${field.name}${
+                  query?.length > 0 ? "?" + query.join("&") : ""
+                }`
+              );
+              const data = await res.json();
+              if (data.success) {
+                field.optionData = data.data.map(
+                  (d: Record<string, string>) => {
+                    return { name: d?.name, _id: d?._id };
+                  }
+                );
+                setUpdatedFields((prev) => {
+                  const i: number = prev.indexOf(field);
+                  prev.splice(i, 1, field);
+                  return [...prev];
+                });
               }
-              if (
-                Array.isArray(formData[field?.name]) &&
-                formData[field?.name].length > 0
-              ) {
-                for (const qStr of formData[field?.name]) {
-                  query.push(`${field?.name}=${qStr}`);
-                }
-              } else query.push(`${field?.name}=${formData[field?.name]}`);
             }
+            if (
+              (typeof formData[field?.name] === "string" &&
+                !formData[field?.name]) ||
+              (Array.isArray(formData[field?.name]) &&
+                formData[field?.name].length <= 0)
+            ) {
+              deleteOptionData = true;
+              continue;
+            }
+            if (
+              Array.isArray(formData[field?.name]) &&
+              formData[field?.name].length > 0
+            ) {
+              for (const qStr of formData[field?.name]) {
+                query.push(`${field?.name}=${qStr}`);
+              }
+            } else query.push(`${field?.name}=${formData[field?.name]}`);
           } catch (error) {
             console.error(error);
           }
@@ -143,115 +146,12 @@ export default function UploadForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       {updatedFields?.length > 0 &&
         updatedFields.map((field: IField, i) => (
-          <div key={i} className="space-y-2">
-            {field?.label && <Label htmlFor="title">{field.label}</Label>}
-            {field?.inputType === "input" && (
-              <Input
-                id={field?.name}
-                name={field?.name}
-                defaultValue={formData[field?.name]}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    [field.name]: e.target.value,
-                  })
-                }
-                placeholder={`Enter ${field?.name}`}
-              />
-            )}
-
-            {field?.inputType === "textarea" && (
-              <Textarea
-                id={field?.name}
-                name={field?.name}
-                defaultValue={formData[field?.name]}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    [field.name]: e.target.value,
-                  })
-                }
-                placeholder={`Enter ${field?.name}`}
-              />
-            )}
-
-            {field?.inputType === "select" && (
-              <Select
-                defaultValue={formData[field?.name]}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, [field?.name]: value })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={`Select ${field?.name}`} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {field?.optionData && field?.optionData.length > 0 ? (
-                      field.optionData.map((option) => (
-                        <SelectItem key={option?._id} value={option?._id}>
-                          {option?.name}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="No-value" disabled>
-                        No {field?.name} available
-                      </SelectItem>
-                    )}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            )}
-            {field?.inputType === "checkbox" &&
-              (field?.optionData ? (
-                field?.optionData.length > 0 &&
-                field.optionData.map((option) => (
-                  <div key={option?._id} className="flex gap-2">
-                    <Checkbox
-                      defaultChecked={(
-                        formData[field?.name] as unknown as string[]
-                      ).includes(option?._id)}
-                      onCheckedChange={(change: boolean) =>
-                        setFormData(() => {
-                          if (change) {
-                            if (
-                              !(
-                                formData[field?.name] as unknown as string[]
-                              ).includes(option?._id)
-                            ) {
-                              (
-                                formData[field?.name] as unknown as string[]
-                              ).push(option?._id);
-                            }
-                          } else {
-                            if (
-                              (
-                                formData[field?.name] as unknown as string[]
-                              ).includes(option?._id)
-                            ) {
-                              const index = (
-                                formData[field?.name] as unknown as string[]
-                              ).indexOf(option?._id);
-                              (
-                                formData[field?.name] as unknown as string[]
-                              ).splice(index, 1);
-                            }
-                          }
-                          return {
-                            ...formData,
-                          };
-                        })
-                      }
-                    />
-                    <Label className="font-light">{option.name}</Label>
-                  </div>
-                ))
-              ) : (
-                <small className="font-light pl-3">
-                  No {field?.name} available.
-                </small>
-              ))}
-          </div>
+          <DataField
+            key={i}
+            formData={formData}
+            setFormData={setFormData}
+            field={field}
+          />
         ))}
       <SubmitBtn />
     </form>

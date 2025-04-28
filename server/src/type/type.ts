@@ -20,8 +20,8 @@ export interface IBaseQuestion extends Document {
   chapterId: string;
   topic: string;
   topicId: string;
-  records: IRecord[];
-  recordsId: string[];
+  record: IRecord[];
+  recordId: string[];
   marks: number;
   timeRequired: number;
   difficulty: "Easy" | "Medium" | "Hard";

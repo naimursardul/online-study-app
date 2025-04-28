@@ -2,7 +2,7 @@
 import express from "express";
 import {
   createRecord,
-  getAllRecords,
+  getAllRecord,
   getSingleRecord,
   updateRecord,
   deleteRecord,
@@ -14,7 +14,7 @@ const router = express.Router();
 router.post("/create", createRecord);
 
 // Get all records (with optional filters)
-router.get("/", getAllRecords);
+router.get("/", getAllRecord);
 
 // Get a single record by ID
 router.get("/:id", getSingleRecord);

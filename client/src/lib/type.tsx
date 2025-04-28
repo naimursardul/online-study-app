@@ -1,4 +1,4 @@
-import { JSX } from "react";
+import React, { JSX } from "react";
 
 export interface ScriptResType {
   correct: number;
@@ -25,8 +25,19 @@ export interface IField {
   label?: string;
   inputType: string;
   name: string;
+  placeholder?: string;
+  type?: string;
+  manualOptionData?: boolean;
   optionData?: IOptionData[];
   req?: boolean;
+  dependencies?: string[];
+}
+
+// DATA FIELD PROPS TYPE
+export interface DataFieldProps<T> {
+  formData: T;
+  setFormData: React.Dispatch<React.SetStateAction<T>>;
+  field?: IField;
 }
 
 // FORM ARRAY
@@ -72,8 +83,8 @@ export interface IBaseQuestion {
   chapterId: string;
   topic: string;
   topicId: string;
-  records: IRecord[];
-  recordsId: string[];
+  record: IRecord[];
+  recordId: string[];
   marks: number;
   timeRequired: number;
   difficulty: "Easy" | "Medium" | "Hard";

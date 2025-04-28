@@ -63,13 +63,13 @@ const baseQuestionSchema = new Schema<IBaseQuestion>(
       type: String,
       required: true,
     },
-    recordsId: [
+    recordId: [
       {
         type: String,
         required: true,
       },
     ],
-    records: [
+    record: [
       {
         recordType: {
           type: String,

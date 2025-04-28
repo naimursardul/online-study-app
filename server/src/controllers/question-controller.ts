@@ -23,8 +23,8 @@ async function createQuestion(req: Request, res: Response) {
       chapterId,
       topic,
       topicId,
-      records,
-      recordsId,
+      record,
+      recordId,
       timeRequired,
       marks,
       difficulty,
@@ -65,10 +65,10 @@ async function createQuestion(req: Request, res: Response) {
       !chapterId ||
       !topic ||
       !topicId ||
-      !Array.isArray(records) ||
-      records.length <= 0 ||
-      !Array.isArray(recordsId) ||
-      recordsId.length <= 0 ||
+      !Array.isArray(record) ||
+      record.length <= 0 ||
+      !Array.isArray(recordId) ||
+      recordId.length <= 0 ||
       !timeRequired ||
       !marks ||
       !difficulty
@@ -76,7 +76,7 @@ async function createQuestion(req: Request, res: Response) {
       res.status(400).json({
         success: false,
         message:
-          "Missing required fields: level, background, subject, chapter, topic, records, timeRequired, and difficulty.",
+          "Missing required fields: level, background, subject, chapter, topic, record, timeRequired, and difficulty.",
         data: null,
       });
       return;
@@ -190,7 +190,7 @@ const getAllQuestions = async (req: Request, res: Response) => {
       subject,
       chapter,
       topic,
-      recordsId,
+      recordId,
       recordType,
       institution,
       year,
@@ -213,7 +213,7 @@ const getAllQuestions = async (req: Request, res: Response) => {
     if (typeof subject === "string") query.subject = subject;
     if (typeof chapter === "string") query.chapter = chapter;
     if (typeof topic === "string") query.topic = topic;
-    if (typeof recordsId === "string") query.recordsId = recordsId;
+    if (typeof recordId === "string") query.recordId = recordId;
     // Initialize $elemMatch filter if needed
     const elemMatch: any = {};
 
@@ -223,7 +223,7 @@ const getAllQuestions = async (req: Request, res: Response) => {
 
     // Only assign $elemMatch if any of the conditions are added
     if (Object.keys(elemMatch).length > 0) {
-      query.records = { $elemMatch: elemMatch };
+      query.record = { $elemMatch: elemMatch };
     }
 
     let allQuestions;

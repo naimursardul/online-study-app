@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { IField, IFormInfo } from "./type";
+import { IField, IFormInfo, IOptionData } from "./type";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -116,4 +116,14 @@ export function getQueryFormInitData(fields: IField[]) {
     } else (obj as unknown as Record<string, string>)[field.name] = "";
   }
   return { ...obj };
+}
+
+// CREATE MANUAL OPTIONS
+export function createManualOptions(arr: string[]): IOptionData[] {
+  if (!Array.isArray(arr)) {
+    throw new Error("Input must be an array.");
+  }
+  return arr.map((_o, i) => {
+    return { _id: `${i + 1000}`, name: _o };
+  });
 }
