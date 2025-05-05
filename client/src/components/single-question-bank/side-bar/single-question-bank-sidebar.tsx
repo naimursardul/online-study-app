@@ -51,7 +51,7 @@ export default function SingleQuestionBankSidebar({
         {(!loading && Array.isArray(allData)) ||
         (loading && Array.isArray(allData) && allData.length > 0)
           ? allData.map((d, i) => (
-              <div key={i} className="flex flex-col gap-2">
+              <div key={i} className="flex md:flex-col gap-2">
                 <Link
                   className={
                     `${slug[0]}/MCQ_${d?.institution}_${d?.year}` ===
