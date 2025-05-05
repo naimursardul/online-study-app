@@ -7,22 +7,17 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const getBoardQusetonDetails = (slug: string[]) => {
-  // board-hsc-science-physics-1-mcq-dhaka-2024
+  // HSC_Physics-1st_mcq_dhaka_2024
   if (Array.isArray(slug) && slug.length > 0) {
-    const text = slug.join("-");
-    const arr = text.split("-");
+    const text = slug.join("_");
+    const arr = text.split("_");
     const obj = {
-      standard: arr[0] || "",
-      class: arr[1] || "",
-      faculty: arr[2] || "",
-      subject: arr[3] || "",
-      paper: arr[4] || "",
-      questionType: arr[5] || "",
-      record: [""],
+      level: arr[0] || "",
+      subject: arr[1] || "",
+      questionType: arr[2] || "",
+      institution: arr[3] || "",
+      year: arr[4] || "",
     };
-    if (arr[6] && arr[7]) {
-      obj.record = [arr[6], arr[7]];
-    }
 
     return obj;
   }

@@ -57,15 +57,19 @@ export default function McqForm({
             setFormData({ ...formData, correctAnswer: value })
           }
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full cursor-pointer">
             <SelectValue placeholder="Select answer" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              {formData?.options.length > 0 ? (
+              {formData?.options?.length > 0 ? (
                 formData?.options.map((_o, i) => (
-                  <SelectItem key={i} value={_o} className="text-sm">
-                    <span className="">{`Option-${i + 1}: `}</span>
+                  <SelectItem
+                    key={i}
+                    value={_o}
+                    className="text-sm cursor-pointer"
+                  >
+                    <span>{`Option-${i + 1}: `}</span>
                     <span className="font-light">{_o}</span>
                   </SelectItem>
                 ))

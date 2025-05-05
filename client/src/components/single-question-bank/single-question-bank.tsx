@@ -1,19 +1,17 @@
 "use client";
 
-import { useRef, useState } from "react";
-import SingleCqQuestion from "./single-cq-exam";
-import SingleMcqQuestion from "./single-mcq-question";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
-import { ScriptResType, SingleMcqAnswerType } from "@/lib/type";
+import { ICQ, IMCQ, ScriptResType, SingleMcqAnswerType } from "@/lib/type";
 import FormatTime from "../format-time";
 import { MousePointerClick, TextSelect } from "lucide-react";
+import SingleCqQuestion from "./single-question/single-cq-queston";
+import SingleMcqQuestion from "./single-question/single-mcq-question";
 
 export default function SingleQuestionBank({
-  qType,
-  allQuestions,
+  qDetails,
 }: {
-  qType: string | undefined;
-  allQuestions: any[];
+  qDetails?: Record<string, string>;
 }) {
   //
   //
@@ -21,6 +19,9 @@ export default function SingleQuestionBank({
   const [viewMode, setViewMode] = useState<"viewOnly" | "showAns" | "practice">(
     "viewOnly"
   );
+  const [allQuestion, setAllQuestion] = useState<
+    ((IMCQ | ICQ) & { _id: string })[]
+  >([]);
   const [timeRemaining, setTimeRemaining] = useState<number>(10 * 1000);
   const [examStatus, setExamStatus] = useState<
     "ready" | "started" | "finished"
@@ -34,10 +35,47 @@ export default function SingleQuestionBank({
   });
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
 
+  useEffect(() => {
+    let qString: string = "";
+    async function getAllQuestion() {
+      for (const key in qDetails) {
+        if (key === "questionType") continue;
+        if (qDetails[key]) {
+          qString += (qString ? "&" : "?") + key + "=" + qDetails[key];
+        }
+      }
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_DEVELOPMENT_API}/api/question${qString}`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              questionType: qDetails?.questionType,
+              level: qDetails?.level,
+            }),
+            headers: {
+              "Content-type": "application/json",
+            },
+          }
+        );
+
+        const data = await res.json();
+
+        console.log(data);
+        if (data?.success) {
+          setAllQuestion(data?.data);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    getAllQuestion();
+  }, [qDetails]);
+
   //
   //
   // HANDLE MCQ SUBMIT
-  console.log(answerScript);
   function handleMcqSubmit() {
     console.log("inside: ", answerScript);
     if (countdownRef.current) {
@@ -88,6 +126,8 @@ export default function SingleQuestionBank({
     }, 1000);
   }
 
+  console.log(allQuestion);
+
   return (
     <div className="w-full space-y-8">
       {/*  */}
@@ -96,40 +136,48 @@ export default function SingleQuestionBank({
       <div className="flex flex-col gap-2 bg-background rounded sticky top-0 p-3 border-b-2 border-border ">
         <div className="flex gap-3 justify-between items-center ">
           <div>
-            <h3 className="font-semibold">Engineering admission-2024</h3>
+            <h3 className="font-semibold">
+              {qDetails?.level} Board Question / {qDetails?.subject}
+            </h3>
             <p className="text-xs text-chart-2 font-semibold">
-              Engineering Weekly(MCQ) - 1
+              {qDetails?.institution &&
+                qDetails?.year &&
+                qDetails?.questionType &&
+                `${qDetails?.institution} - ${qDetails?.year} (${qDetails?.questionType})`}
             </p>
           </div>
 
           {/*  */}
           {/*  */}
           {/* MODE SELECTOR */}
-          <form
-            onChange={(e: React.ChangeEvent<HTMLFormElement>) =>
-              setViewMode(e.target?.value)
-            }
-            className="flex flex-col gap-1 text-xs md:text-sm font-semibold"
-          >
-            <select
-              name="viewMode"
-              id="viewMode"
-              disabled={examStatus === "started"}
-              className="border-none outline-none bg-sidebar-accent pl-2 py-2 rounded cursor-pointer"
+          {qDetails?.questionType === "MCQ" && (
+            <form
+              onChange={(e: React.ChangeEvent<HTMLFormElement>) =>
+                setViewMode(e.target?.value)
+              }
+              className="flex flex-col gap-1 text-xs md:text-sm font-semibold"
             >
-              <option value="viewOnly" defaultChecked>
-                View Only
-              </option>
-              <option value="showAns">Show Answer</option>
-              <option value="practice">Practice</option>
-            </select>
-          </form>
+              <select
+                name="viewMode"
+                id="viewMode"
+                disabled={examStatus === "started"}
+                className="border-none outline-none bg-sidebar-accent pl-2 py-2 rounded cursor-pointer"
+              >
+                <option value="viewOnly" defaultChecked>
+                  View Only
+                </option>
+                <option value="showAns">Show Answer</option>
+                <option value="practice">Practice</option>
+              </select>
+            </form>
+          )}
         </div>
         {examStatus === "started" && (
           <FormatTime timeRemaining={timeRemaining} />
         )}
       </div>
-      {qType ? (
+
+      {qDetails?.questionType ? (
         <>
           <div className="space-y-5">
             {/*  */}
@@ -172,10 +220,10 @@ export default function SingleQuestionBank({
               viewMode !== "practice") && (
               <h3 className="font-bold text-xl text-center">Physics (18)</h3>
             )}
-            {qType === "mcq" && (
+            {qDetails?.questionType === "MCQ" && (
               <>
-                {allQuestions?.length > 0 &&
-                  allQuestions.map((q, i) => (
+                {allQuestion?.length > 0 &&
+                  (allQuestion as (IMCQ & { _id: string })[]).map((q, i) => (
                     <div key={i}>
                       {((viewMode === "practice" && examStatus !== "ready") ||
                         viewMode === "showAns" ||
@@ -236,8 +284,12 @@ export default function SingleQuestionBank({
 
             {/*  */}
             {/*  */}
-            {/* QUESTON - MCQ */}
-            {qType === "cq" && <SingleCqQuestion />}
+            {/* QUESTON - CQ */}
+            {qDetails?.questionType === "CQ" &&
+              allQuestion?.length > 0 &&
+              (allQuestion as (ICQ & { _id: string })[]).map((q, i) => (
+                <SingleCqQuestion key={i} q={q} i={i + 1} />
+              ))}
           </div>
         </>
       ) : (

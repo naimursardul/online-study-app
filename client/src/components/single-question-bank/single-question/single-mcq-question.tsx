@@ -5,10 +5,10 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "../ui/collapsible";
+} from "../../ui/collapsible";
 import { Bookmark, BookmarkCheck, ChevronsUpDown, X } from "lucide-react";
-import { Button } from "../ui/button";
-import { SingleMcqAnswerType } from "@/lib/type";
+import { Button } from "../../ui/button";
+import { IMCQ, SingleMcqAnswerType } from "@/lib/type";
 
 export default function SingleMcqQuestion({
   q,
@@ -17,7 +17,7 @@ export default function SingleMcqQuestion({
   setAnswerScript,
   examStatus,
 }: {
-  q: any;
+  q: IMCQ & { _id: string };
   i: number;
   viewMode: string;
   examStatus: "ready" | "started" | "finished";
@@ -28,7 +28,7 @@ export default function SingleMcqQuestion({
   const [singleMcqAnswer, setSingleMcqAnswer] = useState<SingleMcqAnswerType>({
     id: q._id || "",
     givenAns: undefined,
-    mark: q.mark,
+    mark: q.marks,
     isCorrect: false,
   });
   const optionRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -69,8 +69,8 @@ export default function SingleMcqQuestion({
     const singleAnsObj: SingleMcqAnswerType = {
       id: q._id || "",
       givenAns: e.target.value,
-      mark: q?.mark,
-      isCorrect: e.target.value === q.answer,
+      mark: q?.marks,
+      isCorrect: e.target.value === q.correctAnswer,
     };
     setSingleMcqAnswer(singleAnsObj);
     setChangeOption(false);
@@ -93,13 +93,13 @@ export default function SingleMcqQuestion({
   // OPTION BG SELECTOR FUNCTION
   const optionBg = (o: string) => {
     if (examStatus === "finished") {
-      if (o === q.answer) {
+      if (o === q.correctAnswer) {
         return "bg-green-500 text-white";
       }
 
       if (
         singleMcqAnswer?.givenAns === o &&
-        singleMcqAnswer?.givenAns !== q.answer
+        singleMcqAnswer?.givenAns !== q.correctAnswer
       ) {
         return "bg-red-500 text-white";
       }
@@ -133,7 +133,7 @@ export default function SingleMcqQuestion({
             </p>
             {viewMode === "practice" &&
               examStatus === "finished" &&
-              singleMcqAnswer?.givenAns !== q.answer && (
+              singleMcqAnswer?.givenAns !== q.correctAnswer && (
                 <X className="text-red-700 " />
               )}
           </div>
@@ -172,7 +172,8 @@ export default function SingleMcqQuestion({
         {q?.record?.length > 0 && (
           <div className="flex justify-end ">
             <p className="bg-sidebar-accent px-2 py-2 text-chart-2 text-xs max-sm:text-[11px] font-bold rounded">
-              {q.record.join(", ")}
+              {Array.isArray(q?.record) &&
+                q.record.map((r) => `${r.institution}-${r.year}`).join(", ")}
             </p>
           </div>
         )}
@@ -207,7 +208,7 @@ export default function SingleMcqQuestion({
                     <div
                       className={`min-w-4 min-h-4 md:min-w-5 md:min-h-5 flex items-center justify-center border-1 border-primary rounded-full text-xs md:text-sm ${
                         singleMcqAnswer?.givenAns === o ||
-                        (examStatus === "finished" && q?.answer === o)
+                        (examStatus === "finished" && q?.correctAnswer === o)
                           ? "border-white"
                           : "border-primary"
                       }`}
@@ -276,7 +277,7 @@ export default function SingleMcqQuestion({
                 <div
                   key={j}
                   className={`flex gap-2 items-center px-2 py-2 rounded-lg  ${
-                    viewMode === "showAns" && q?.answer === o
+                    viewMode === "showAns" && q?.correctAnswer === o
                       ? "bg-green-500 text-white border-none"
                       : "bg-sidebar-accent"
                   }`}
@@ -289,7 +290,7 @@ export default function SingleMcqQuestion({
                   {/*  */}
                   <div
                     className={`min-w-4 min-h-4 md:min-w-5 md:min-h-5 flex items-center justify-center border-1  ${
-                      viewMode === "showAns" && q?.answer === o
+                      viewMode === "showAns" && q?.correctAnswer === o
                         ? "border-white"
                         : "border-primary"
                     } rounded-full text-xs md:text-sm`}

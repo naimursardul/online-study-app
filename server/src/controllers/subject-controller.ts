@@ -118,6 +118,7 @@ export const updateSubject = async (req: Request, res: Response) => {
       new: true,
       runValidators: true,
     })
+      .sort({ name: 1 })
       .populate("level", "name")
       .populate("background", "name");
 

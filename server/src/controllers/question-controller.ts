@@ -10,6 +10,7 @@ import { MCQ, CQ, BaseQuestion } from "../models/question-model";
 
 // CREATE QUESTION
 async function createQuestion(req: Request, res: Response) {
+  console.log("req:", req.body);
   try {
     const {
       questionType,

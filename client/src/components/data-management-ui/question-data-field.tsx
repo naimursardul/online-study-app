@@ -78,11 +78,18 @@ export default function QuestionDataField<T>({
           defaultValue={
             (formData as unknown as Record<string, string>)[field?.name]
           }
-          onValueChange={(value) =>
-            setFormData({ ...formData, [field?.name]: value })
-          }
+          onValueChange={(value) => {
+            const obj: Record<string, string> = {};
+            if (field?.manualOptionData) {
+              obj[field?.name] = value;
+            } else {
+              obj[field?.name + "Id"] = value.split(",")[0];
+              obj[field?.name] = value.split(",")[1];
+            }
+            return setFormData({ ...formData, ...obj });
+          }}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full cursor-pointer">
             <SelectValue
               placeholder={`Select ${
                 field?.placeholder ? field?.placeholder : field?.name
@@ -94,8 +101,13 @@ export default function QuestionDataField<T>({
               {field?.optionData && field?.optionData.length > 0 ? (
                 field.optionData.map((option) => (
                   <SelectItem
+                    className="cursor-pointer"
                     key={option?._id}
-                    value={field?.manualOptionData ? option?.name : option?._id}
+                    value={
+                      field?.manualOptionData
+                        ? option?.name
+                        : option?._id + "," + option?.name
+                    }
                   >
                     {option?.name}
                   </SelectItem>
@@ -116,6 +128,7 @@ export default function QuestionDataField<T>({
             field.optionData.map((option) => (
               <div key={option?._id} className="flex gap-2">
                 <Checkbox
+                  className="cursor-pointer"
                   defaultChecked={(
                     (formData as unknown as Record<string, string>)[
                       field?.name
@@ -123,42 +136,33 @@ export default function QuestionDataField<T>({
                   )?.includes(option?._id)}
                   onCheckedChange={(change: boolean) =>
                     setFormData(() => {
+                      const checkedArr = (
+                        formData as unknown as Record<string, string>
+                      )[field?.name] as unknown as string[];
+                      const checkedArrId = (
+                        formData as unknown as Record<string, string>
+                      )[field?.name + "Id"] as unknown as string[];
+
                       if (change) {
                         if (
-                          !(
-                            (formData as unknown as Record<string, string>)[
-                              field?.name
-                            ] as unknown as string[]
-                          ).includes(option?._id)
+                          !checkedArrId.includes(option?._id) &&
+                          !checkedArr.includes(option?.name)
                         ) {
-                          (
-                            (formData as unknown as Record<string, string>)[
-                              field?.name
-                            ] as unknown as string[]
-                          ).push(option?._id);
+                          checkedArrId.push(option?._id);
+                          checkedArr.push(option?.name);
                         }
                       } else {
-                        if (
-                          (
-                            (formData as unknown as Record<string, string>)[
-                              field?.name
-                            ] as unknown as string[]
-                          ).includes(option?._id)
-                        ) {
-                          const index = (
-                            (formData as unknown as Record<string, string>)[
-                              field?.name
-                            ] as unknown as string[]
-                          ).indexOf(option?._id);
-                          (
-                            (formData as unknown as Record<string, string>)[
-                              field?.name
-                            ] as unknown as string[]
-                          ).splice(index, 1);
+                        if (checkedArr.includes(option?._id)) {
+                          const indexId = checkedArrId.indexOf(option?._id);
+                          const index = checkedArr.indexOf(option?.name);
+                          checkedArrId.splice(indexId, 1);
+                          checkedArr.splice(index, 1);
                         }
                       }
                       return {
                         ...formData,
+                        [field?.name]: checkedArr,
+                        [field?.name + "Id"]: checkedArrId,
                       };
                     })
                   }
@@ -226,6 +230,7 @@ export default function QuestionDataField<T>({
                               <CommandItem key={_r._id} className="flex gap-2">
                                 <div className="flex gap-2">
                                   <Checkbox
+                                    className="cursor-pointer"
                                     checked={(
                                       formData as unknown as Record<
                                         string,
@@ -235,14 +240,10 @@ export default function QuestionDataField<T>({
                                       >
                                     )?.record.some((r) => r?._id === _r?._id)}
                                     onCheckedChange={(checked: boolean) => {
-                                      const record = (
-                                        formData as unknown as Record<
-                                          string,
-                                          (IRecord & {
-                                            _id: string;
-                                          })[]
-                                        >
-                                      )?.record;
+                                      const { record } =
+                                        formData as unknown as {
+                                          record: IRecord & { _id: string }[];
+                                        };
                                       if (
                                         checked &&
                                         !record.some((r) => r?._id === _r?._id)
@@ -259,6 +260,7 @@ export default function QuestionDataField<T>({
                                       return setFormData({
                                         ...formData,
                                         record,
+                                        recordId: record.map((_r) => _r?._id),
                                       });
                                     }}
                                   />
