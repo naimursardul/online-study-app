@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import QbSection from "./qb-section";
 
 export default function QuestionBank() {
-  const [loading, setLoading] = useState<boolean>(false);
+  // const [loading, setLoading] = useState<boolean>(false);
   const [allLevel, setAllLevel] = useState<(ILevel & { _id: string })[]>([]);
   const [allSubject, setAllSubject] = useState<(ISubject & { _id: string })[]>(
     []
