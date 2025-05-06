@@ -162,7 +162,7 @@ export default function SingleMcqQuestion({
         {/* QUESTION DETAILS */}
         {/*  */}
         {/*  */}
-        <p className="w-full max-sm:text-sm">{q?.question[0]}</p>
+        <p className="w-full max-sm:text-sm">{q?.question}</p>
         {/*  */}
         {/*  */}
         {/*  */}
