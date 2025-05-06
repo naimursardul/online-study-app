@@ -63,16 +63,19 @@ export default function McqForm({
           <SelectContent>
             <SelectGroup>
               {formData?.options?.length > 0 ? (
-                formData?.options.map((_o, i) => (
-                  <SelectItem
-                    key={i}
-                    value={_o}
-                    className="text-sm cursor-pointer"
-                  >
-                    <span>{`Option-${i + 1}: `}</span>
-                    <span className="font-light">{_o}</span>
-                  </SelectItem>
-                ))
+                formData?.options.map(
+                  (_o, i) =>
+                    _o && (
+                      <SelectItem
+                        key={i}
+                        value={_o}
+                        className="text-sm cursor-pointer"
+                      >
+                        <span>{`Option-${i + 1}: `}</span>
+                        <span className="font-light">{_o}</span>
+                      </SelectItem>
+                    )
+                )
               ) : (
                 <SelectItem disabled value={"No-data"}>
                   No options have been created.
