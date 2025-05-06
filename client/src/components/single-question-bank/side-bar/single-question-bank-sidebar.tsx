@@ -77,7 +77,7 @@ export default function SingleQuestionBankSidebar({
               </div>
             ))
           : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((sk, i) => (
-              <Skeleton key={i} className="w-full h-8"></Skeleton>
+              <Skeleton key={i} className="w-full h-8" />
             ))}
       </div>
     </div>
