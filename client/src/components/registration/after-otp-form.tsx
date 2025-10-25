@@ -132,7 +132,7 @@ export default function AfterOtpForm({
         };
       });
     }
-  }, [watchedValues]);
+  }, [watchedValues, dependencies, fieldData]);
 
   // ON SUBMIT HANDLER
   const onSubmit = async (values: z.infer<typeof formSchema>) => {

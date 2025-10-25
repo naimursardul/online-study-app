@@ -47,7 +47,7 @@ export default function QuestionBank() {
     }
 
     getAllBackground();
-  }, []);
+  }, [loading]);
 
   useEffect(() => {
     async function getAllSubject() {
@@ -75,7 +75,7 @@ export default function QuestionBank() {
     }
 
     getAllSubject();
-  }, []);
+  }, [loading]);
 
   useEffect(() => {
     async function getAllLevel() {
@@ -103,7 +103,7 @@ export default function QuestionBank() {
     }
 
     getAllLevel();
-  }, []);
+  }, [loading]);
 
   const user = {
     level: { _id: "680772ec513217f665959afb", name: "HSC" },
