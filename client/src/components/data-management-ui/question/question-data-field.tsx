@@ -1,8 +1,8 @@
 "use client";
 
 import { DataFieldProps, IRecord } from "@/lib/type";
-import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
+import { Input } from "../../ui/input";
+import { Textarea } from "../../ui/textarea";
 import {
   Select,
   SelectContent,
@@ -10,17 +10,17 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
-import { Checkbox } from "../ui/checkbox";
-import { Label } from "../ui/label";
+} from "../../ui/select";
+import { Checkbox } from "../../ui/checkbox";
+import { Label } from "../../ui/label";
 import {
   Command,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-} from "../ui/command";
-import { Button } from "../ui/button";
+} from "../../ui/command";
+import { Button } from "../../ui/button";
 import { X } from "lucide-react";
 import { useState } from "react";
 

@@ -5,7 +5,7 @@ import { PlusCircle } from "lucide-react";
 import React, { useState, FormEvent, useEffect } from "react";
 import { IBaseQuestion, ICQ, IField, IMCQ } from "@/lib/type";
 import SubmitBtn from "@/components/submit-btn";
-import QuestionDataField from "../question-data-field";
+import QuestionDataField from "./question-data-field";
 import { createManualOptions } from "@/lib/utils";
 import McqForm from "./mcq-form";
 import CqForm from "./cq-form";

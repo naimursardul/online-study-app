@@ -7,13 +7,6 @@ export interface ScriptResType {
   total: number;
 }
 
-// RES type
-export interface IResponse {
-  message: string;
-  success: string;
-  data: [];
-}
-
 // Option Data
 export interface IOptionData {
   _id: string;
@@ -31,6 +24,7 @@ export interface IField {
   optionData?: IOptionData[];
   req?: boolean;
   dependencies?: string[];
+  description?: string;
 }
 
 // DATA FIELD PROPS TYPE
@@ -155,11 +149,44 @@ export interface IChapter {
 }
 
 // Topic
-
 export interface ITopic {
   name: string;
   level: string;
   background: string[]; // Array of background IDs
   subject: string;
   chapter: string;
+}
+
+// IRegistrationFormField
+export interface IRegistrationFormField {
+  name: string;
+  label: string;
+  placeholder: string;
+  type: string;
+  description?: string;
+}
+
+export interface IUser {
+  name: string;
+  role: "User" | "Admin" | "SuperAdmin";
+  userCategory: "Regular" | "Premium";
+  isVerified: boolean;
+  provider: "Phone" | "Google";
+  img?: string;
+  email?: string;
+  phone?: string;
+  password?: string;
+  level?: string;
+  background?: string;
+
+  verificationToken?: string;
+  verificationTokenExpireAt?: Date;
+  resetToken?: string;
+  resetTokenExpireAt?: Date;
+  lastLogin?: Date;
+}
+
+export interface IResponse {
+  success: boolean;
+  message: string;
 }

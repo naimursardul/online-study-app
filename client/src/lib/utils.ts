@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { IField, IFormInfo, IOptionData } from "./type";
+import axios from "axios";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -122,3 +123,8 @@ export function createManualOptions(arr: string[]): IOptionData[] {
     return { _id: `${i + 1000}`, name: _o };
   });
 }
+
+export const client = axios.create({
+  baseURL: `${process.env.NEXT_PUBLIC_DEVELOPMENT_API}/api`,
+  withCredentials: true,
+});

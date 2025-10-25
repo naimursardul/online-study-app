@@ -1,5 +1,26 @@
 import mongoose, { Types } from "mongoose";
 
+//  USER
+export interface IUser extends mongoose.Document {
+  name: string;
+  role: "User" | "Admin" | "SuperAdmin";
+  userCategory: "Regular" | "Premium";
+  isVerified: boolean;
+  provider: "Phone" | "Google";
+  img?: string;
+  email?: string;
+  phone?: string;
+  password?: string;
+  level?: string;
+  background?: string;
+
+  verificationToken?: string;
+  verificationTokenExpireAt?: Date;
+  resetToken?: string;
+  resetTokenExpireAt?: Date;
+  lastLogin?: Date;
+}
+
 // Record
 export interface IRecord {
   recordType: string;
