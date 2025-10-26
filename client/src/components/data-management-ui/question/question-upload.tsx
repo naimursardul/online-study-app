@@ -178,7 +178,7 @@ export default function QuestionUpload() {
         break;
       }
     }
-  }, [qType, baseInit, formData]);
+  }, [qType]);
 
   useEffect(() => {
     async function getOptions() {
@@ -258,7 +258,7 @@ export default function QuestionUpload() {
     }
 
     getOptions();
-  }, [formData, updatedFields]);
+  }, [formData]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();

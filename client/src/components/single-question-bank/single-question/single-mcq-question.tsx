@@ -59,7 +59,7 @@ export default function SingleMcqQuestion({
       }
       return [...p, singleMcqAnswer];
     });
-  }, [setAnswerScript, singleMcqAnswer]);
+  }, []);
 
   //
   //

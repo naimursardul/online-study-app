@@ -74,7 +74,7 @@ export default function CqForm({
     }
 
     createSQInit();
-  }, [defaultTopicId, formData, setFormData]);
+  }, [defaultTopicId]);
 
   return (
     <>

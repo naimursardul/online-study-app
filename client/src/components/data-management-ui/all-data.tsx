@@ -142,7 +142,7 @@ export default function AllData({
       return;
     }
     getOptions();
-  }, [queryForm, fields, updatedFields]);
+  }, [queryForm]);
 
   // DELETE
   async function deleteData(id: string) {

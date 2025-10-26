@@ -137,7 +137,7 @@ export default function UploadForm({
       }
     }
     getOptions();
-  }, [formData, updatedFields]);
+  }, [formData]);
 
   // console.log(updatedFields);
   // console.log(formData);

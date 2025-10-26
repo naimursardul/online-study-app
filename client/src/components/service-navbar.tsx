@@ -54,7 +54,7 @@ export default async function ServiceNavbar() {
         return;
       }
 
-      if (sessionCookie) cookieStore.delete("connect.sid");
+      sessionCookie && cookieStore.delete("connect.sid");
     } catch (error) {
       console.log(error);
       return;
