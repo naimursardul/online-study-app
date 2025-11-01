@@ -40,25 +40,6 @@ export default function QuestionUpload() {
     difficulty: "Medium",
   });
 
-  const baseInit = {
-    questionType: "MCQ",
-    level: "",
-    levelId: "",
-    background: [],
-    backgroundId: [],
-    subject: "",
-    subjectId: "",
-    chapter: "",
-    chapterId: "",
-    topic: "",
-    topicId: "",
-    record: [],
-    recordId: [],
-    marks: 0,
-    timeRequired: 0,
-    difficulty: "Medium",
-  };
-
   const fields: IField[] = [
     {
       label: "Level",
@@ -120,28 +101,48 @@ export default function QuestionUpload() {
   const [qType, setQType] = useState<"MCQ" | "CQ">("MCQ");
 
   useEffect(() => {
-    const data = { ...formData };
-    const arr = Object.keys(baseInit);
-    for (const key in data) {
-      if (!arr.includes(key)) {
-        delete (data as unknown as Record<string, string | []>)[key];
+    setFormData((prev) => {
+      const baseInit = {
+        questionType: "MCQ",
+        level: "",
+        levelId: "",
+        background: [],
+        backgroundId: [],
+        subject: "",
+        subjectId: "",
+        chapter: "",
+        chapterId: "",
+        topic: "",
+        topicId: "",
+        record: [],
+        recordId: [],
+        marks: 0,
+        timeRequired: 0,
+        difficulty: "Medium",
+      };
+
+      // create cleaned version of previous state
+      const cleaned: any = {};
+      for (const key in baseInit) {
+        cleaned[key] =
+          prev[key as keyof (IBaseQuestion | IMCQ | ICQ)] ??
+          baseInit[key as keyof IBaseQuestion];
       }
-    }
-    switch (qType) {
-      case "MCQ": {
-        setFormData({
-          ...data,
+
+      if (qType === "MCQ") {
+        return {
+          ...cleaned,
           questionType: "MCQ",
           question: "",
           options: [],
           correctAnswer: "",
           explanation: "",
-        });
-        break;
+        };
       }
-      case "CQ": {
-        setFormData({
-          ...data,
+
+      if (qType === "CQ") {
+        return {
+          ...cleaned,
           questionType: "CQ",
           statement: "",
           subQuestions: [
@@ -160,7 +161,7 @@ export default function QuestionUpload() {
               topicId: "",
             },
             {
-              questionNo: "B",
+              questionNo: "C",
               question: "",
               answer: "",
               topic: "",
@@ -174,10 +175,11 @@ export default function QuestionUpload() {
               topicId: "",
             },
           ],
-        });
-        break;
+        };
       }
-    }
+
+      return prev;
+    });
   }, [qType]);
 
   useEffect(() => {

@@ -81,66 +81,58 @@ export default function AllData({
   }, [route, allDataQueryString]);
 
   useEffect(() => {
-    // GET OPTIONS
     async function getOptions() {
       let deleteOptionData = false;
       const query: string[] = [];
-      for (const field of updatedFields) {
+
+      const newUpdatedFields = updatedFields.map((field) => ({ ...field }));
+
+      for (const field of newUpdatedFields) {
         if (field.inputType === "select" || field.inputType === "checkbox") {
           if (deleteOptionData) {
             delete field.optionData;
             continue;
           }
 
-          try {
-            if (!field?.manualOptionData) {
+          if (!field.manualOptionData && !field.optionData) {
+            try {
               const res = await fetch(
                 `${process.env.NEXT_PUBLIC_DEVELOPMENT_API}/api/${field.name}${
-                  query?.length > 0 ? "?" + query.join("&") : ""
+                  query.length ? "?" + query.join("&") : ""
                 }`
               );
               const data = await res.json();
               if (data.success) {
-                field.optionData = data.data.map(
-                  (d: Record<string, string>) => {
-                    return { name: d?.name, _id: d?._id };
-                  }
-                );
-                const newFields = [...fields];
-                const i: number = newFields.indexOf(field);
-                newFields.splice(i, 1, field);
-                setUpdatedFields([...newFields]);
+                field.optionData = data.data.map((d: any) => ({
+                  name: d.name,
+                  _id: d._id,
+                }));
               }
+            } catch (error) {
+              console.error(error);
             }
-            if (
-              (typeof queryForm[field?.name] === "string" &&
-                !queryForm[field?.name]) ||
-              (Array.isArray(queryForm[field?.name]) &&
-                queryForm[field?.name].length <= 0)
-            ) {
-              deleteOptionData = true;
-              continue;
-            }
+          }
 
-            if (
-              Array.isArray(queryForm[field?.name]) &&
-              queryForm[field?.name].length > 0
-            ) {
-              for (const qStr of queryForm[field?.name]) {
-                query.push(`${field?.name}=${qStr}`);
-              }
-            } else query.push(`${field?.name}=${queryForm[field?.name]}`);
-          } catch (error) {
-            console.error(error);
+          const value = queryForm[field.name];
+
+          if (!value || (Array.isArray(value) && value.length === 0)) {
+            deleteOptionData = true;
+            continue;
+          }
+
+          if (Array.isArray(value)) {
+            value.forEach((v) => query.push(`${field.name}=${v}`));
+          } else {
+            query.push(`${field.name}=${value}`);
           }
         }
       }
 
-      if (query?.length > 0) {
-        setAllDataQueryString("?" + query.join("&"));
-      }
-      return;
+      setUpdatedFields(() => newUpdatedFields);
+
+      setAllDataQueryString(() => (query.length ? "?" + query.join("&") : ""));
     }
+
     getOptions();
   }, [queryForm]);
 

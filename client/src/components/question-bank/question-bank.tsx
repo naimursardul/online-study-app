@@ -24,7 +24,7 @@ export default function QuestionBank() {
 
   useEffect(() => {
     async function getAllBackground() {
-      setLoading({ ...loading, bg: true });
+      setLoading((prev) => ({ ...prev, bg: true }));
       try {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_DEVELOPMENT_API}/api/background?level`
@@ -51,7 +51,7 @@ export default function QuestionBank() {
 
   useEffect(() => {
     async function getAllSubject() {
-      setLoading({ ...loading, subject: true });
+      setLoading((prev) => ({ ...prev, bg: true }));
 
       try {
         const res = await fetch(
@@ -79,7 +79,7 @@ export default function QuestionBank() {
 
   useEffect(() => {
     async function getAllLevel() {
-      setLoading({ ...loading, level: true });
+      setLoading((prev) => ({ ...prev, bg: true }));
 
       try {
         const res = await fetch(

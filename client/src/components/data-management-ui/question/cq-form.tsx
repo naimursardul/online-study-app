@@ -58,22 +58,21 @@ export default function CqForm({
   }, [formData]);
 
   useEffect(() => {
-    function createSQInit() {
-      const sq = Array.isArray(formData?.subQuestions)
-        ? [...formData.subQuestions]
-        : [];
-      if (defaultTopicId) {
-        if (sq?.length === 4) {
-          for (let i = 0; i < 4; i++) {
-            sq[i].topicId = formData?.topicId;
-            sq[i].topic = formData?.topic;
-          }
-          return setFormData({ ...formData, subQuestions: [...sq] });
-        }
-      }
-    }
+    if (!defaultTopicId) return;
 
-    createSQInit();
+    setFormData((prev) => {
+      if (!Array.isArray(prev.subQuestions) || prev.subQuestions.length !== 4) {
+        return prev;
+      }
+
+      const newSubQuestions = prev.subQuestions.map((sq) => ({
+        ...sq,
+        topicId: prev.topicId,
+        topic: prev.topic,
+      }));
+
+      return { ...prev, subQuestions: newSubQuestions };
+    });
   }, [defaultTopicId]);
 
   return (
