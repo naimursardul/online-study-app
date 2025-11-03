@@ -184,79 +184,67 @@ export default function QuestionUpload() {
 
   useEffect(() => {
     async function getOptions() {
-      for (const field of updatedFields) {
-        if (field?.manualOptionData) return;
-        const query = [];
-        let isContinue: boolean = true;
+      const newFields = [...updatedFields];
+
+      for (let i = 0; i < newFields.length; i++) {
+        const field = newFields[i];
+
+        if (field.manualOptionData) continue;
 
         if (["select", "checkbox"].includes(field.inputType)) {
-          if (field?.dependencies && field?.dependencies.length > 0) {
-            for (const d of field.dependencies) {
-              if (
-                (typeof (formData as unknown as Record<string, string>)[d] ===
-                  "string" &&
-                  !(formData as unknown as Record<string, string>)[d]) ||
-                (Array.isArray(
-                  (formData as unknown as Record<string, string[]>)[d]
-                ) &&
-                  (formData as unknown as Record<string, string[]>)[d]
-                    .length === 0)
-              ) {
-                isContinue = false;
-                delete field.optionData;
+          let isReady = true;
+          const query: string[] = [];
+
+          const deps = field.dependencies ?? [];
+
+          // Handle dependencies
+          if (deps?.length > 0) {
+            for (const dep of deps) {
+              const val = (formData as any)[dep];
+              const valId = (formData as any)[dep + "Id"];
+
+              // If dependency is empty → stop & clear options
+              if (!val || (Array.isArray(val) && val.length === 0)) {
+                isReady = false;
+                newFields[i] = { ...field, optionData: undefined };
                 break;
               }
-              if (
-                Array.isArray(
-                  (formData as unknown as Record<string, string[]>)[d]
-                ) &&
-                (formData as unknown as Record<string, string[]>)[d].length > 0
-              ) {
-                for (const qStr of (
-                  formData as unknown as Record<string, string[]>
-                )[d + "Id"]) {
-                  query.push(`${d}=${qStr}`);
-                }
-              } else
-                query.push(
-                  `${d}=${
-                    (formData as unknown as Record<string, string>)[d + "Id"]
-                  }`
-                );
+
+              // Build query
+              if (Array.isArray(valId)) {
+                valId.forEach((v: string) => query.push(`${dep}=${v}`));
+              } else {
+                query.push(`${dep}=${valId}`);
+              }
             }
           }
 
-          if (isContinue) {
-            try {
-              const res = await fetch(
-                `${process.env.NEXT_PUBLIC_DEVELOPMENT_API}/api/${field.name}${
-                  query?.length > 0 ? "?" + query.join("&") : ""
-                }`
-              );
-              const data = await res.json();
+          if (!isReady) continue;
 
-              if (data.success) {
-                if (field?.name === "record") {
-                  field.optionData = [...data.data];
-                } else
-                  field.optionData = data.data.map(
-                    (d: Record<string, string>) => {
-                      return { name: d?.name, _id: d?._id };
-                    }
-                  );
-                setUpdatedFields((prev) =>
-                  prev.map((f) => {
-                    if (f?.name === field?.name) return field;
-                    return f;
-                  })
-                );
-              }
-            } catch (error) {
-              console.log(error);
+          // Fetch new options
+          try {
+            const res = await fetch(
+              `${process.env.NEXT_PUBLIC_DEVELOPMENT_API}/api/${field.name}${
+                query.length ? `?${query.join("&")}` : ""
+              }`
+            );
+            const data = await res.json();
+
+            if (data.success) {
+              const optionData =
+                field.name === "record"
+                  ? data.data
+                  : data.data.map((d: any) => ({ name: d.name, _id: d._id }));
+
+              newFields[i] = { ...field, optionData };
             }
+          } catch (error) {
+            console.log(error);
           }
         }
       }
+
+      setUpdatedFields(newFields);
     }
 
     getOptions();

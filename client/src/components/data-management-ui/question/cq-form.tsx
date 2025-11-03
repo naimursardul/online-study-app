@@ -83,7 +83,7 @@ export default function CqForm({
           placeholder="Enter option statement"
           name="statement"
           onChange={(e) =>
-            setFormData({ ...formData, statement: e.target.value })
+            setFormData((prev) => ({ ...prev, statement: e.target.value }))
           }
         />
       </div>
@@ -110,7 +110,10 @@ export default function CqForm({
                       if (Array.isArray(subQuestions)) {
                         subQuestions[i].topicId = value.split(",")[0];
                         subQuestions[i].topic = value.split(",")[1];
-                        return setFormData({ ...formData, subQuestions });
+                        return setFormData((prev) => ({
+                          ...prev,
+                          subQuestions,
+                        }));
                       }
                     }}
                   >
@@ -146,7 +149,10 @@ export default function CqForm({
                     onChange={(e) => {
                       const { subQuestions } = formData;
                       subQuestions[i].question = e.target.value;
-                      return setFormData({ ...formData, subQuestions });
+                      return setFormData((prev) => ({
+                        ...prev,
+                        subQuestions,
+                      }));
                     }}
                   />
                 </div>
@@ -158,7 +164,7 @@ export default function CqForm({
                     onChange={(e) => {
                       const { subQuestions } = formData;
                       subQuestions[i].answer = e.target.value;
-                      return setFormData({ ...formData, subQuestions });
+                      return setFormData((prev) => ({ ...prev, subQuestions }));
                     }}
                   />
                 </div>
