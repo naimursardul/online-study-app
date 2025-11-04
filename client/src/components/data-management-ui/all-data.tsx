@@ -80,13 +80,14 @@ export default function AllData({
     geAllData();
   }, [route, allDataQueryString]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     async function getOptions() {
       let deleteOptionData = false;
       const query: string[] = [];
 
       // Clone first (never mutate state directly)
-      const newFields = structuredClone(updatedFields);
+      const newFields = [...updatedFields];
 
       for (const field of newFields) {
         if (field.inputType === "select" || field.inputType === "checkbox") {

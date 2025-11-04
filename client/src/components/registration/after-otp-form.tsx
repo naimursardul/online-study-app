@@ -102,6 +102,7 @@ export default function AfterOtpForm({
   const watchedValues = useWatch({ control: form.control });
 
   // OPTIONS FILTERING BASED ON DEPENDENCIES
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     console.log(watchedValues);
 

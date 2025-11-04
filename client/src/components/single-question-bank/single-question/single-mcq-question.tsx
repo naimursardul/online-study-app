@@ -51,6 +51,7 @@ export default function SingleMcqQuestion({
   //
   //
   // SET ANSWER SCRIPT ARRAY WITH DEFAULT QUESTON
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     setAnswerScript((p) => {
       const findQ = p.find((t) => t.id === singleMcqAnswer?.id);

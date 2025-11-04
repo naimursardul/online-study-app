@@ -81,6 +81,7 @@ export default function UploadForm({
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     async function getOptions() {
       let deleteOptionData = false;
