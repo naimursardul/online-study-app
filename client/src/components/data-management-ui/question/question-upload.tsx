@@ -183,71 +183,68 @@ export default function QuestionUpload() {
   }, [qType]);
 
   useEffect(() => {
-    async function getOptions() {
-      const newFields = [...updatedFields];
+    setUpdatedFields((prevFields) => {
+      const newFields = [...prevFields];
 
-      for (let i = 0; i < newFields.length; i++) {
-        const field = newFields[i];
+      (async () => {
+        for (let i = 0; i < newFields.length; i++) {
+          const field = newFields[i];
 
-        if (field.manualOptionData) continue;
+          if (field.manualOptionData) continue;
 
-        if (["select", "checkbox"].includes(field.inputType)) {
-          let isReady = true;
-          const query: string[] = [];
+          if (["select", "checkbox"].includes(field.inputType)) {
+            let isReady = true;
+            const query: string[] = [];
+            const deps = field.dependencies ?? [];
 
-          const deps = field.dependencies ?? [];
-
-          // Handle dependencies
-          if (deps?.length > 0) {
+            // Handle dependencies
             for (const dep of deps) {
               const val = (formData as any)[dep];
               const valId = (formData as any)[dep + "Id"];
 
-              // If dependency is empty → stop & clear options
               if (!val || (Array.isArray(val) && val.length === 0)) {
                 isReady = false;
                 newFields[i] = { ...field, optionData: undefined };
                 break;
               }
 
-              // Build query
               if (Array.isArray(valId)) {
                 valId.forEach((v: string) => query.push(`${dep}=${v}`));
               } else {
                 query.push(`${dep}=${valId}`);
               }
             }
-          }
 
-          if (!isReady) continue;
+            if (!isReady) continue;
 
-          // Fetch new options
-          try {
-            const res = await fetch(
-              `${process.env.NEXT_PUBLIC_DEVELOPMENT_API}/api/${field.name}${
-                query.length ? `?${query.join("&")}` : ""
-              }`
-            );
-            const data = await res.json();
+            try {
+              const res = await fetch(
+                `${process.env.NEXT_PUBLIC_DEVELOPMENT_API}/api/${field.name}${
+                  query.length ? `?${query.join("&")}` : ""
+                }`
+              );
+              const data = await res.json();
 
-            if (data.success) {
-              const optionData =
-                field.name === "record"
-                  ? data.data
-                  : data.data.map((d: any) => ({ name: d.name, _id: d._id }));
+              if (data.success) {
+                const optionData =
+                  field.name === "record"
+                    ? data.data
+                    : data.data.map((d: any) => ({ name: d.name, _id: d._id }));
 
-              newFields[i] = { ...field, optionData };
+                newFields[i] = { ...field, optionData };
+              }
+            } catch (error) {
+              console.log(error);
             }
-          } catch (error) {
-            console.log(error);
           }
         }
-      }
 
-      setUpdatedFields(newFields);
-    }
+        // finally apply the new fields state
+        setUpdatedFields(newFields);
+      })();
 
-    getOptions();
+      return prevFields; // temporary return value to avoid loop
+    });
   }, [formData]);
 
   const handleSubmit = async (e: FormEvent) => {

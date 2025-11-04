@@ -82,60 +82,62 @@ export default function UploadForm({
   };
 
   useEffect(() => {
-    // GET OPTIONS
     async function getOptions() {
       let deleteOptionData = false;
       const query: string[] = [];
-      for (const field of updatedFields) {
+
+      // Create a cloned copy up front
+      const newFields = updatedFields.map((f) => ({ ...f }));
+
+      for (const field of newFields) {
         if (field.inputType === "select" || field.inputType === "checkbox") {
           if (deleteOptionData) {
             delete field.optionData;
             continue;
           }
-          try {
-            if (!field?.manualOptionData) {
+
+          // Only fetch if no manual options and no optionData yet
+          if (!field.manualOptionData && !field.optionData) {
+            try {
               const res = await fetch(
                 `${process.env.NEXT_PUBLIC_DEVELOPMENT_API}/api/${field.name}${
-                  query?.length > 0 ? "?" + query.join("&") : ""
+                  query.length ? `?${query.join("&")}` : ""
                 }`
               );
               const data = await res.json();
+
               if (data.success) {
-                field.optionData = data.data.map(
-                  (d: Record<string, string>) => {
-                    return { name: d?.name, _id: d?._id };
-                  }
-                );
-                setUpdatedFields((prev) => {
-                  const i: number = prev.indexOf(field);
-                  prev.splice(i, 1, field);
-                  return [...prev];
-                });
+                field.optionData = data.data.map((d: any) => ({
+                  name: d.name,
+                  _id: d._id,
+                }));
               }
+            } catch (err) {
+              console.error(err);
             }
-            if (
-              (typeof formData[field?.name] === "string" &&
-                !formData[field?.name]) ||
-              (Array.isArray(formData[field?.name]) &&
-                formData[field?.name].length <= 0)
-            ) {
-              deleteOptionData = true;
-              continue;
-            }
-            if (
-              Array.isArray(formData[field?.name]) &&
-              formData[field?.name].length > 0
-            ) {
-              for (const qStr of formData[field?.name]) {
-                query.push(`${field?.name}=${qStr}`);
-              }
-            } else query.push(`${field?.name}=${formData[field?.name]}`);
-          } catch (error) {
-            console.error(error);
+          }
+
+          const val = formData[field.name];
+
+          // If value is empty → stop fetching later fields
+          if (!val || (Array.isArray(val) && val.length === 0)) {
+            deleteOptionData = true;
+            continue;
+          }
+
+          // Build query parameters
+          if (Array.isArray(val)) {
+            val.forEach((v) => query.push(`${field.name}=${v}`));
+          } else {
+            query.push(`${field.name}=${val}`);
           }
         }
       }
+
+      // ✅ Apply all changes together
+      setUpdatedFields(newFields);
     }
+
     getOptions();
   }, [formData]);
 

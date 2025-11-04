@@ -106,15 +106,13 @@ export default function CqForm({
                         : undefined
                     }
                     onValueChange={(value) => {
-                      const { subQuestions } = formData;
-                      if (Array.isArray(subQuestions)) {
-                        subQuestions[i].topicId = value.split(",")[0];
-                        subQuestions[i].topic = value.split(",")[1];
-                        return setFormData((prev) => ({
-                          ...prev,
-                          subQuestions,
-                        }));
-                      }
+                      const [topicId, topic] = value.split(",");
+                      setFormData((prev) => {
+                        const newSub = prev.subQuestions.map((sq, idx) =>
+                          idx === i ? { ...sq, topicId, topic } : sq
+                        );
+                        return { ...prev, subQuestions: newSub };
+                      });
                     }}
                   >
                     <SelectTrigger className="w-full cursor-pointer">
@@ -147,12 +145,13 @@ export default function CqForm({
                     placeholder={`Enter question ${_sq}`}
                     name={`question${_sq}`}
                     onChange={(e) => {
-                      const { subQuestions } = formData;
-                      subQuestions[i].question = e.target.value;
-                      return setFormData((prev) => ({
-                        ...prev,
-                        subQuestions,
-                      }));
+                      const value = e.target.value;
+                      setFormData((prev) => {
+                        const newSub = prev.subQuestions.map((sq, idx) =>
+                          idx === i ? { ...sq, question: value } : sq
+                        );
+                        return { ...prev, subQuestions: newSub };
+                      });
                     }}
                   />
                 </div>
@@ -162,9 +161,13 @@ export default function CqForm({
                     placeholder={`Enter answer ${_sq}`}
                     name={`answer${_sq}`}
                     onChange={(e) => {
-                      const { subQuestions } = formData;
-                      subQuestions[i].answer = e.target.value;
-                      return setFormData((prev) => ({ ...prev, subQuestions }));
+                      const value = e.target.value;
+                      setFormData((prev) => {
+                        const newSub = prev.subQuestions.map((sq, idx) =>
+                          idx === i ? { ...sq, answer: value } : sq
+                        );
+                        return { ...prev, subQuestions: newSub };
+                      });
                     }}
                   />
                 </div>

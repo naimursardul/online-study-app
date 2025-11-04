@@ -85,9 +85,10 @@ export default function AllData({
       let deleteOptionData = false;
       const query: string[] = [];
 
-      const newUpdatedFields = updatedFields.map((field) => ({ ...field }));
+      // Clone first (never mutate state directly)
+      const newFields = structuredClone(updatedFields);
 
-      for (const field of newUpdatedFields) {
+      for (const field of newFields) {
         if (field.inputType === "select" || field.inputType === "checkbox") {
           if (deleteOptionData) {
             delete field.optionData;
@@ -128,9 +129,8 @@ export default function AllData({
         }
       }
 
-      setUpdatedFields(() => newUpdatedFields);
-
-      setAllDataQueryString(() => (query.length ? "?" + query.join("&") : ""));
+      setUpdatedFields(newFields);
+      setAllDataQueryString(query.length ? "?" + query.join("&") : "");
     }
 
     getOptions();
