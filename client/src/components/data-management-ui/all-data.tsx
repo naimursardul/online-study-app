@@ -80,7 +80,6 @@ export default function AllData({
     geAllData();
   }, [route, allDataQueryString]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     async function getOptions() {
       let deleteOptionData = false;
@@ -135,6 +134,7 @@ export default function AllData({
     }
 
     getOptions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryForm]);
 
   // DELETE
