@@ -57,7 +57,6 @@ export default function CqForm({
     getOptions();
   }, [formData]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!defaultTopicId) return;
 
@@ -74,6 +73,7 @@ export default function CqForm({
 
       return { ...prev, subQuestions: newSubQuestions };
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultTopicId]);
 
   return (
