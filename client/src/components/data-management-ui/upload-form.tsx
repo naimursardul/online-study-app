@@ -81,7 +81,6 @@ export default function UploadForm({
     }
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     async function getOptions() {
       let deleteOptionData = false;
@@ -140,6 +139,7 @@ export default function UploadForm({
     }
 
     getOptions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData]);
 
   // console.log(updatedFields);
