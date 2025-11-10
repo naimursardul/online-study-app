@@ -11,7 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useState, useEffect, useRef } from "react";
-import { IField } from "@/lib/type";
+import { IField, IOptionData } from "@/lib/type";
 import {
   Dialog,
   DialogDescription,
@@ -104,7 +104,7 @@ export default function AllData({
               );
               const data = await res.json();
               if (data.success) {
-                field.optionData = data.data.map((d: any) => ({
+                field.optionData = data.data.map((d: IOptionData) => ({
                   name: d.name,
                   _id: d._id,
                 }));

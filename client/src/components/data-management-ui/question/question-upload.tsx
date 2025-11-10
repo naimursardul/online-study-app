@@ -102,7 +102,7 @@ export default function QuestionUpload() {
 
   useEffect(() => {
     setFormData((prev) => {
-      const baseInit = {
+      const baseInit: IBaseQuestion = {
         questionType: "MCQ",
         level: "",
         levelId: "",
@@ -122,12 +122,12 @@ export default function QuestionUpload() {
       };
 
       // create cleaned version of previous state
-      const cleaned: any = {};
-      for (const key in baseInit) {
-        cleaned[key] =
-          prev[key as keyof (IBaseQuestion | IMCQ | ICQ)] ??
-          baseInit[key as keyof IBaseQuestion];
-      }
+      const cleaned: IBaseQuestion = { ...baseInit } as IBaseQuestion;
+      (Object.keys(baseInit) as (keyof IBaseQuestion)[]).forEach((key) => {
+        if (prev[key] !== undefined) {
+          cleaned[key] = prev[key];
+        }
+      });
 
       if (qType === "MCQ") {
         return {

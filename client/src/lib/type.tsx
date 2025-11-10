@@ -66,7 +66,7 @@ export interface IRecord {
 
 // Base Question
 export interface IBaseQuestion {
-  questionType: "MCQ" | "CQ";
+  questionType: string;
   level: string;
   levelId: string;
   background: string[];
