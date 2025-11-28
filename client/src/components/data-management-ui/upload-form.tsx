@@ -11,7 +11,7 @@ import SubmitBtn from "@/components/submit-btn";
 //   SelectTrigger,
 //   SelectValue,
 // } from "@/components/ui/select";
-import { IField, IFormInfo } from "@/lib/type";
+import { IField, IFormInfo, IOptionData } from "@/lib/type";
 import { FormEvent, RefObject, useEffect, useState } from "react";
 import { toast } from "sonner";
 // import { Textarea } from "../ui/textarea";
@@ -107,7 +107,7 @@ export default function UploadForm({
               const data = await res.json();
 
               if (data.success) {
-                field.optionData = data.data.map((d: any) => ({
+                field.optionData = data.data.map((d: IOptionData) => ({
                   name: d.name,
                   _id: d._id,
                 }));

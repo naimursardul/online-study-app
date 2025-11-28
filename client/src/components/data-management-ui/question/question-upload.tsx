@@ -3,7 +3,14 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { PlusCircle } from "lucide-react";
 import React, { useState, FormEvent, useEffect } from "react";
-import { IBaseQuestion, ICQ, IField, IMCQ } from "@/lib/type";
+import {
+  IBaseQuestion,
+  ICQ,
+  IField,
+  IMCQ,
+  IOptionData,
+  IRecord,
+} from "@/lib/type";
 import SubmitBtn from "@/components/submit-btn";
 import QuestionDataField from "./question-data-field";
 import { createManualOptions } from "@/lib/utils";
@@ -125,7 +132,7 @@ export default function QuestionUpload() {
       const cleaned: IBaseQuestion = { ...baseInit } as IBaseQuestion;
       (Object.keys(baseInit) as (keyof IBaseQuestion)[]).forEach((key) => {
         if (prev[key] !== undefined) {
-          cleaned[key] = prev[key];
+          (cleaned[key] as IBaseQuestion[typeof key]) = prev[key];
         }
       });
 
@@ -198,9 +205,11 @@ export default function QuestionUpload() {
             const deps = field.dependencies ?? [];
 
             // Handle dependencies
-            for (const dep of deps) {
-              const val = (formData as any)[dep];
-              const valId = (formData as any)[dep + "Id"];
+            for (const dep of deps as (keyof IBaseQuestion)[]) {
+              const val = formData[dep];
+              const valId = formData[(dep + "Id") as keyof IBaseQuestion] as
+                | string
+                | string[];
 
               if (!val || (Array.isArray(val) && val.length === 0)) {
                 isReady = false;
@@ -229,7 +238,10 @@ export default function QuestionUpload() {
                 const optionData =
                   field.name === "record"
                     ? data.data
-                    : data.data.map((d: any) => ({ name: d.name, _id: d._id }));
+                    : data.data.map((d: IOptionData) => ({
+                        name: d.name,
+                        _id: d._id,
+                      }));
 
                 newFields[i] = { ...field, optionData };
               }
