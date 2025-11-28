@@ -3,14 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { PlusCircle } from "lucide-react";
 import React, { useState, FormEvent, useEffect } from "react";
-import {
-  IBaseQuestion,
-  ICQ,
-  IField,
-  IMCQ,
-  IOptionData,
-  IRecord,
-} from "@/lib/type";
+import { IBaseQuestion, ICQ, IField, IMCQ, IOptionData } from "@/lib/type";
 import SubmitBtn from "@/components/submit-btn";
 import QuestionDataField from "./question-data-field";
 import { createManualOptions } from "@/lib/utils";
