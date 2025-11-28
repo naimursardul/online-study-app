@@ -211,7 +211,7 @@ export const checkAuth = async (req: Request, res: Response) => {
 // LOGOUT
 export const logout = async (req: Request, res: Response) => {
   try {
-    req.logout((err: any) => {
+    req.logout((err) => {
       if (err) throw Error(err);
     });
 
