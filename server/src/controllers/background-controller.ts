@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import Background from "../models/background-model";
 import { BaseQuestion } from "../models/question-model";
 import { IPopulatedData } from "../type/type";
+import mongoose from "mongoose";
 
 // Create Background
 export const createBackground = async (req: Request, res: Response) => {
@@ -51,8 +52,9 @@ export const createBackground = async (req: Request, res: Response) => {
 export const getAllBackgrounds = async (req: Request, res: Response) => {
   try {
     const { level } = req.query;
-    const filter = level ? { level } : {};
 
+    const filter: any = {};
+    if (level) filter.level = level;
     const backgrounds = await Background.find(filter).populate("level", "name");
 
     res.status(200).json({

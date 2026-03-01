@@ -5,7 +5,6 @@ import passport from "passport";
 import cookieParser from "cookie-parser";
 import session from "express-session";
 import MongoStore from "connect-mongo";
-import ConnectDB from "./db/db";
 import QuestionRouter from "./routes/question-routes";
 import LevelRouter from "./routes/level-routes";
 import BackgroundRouter from "./routes/background-routes";
@@ -17,6 +16,7 @@ import AuthRouter from "./routes/auth-routes";
 import { errorHandler } from "./middlewares/errorHandler";
 import "./passport/passport-config";
 import "./passport/passport-credential-config";
+import ConnectDB from "./db/db";
 
 dotenv.config();
 const app = express();
@@ -75,7 +75,17 @@ app.use("/api/auth", AuthRouter);
 app.use(errorHandler);
 
 // INITIATE APP
-app.listen(process.env.PORT, () => {
-  ConnectDB();
-  console.log(`[SERVER]: Server is running on port ${process.env.PORT}`);
-});
+const startServer = async () => {
+  try {
+    await ConnectDB();
+
+    app.listen(process.env.PORT, () => {
+      console.log(`[SERVER]: Server is running on port ${process.env.PORT}`);
+    });
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  }
+};
+
+startServer();

@@ -135,8 +135,9 @@ const mcqSchema = new Schema<IMCQ>({
     type: String,
     required: true,
     validate: {
-      validator: function (this: IMCQ, value: string) {
-        return this.options.includes(value);
+      validator: function (value: string) {
+        const doc = this as IMCQ;
+        return doc.options.includes(value);
       },
       message: "Correct answer must be one of the provided options.",
     },
