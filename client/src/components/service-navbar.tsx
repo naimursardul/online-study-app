@@ -1,3 +1,5 @@
+"use client";
+
 import { checkAuth } from "@/lib/helper";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import {
