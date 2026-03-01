@@ -1,6 +1,6 @@
 "use client";
 
-import { checkAuth } from "@/lib/helper";
+import { checkAuth, logOutFn } from "@/lib/helper";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import {
   DropdownMenu,
@@ -12,62 +12,41 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { BadgeCheck, Bell, CreditCard, LogOut, Sparkles } from "lucide-react";
-import { RedirectType, redirect } from "next/navigation";
-import { cookies } from "next/headers";
+import { useEffect, useState } from "react";
 
-export default async function ServiceNavbar() {
+export default function ServiceNavbar() {
   type UserType = {
     name: string;
     phone: string;
     avatar: string;
   };
 
-  const user = await checkAuth();
-  console.log(user);
-  const userDetails: UserType = {
-    name: user?.name,
-    phone: user?.phone,
-    avatar: "",
-  };
+  const [userDetails, setUserDetails] = useState<UserType | null>(null);
+
+  useEffect(() => {
+    const getUserDetails = async () => {
+      const user = await checkAuth();
+
+      if (user) {
+        setUserDetails({
+          name: user?.name,
+          phone: user?.phone,
+          avatar: "",
+        });
+      }
+    };
+
+    getUserDetails();
+  }, []);
 
   // LOGOUT
   const handleLogout = async () => {
-    "use server";
-    console.log("logout");
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("connect.sid")?.value || "";
-    if (!sessionCookie) {
-      return;
-    }
-    const cookieToSend = `connect.sid=${sessionCookie}`;
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_DEVELOPMENT_API}/api/auth/logout`,
-        {
-          credentials: "include",
-          headers: {
-            cookies: cookieToSend,
-          },
-        }
-      );
-
-      const data = await response.json();
-      if (!data.success) {
-        return;
-      }
-
-      if (sessionCookie) cookieStore.delete("connect.sid");
-    } catch (error) {
-      console.log(error);
-      return;
-    }
-
-    redirect("/login", RedirectType.replace);
+    await logOutFn();
   };
   return (
     <div className="w-full flex justify-between items-center ">
       <h2 className="text-2xl max-md:text-xl font-semibold">Question Bank</h2>
-      {!user ? (
+      {!userDetails ? (
         <div>Login</div>
       ) : (
         <DropdownMenu>
