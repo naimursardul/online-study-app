@@ -21,7 +21,7 @@ export default async function ServiceNavbar() {
   };
 
   const user = await checkAuth();
-  // console.log(user);
+  console.log(user);
   const userDetails: UserType = {
     name: user?.name,
     phone: user?.phone,

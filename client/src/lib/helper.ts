@@ -34,6 +34,7 @@ export const checkAuth = async () => {
   }
 
   const cookieToSend = `connect.sid=${sessionCookie}`;
+  console.log("cookieToSend :", cookieToSend);
 
   console.log(cookieToSend);
   try {
