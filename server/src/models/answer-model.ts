@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 import { IAnswer } from "../type/type";
 
-const AnswerSchema = new Schema(
+const AnswerSchema = new Schema<IAnswer>(
   {
     u_id: { type: String, required: true },
     record: { type: String, required: true },
@@ -11,7 +11,7 @@ const AnswerSchema = new Schema(
         givenAns: { type: String, required: true },
       },
     ],
-    toalMarks: { type: Number, required: true },
+    totalMarks: { type: Number, required: true },
     obtainedMarks: { type: Number, required: true },
     percentage: { type: Number, required: true },
     timeTaken: { type: Number, required: true },

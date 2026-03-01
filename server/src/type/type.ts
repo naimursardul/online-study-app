@@ -112,3 +112,23 @@ export interface ITopic extends Document {
   subject: mongoose.Types.ObjectId;
   chapter: mongoose.Types.ObjectId;
 }
+
+// QUESTION ANSWER
+export interface IQuestionAnswer {
+  id: string;
+  givenAns: string;
+}
+
+// ANSWER
+export interface IAnswer extends Document {
+  u_id: string;
+  record: string;
+  q_ids: IQuestionAnswer[];
+  totalMarks: number; // keeping your original field name
+  obtainedMarks: number;
+  percentage: number;
+  timeTaken: number;
+  examDate: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
