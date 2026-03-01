@@ -25,6 +25,7 @@ export async function getDataForOptions(tag: string) {
 }
 
 export const checkAuth = async () => {
+  console.log("checkauth hit");
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("connect.sid")?.value || "";
 
