@@ -11,10 +11,12 @@ export default async function page() {
   ]);
   return (
     <div>
-      <SignupForm
-        levelOptions={levelOptions}
-        backgroundOptions={backgroundOptions}
-      />
+      {levelOptions && backgroundOptions && (
+        <SignupForm
+          levelOptions={levelOptions}
+          backgroundOptions={backgroundOptions}
+        />
+      )}
     </div>
   );
 }
