@@ -10,7 +10,8 @@ export async function middleware(request: NextRequest) {
 
   if (
     request.nextUrl.pathname.startsWith("/admin") &&
-    (!user || user.role !== "admin")
+    // (!user || user.role !== "admin")
+    !user
   ) {
     return NextResponse.redirect(new URL("/", request.url));
   }
