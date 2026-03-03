@@ -8,6 +8,7 @@ import { SidebarItemType } from "@/lib/type";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   // Menu items.
+  console.log("Layout rendered at", Date.now());
   const items: SidebarItemType[] = [
     {
       title: "Question bank",
