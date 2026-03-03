@@ -1,7 +1,4 @@
-"use server";
-
 import { cookies } from "next/headers";
-import { RedirectType, redirect } from "next/navigation";
 
 export async function getDataForOptions(tag: string) {
   try {
@@ -68,37 +65,3 @@ export async function deleteAuthCookie() {
   const cookieStore = await cookies();
   cookieStore.delete("connect.sid");
 }
-
-export const logOutFn = async () => {
-  "use server";
-  console.log("logout");
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("connect.sid")?.value || "";
-  if (!sessionCookie) {
-    return;
-  }
-  const cookieToSend = `connect.sid=${sessionCookie}`;
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_DEVELOPMENT_API}/api/auth/logout`,
-      {
-        credentials: "include",
-        headers: {
-          cookies: cookieToSend,
-        },
-      }
-    );
-
-    const data = await response.json();
-    if (!data.success) {
-      return;
-    }
-
-    if (sessionCookie) cookieStore.delete("connect.sid");
-  } catch (error) {
-    console.log(error);
-    return;
-  }
-
-  redirect("/login", RedirectType.replace);
-};

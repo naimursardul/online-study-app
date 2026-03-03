@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useFormState } from "react-hook-form";
 import { z } from "zod";
 import {
   Form,
@@ -38,7 +38,6 @@ export default function LoginForm() {
       password: "",
     },
   });
-
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     console.log(values);
     try {
@@ -82,7 +81,6 @@ export default function LoginForm() {
       type: "password",
     },
   ];
-
   return (
     <div className="flex justify-center mt-20">
       <Form {...form}>
@@ -116,7 +114,7 @@ export default function LoginForm() {
               />
             ))}
 
-            <SubmitBtn />
+            <SubmitBtn loading={form.formState.isSubmitting} />
 
             {/* 🔽 Signup link for new user */}
             <p className="text-sm text-center text-muted-foreground">
