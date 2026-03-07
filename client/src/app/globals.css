@@ -2,6 +2,8 @@
 
 @plugin "tailwindcss-animate";
 
+/* @plugin import "@tailwindcss/typography"; */
+
 /* width */
 ::-webkit-scrollbar {
   width: 5px;
