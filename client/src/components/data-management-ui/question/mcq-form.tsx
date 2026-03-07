@@ -1,3 +1,6 @@
+import TextEditor, {
+  ReactMarkdownRender,
+} from "@/components/text-editor/TextEditor";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -22,12 +25,12 @@ export default function McqForm({
     <>
       <div className="space-y-2">
         <Label>Question</Label>
-        <Textarea
-          placeholder="Enter Question"
-          name="question"
-          onChange={(e) =>
-            setFormData({ ...formData, question: e.target.value })
-          }
+        <TextEditor
+          // placeholder="Enter Question"
+          // name="question"
+          onChangeFn={function (val: string): void {
+            setFormData((prev) => ({ ...prev, question: val }));
+          }}
         />
       </div>
 
@@ -36,12 +39,12 @@ export default function McqForm({
         {[1, 2, 3, 4].map((_o, i) => (
           <div key={i} className="space-y-2 ml-4">
             <Label className="text-sm font-light">Option-{_o}</Label>
-            <Textarea
-              placeholder={`Enter option ${_o}`}
-              name={`option${_o}`}
-              onChange={(e) => {
+            <TextEditor
+              // placeholder={`Enter option ${_o}`}
+              // name={`option${_o}`}
+              onChangeFn={(val) => {
                 const _os = formData.options;
-                _os[_o - 1] = e.target.value;
+                _os[_o - 1] = val;
                 return setFormData({ ...formData, options: _os });
               }}
             />
@@ -72,7 +75,9 @@ export default function McqForm({
                         className="text-sm cursor-pointer"
                       >
                         <span>{`Option-${i + 1}: `}</span>
-                        <span className="font-light">{_o}</span>
+                        <span className="font-light">
+                          <ReactMarkdownRender text={_o} />
+                        </span>
                       </SelectItem>
                     )
                 )
@@ -87,12 +92,12 @@ export default function McqForm({
       </div>
       <div className="space-y-2">
         <Label>Explanation</Label>
-        <Textarea
-          placeholder="Enter explanation"
-          name="explanation"
-          onChange={(e) =>
-            setFormData({ ...formData, explanation: e.target.value })
-          }
+        <TextEditor
+        // placeholder="Enter explanation"
+        // name="explanation"
+        // onChange={(e) =>
+        //   setFormData({ ...formData, explanation: e.target.value })
+        // }
         />
       </div>
     </>
