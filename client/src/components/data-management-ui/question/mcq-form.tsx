@@ -1,6 +1,5 @@
-import TextEditor, {
-  ReactMarkdownRender,
-} from "@/components/text-editor/TextEditor";
+import ReactMarkdownRender from "@/components/text-editor/ReactMarkdownRender";
+import TextEditor from "@/components/text-editor/TextEditor";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -10,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { IMCQ } from "@/lib/type";
 import React from "react";
 
@@ -26,8 +24,6 @@ export default function McqForm({
       <div className="space-y-2">
         <Label>Question</Label>
         <TextEditor
-          // placeholder="Enter Question"
-          // name="question"
           onChangeFn={function (val: string): void {
             setFormData((prev) => ({ ...prev, question: val }));
           }}
@@ -40,8 +36,6 @@ export default function McqForm({
           <div key={i} className="space-y-2 ml-4">
             <Label className="text-sm font-light">Option-{_o}</Label>
             <TextEditor
-              // placeholder={`Enter option ${_o}`}
-              // name={`option${_o}`}
               onChangeFn={(val) => {
                 const _os = formData.options;
                 _os[_o - 1] = val;
@@ -93,8 +87,6 @@ export default function McqForm({
       <div className="space-y-2">
         <Label>Explanation</Label>
         <TextEditor
-          // placeholder="Enter explanation"
-          // name="explanation"
           onChangeFn={(val) => setFormData({ ...formData, explanation: val })}
         />
       </div>

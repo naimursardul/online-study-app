@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ICQ, ITopic } from "@/lib/type";
+import TextEditor from "@/components/text-editor/TextEditor";
 
 export default function CqForm({
   formData,
@@ -80,22 +81,25 @@ export default function CqForm({
     <>
       <div className="space-y-2">
         <Label>Statement</Label>
-        <Textarea
-          placeholder="Enter option statement"
-          name="statement"
-          onChange={(e) =>
-            setFormData((prev) => ({ ...prev, statement: e.target.value }))
+        <TextEditor
+          onChangeFn={(val) =>
+            setFormData((prev) => ({ ...prev, statement: val }))
           }
         />
       </div>
 
       <div className="space-y-4">
         <Label>Sub Questions</Label>
-        <div className="space-y-6">
+        <div className="space-y-8">
           {["A", "B", "C", "D"].map((_sq, i) => (
             <div className="space-y-4  pl-3" key={i}>
-              <Label className="font-normal">Question No: {_sq}</Label>
-              <div className="space-y-2">
+              <Label>
+                Question No:{" "}
+                <span className="font-bold bg-accent-foreground text-accent p-1 rounded">
+                  {_sq}
+                </span>
+              </Label>
+              <div className="space-y-4">
                 <div className="space-y-2">
                   <Label className="font-light">Topic</Label>
                   <Select
@@ -142,14 +146,11 @@ export default function CqForm({
                 </div>
                 <div className="space-y-2">
                   <Label className="font-light">Question</Label>
-                  <Textarea
-                    placeholder={`Enter question ${_sq}`}
-                    name={`question${_sq}`}
-                    onChange={(e) => {
-                      const value = e.target.value;
+                  <TextEditor
+                    onChangeFn={(val) => {
                       setFormData((prev) => {
                         const newSub = prev.subQuestions.map((sq, idx) =>
-                          idx === i ? { ...sq, question: value } : sq
+                          idx === i ? { ...sq, question: val } : sq
                         );
                         return { ...prev, subQuestions: newSub };
                       });
@@ -158,14 +159,11 @@ export default function CqForm({
                 </div>
                 <div className="space-y-2">
                   <Label className="font-light">Answer</Label>
-                  <Textarea
-                    placeholder={`Enter answer ${_sq}`}
-                    name={`answer${_sq}`}
-                    onChange={(e) => {
-                      const value = e.target.value;
+                  <TextEditor
+                    onChangeFn={(val) => {
                       setFormData((prev) => {
                         const newSub = prev.subQuestions.map((sq, idx) =>
-                          idx === i ? { ...sq, answer: value } : sq
+                          idx === i ? { ...sq, answer: val } : sq
                         );
                         return { ...prev, subQuestions: newSub };
                       });
