@@ -93,11 +93,9 @@ export default function McqForm({
       <div className="space-y-2">
         <Label>Explanation</Label>
         <TextEditor
-        // placeholder="Enter explanation"
-        // name="explanation"
-        // onChange={(e) =>
-        //   setFormData({ ...formData, explanation: e.target.value })
-        // }
+          // placeholder="Enter explanation"
+          // name="explanation"
+          onChangeFn={(val) => setFormData({ ...formData, explanation: val })}
         />
       </div>
     </>
