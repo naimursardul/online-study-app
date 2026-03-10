@@ -142,9 +142,8 @@ export default function QuestionDataField<T>({
         </Select>
       )}
       {field?.inputType === "checkbox" &&
-        (field?.optionData ? (
-          field?.optionData.length > 0 &&
-          (field?.name !== "record" ? (
+        (field?.optionData && field?.optionData.length > 0 ? (
+          field?.name !== "record" ? (
             field.optionData.map((option) => (
               <div key={option?._id} className="flex gap-2">
                 <Checkbox
@@ -305,7 +304,7 @@ export default function QuestionDataField<T>({
                 </Command>
               </div>
             </div>
-          ))
+          )
         ) : (
           <small className="font-light pl-3">No {field?.name} available.</small>
         ))}
