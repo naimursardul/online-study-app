@@ -5,10 +5,10 @@ import { PlusCircle } from "lucide-react";
 import React, { useState, FormEvent, useEffect } from "react";
 import { IBaseQuestion, ICQ, IField, IMCQ, IOptionData } from "@/lib/type";
 import SubmitBtn from "@/components/submit-btn";
-import QuestionDataField from "./question-data-field";
+import QuestionDataField from "./question-forms/question-data-field";
 import { createManualOptions } from "@/lib/utils";
-import McqForm from "./mcq-form";
-import CqForm from "./cq-form";
+import McqForm from "./question-forms/mcq-form";
+import CqForm from "./question-forms/cq-form";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -183,73 +183,75 @@ export default function QuestionUpload() {
   }, [qType]);
 
   useEffect(() => {
-    setUpdatedFields((prevFields) => {
-      const newFields = [...prevFields];
+    const loadOptions = async () => {
+      const newFields = [...fields];
 
-      (async () => {
-        for (let i = 0; i < newFields.length; i++) {
-          const field = newFields[i];
+      for (let i = 0; i < newFields.length; i++) {
+        const field = newFields[i];
+        if (
+          !["select", "checkbox"].includes(field.inputType) ||
+          field.manualOptionData
+        )
+          continue;
 
-          if (field.manualOptionData) continue;
+        let isReady = true;
+        const query: string[] = [];
+        const deps = field.dependencies ?? [];
 
-          if (["select", "checkbox"].includes(field.inputType)) {
-            let isReady = true;
-            const query: string[] = [];
-            const deps = field.dependencies ?? [];
+        if (deps.length > 0) {
+          for (const dep of deps as (keyof IBaseQuestion)[]) {
+            const val = formData[dep];
+            const valId = formData[(dep + "Id") as keyof IBaseQuestion] as
+              | string
+              | string[];
 
-            // Handle dependencies
-            for (const dep of deps as (keyof IBaseQuestion)[]) {
-              const val = formData[dep];
-              const valId = formData[(dep + "Id") as keyof IBaseQuestion] as
-                | string
-                | string[];
-
-              if (!val || (Array.isArray(val) && val.length === 0)) {
-                isReady = false;
-                newFields[i] = { ...field, optionData: undefined };
-                break;
-              }
-
-              if (Array.isArray(valId)) {
-                valId.forEach((v: string) => query.push(`${dep}=${v}`));
-              } else {
-                query.push(`${dep}=${valId}`);
-              }
+            if (!val || (Array.isArray(val) && val.length === 0)) {
+              isReady = false;
+              break;
             }
 
-            if (!isReady) continue;
-
-            try {
-              const res = await fetch(
-                `${process.env.NEXT_PUBLIC_DEVELOPMENT_API}/api/${field.name}${
-                  query.length ? `?${query.join("&")}` : ""
-                }`
-              );
-              const data = await res.json();
-
-              if (data.success) {
-                const optionData =
-                  field.name === "record"
-                    ? data.data
-                    : data.data.map((d: IOptionData) => ({
-                        name: d.name,
-                        _id: d._id,
-                      }));
-
-                newFields[i] = { ...field, optionData };
-              }
-            } catch (error) {
-              console.log(error);
+            if (Array.isArray(valId)) {
+              valId.forEach((v) => query.push(`${dep}=${v}`));
+            } else {
+              query.push(`${dep}=${valId}`);
             }
           }
         }
 
-        // finally apply the new fields state
-        setUpdatedFields(newFields);
-      })();
+        if (!isReady) {
+          newFields[i] = { ...field, optionData: [] };
+          continue;
+        }
 
-      return prevFields; // temporary return value to avoid loop
-    });
+        try {
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_DEVELOPMENT_API}/api/${
+              field.name
+            }?${query.join("&")}`
+          );
+
+          const data = await res.json();
+
+          if (data.success) {
+            const optionData =
+              field.name === "record"
+                ? data.data
+                : data.data.map((d: IOptionData) => ({
+                    name: d.name,
+                    _id: d._id,
+                  }));
+
+            newFields[i] = { ...field, optionData };
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      setUpdatedFields(newFields);
+    };
+
+    loadOptions();
   }, [formData]);
 
   const handleSubmit = async (e: FormEvent) => {

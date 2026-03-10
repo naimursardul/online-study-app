@@ -19,20 +19,20 @@ export default function SignupForm({
 
   return (
     <div className="flex justify-center items-center mt-10">
-      <div className="w-[350px] max-md:w-[320px] overflow-hidden">
+      <div className="min-w-87.5 max-md:w-[320px] overflow-hidden">
         <div
-          className="flex  -translate-x-[350px]"
+          className="flex -translate-x-87.5"
           style={{ translate: `${step} 0` }}
         >
-          <Card className="min-w-[350px] p-8 max-md:min-w-[320px] max-md:px-6">
+          <Card className="min-w-87.5 p-8 max-md:min-w-[320px] max-md:px-6">
             <BeforeOtpForm setStep={setStep} setPhone={setPhone} />
           </Card>
 
-          <Card className="min-w-[350px] p-8 max-md:min-w-[320px] max-md:px-6">
+          <Card className="min-w-87.5 p-8 max-md:min-w-[320px] max-md:px-6">
             <OtpForm setStep={setStep} phone={phone} />
           </Card>
 
-          <Card className="min-w-[350px] p-8 max-md:min-w-[320px] max-md:px-6">
+          <Card className="min-w-87.5 p-8 max-md:min-w-[320px] max-md:px-6">
             <AfterOtpForm
               levelOptions={levelOptions}
               backgroundOptions={backgroundOptions}

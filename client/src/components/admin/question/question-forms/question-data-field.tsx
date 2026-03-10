@@ -1,8 +1,8 @@
 "use client";
 
 import { DataFieldProps, IRecord } from "@/lib/type";
-import { Input } from "../../ui/input";
-import { Textarea } from "../../ui/textarea";
+import { Input } from "../../../ui/input";
+import { Textarea } from "../../../ui/textarea";
 import {
   Select,
   SelectContent,
@@ -10,17 +10,17 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../ui/select";
-import { Checkbox } from "../../ui/checkbox";
-import { Label } from "../../ui/label";
+} from "../../../ui/select";
+import { Checkbox } from "../../../ui/checkbox";
+import { Label } from "../../../ui/label";
 import {
   Command,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-} from "../../ui/command";
-import { Button } from "../../ui/button";
+} from "../../../ui/command";
+import { Button } from "../../../ui/button";
 import { X } from "lucide-react";
 import { useState } from "react";
 
@@ -79,14 +79,34 @@ export default function QuestionDataField<T>({
             (formData as unknown as Record<string, string>)[field?.name]
           }
           onValueChange={(value) => {
-            const obj: Record<string, string> = {};
+            const obj: Record<string, any> = {};
+
             if (field?.manualOptionData) {
-              obj[field?.name] = value;
+              obj[field.name] = value;
             } else {
-              obj[field?.name + "Id"] = value.split(",")[0];
-              obj[field?.name] = value.split(",")[1];
+              obj[field.name] = value.split(",")[1];
+              obj[field.name + "Id"] = value.split(",")[0];
             }
-            return setFormData({ ...formData, ...obj });
+
+            // reset dependent fields
+            const dependentMap: Record<string, string[]> = {
+              level: ["background", "subject", "chapter", "topic"],
+              background: ["subject", "chapter", "topic"],
+              subject: ["chapter", "topic"],
+              chapter: ["topic"],
+            };
+
+            if (dependentMap[field.name]) {
+              dependentMap[field.name].forEach((dep) => {
+                obj[dep] = "";
+                obj[dep + "Id"] = "";
+              });
+            }
+
+            setFormData({
+              ...formData,
+              ...obj,
+            });
           }}
         >
           <SelectTrigger className="w-full cursor-pointer">
@@ -134,38 +154,45 @@ export default function QuestionDataField<T>({
                       field?.name
                     ] as unknown as string[]
                   )?.includes(option?._id)}
-                  onCheckedChange={(change: boolean) =>
-                    setFormData(() => {
-                      const checkedArr = (
-                        formData as unknown as Record<string, string>
-                      )[field?.name] as unknown as string[];
-                      const checkedArrId = (
-                        formData as unknown as Record<string, string>
-                      )[field?.name + "Id"] as unknown as string[];
+                  onCheckedChange={(checked: boolean) => {
+                    setFormData((prev) => {
+                      const names = [...((prev as any)[field.name] || [])];
+                      const ids = [...((prev as any)[field.name + "Id"] || [])];
 
-                      if (change) {
-                        if (
-                          !checkedArrId.includes(option?._id) &&
-                          !checkedArr.includes(option?.name)
-                        ) {
-                          checkedArrId.push(option?._id);
-                          checkedArr.push(option?.name);
+                      if (checked) {
+                        if (!ids.includes(option._id)) {
+                          ids.push(option._id);
+                          names.push(option.name);
                         }
                       } else {
-                        if (checkedArr.includes(option?._id)) {
-                          const indexId = checkedArrId.indexOf(option?._id);
-                          const index = checkedArr.indexOf(option?.name);
-                          checkedArrId.splice(indexId, 1);
-                          checkedArr.splice(index, 1);
-                        }
+                        const idIndex = ids.indexOf(option._id);
+                        const nameIndex = names.indexOf(option.name);
+
+                        if (idIndex > -1) ids.splice(idIndex, 1);
+                        if (nameIndex > -1) names.splice(nameIndex, 1);
                       }
-                      return {
-                        ...formData,
-                        [field?.name]: checkedArr,
-                        [field?.name + "Id"]: checkedArrId,
+
+                      const updated: Record<string, any> = {
+                        ...prev,
+                        [field.name]: names,
+                        [field.name + "Id"]: ids,
                       };
-                    })
-                  }
+
+                      // dependency reset map
+                      const dependentMap: Record<string, string[]> = {
+                        background: ["subject", "chapter", "topic"],
+                      };
+
+                      if (dependentMap[field.name]) {
+                        dependentMap[field.name].forEach((dep) => {
+                          updated[dep] = "";
+                          updated[dep + "Id"] = "";
+                        });
+                      }
+
+                      return updated as T;
+                    });
+                  }}
                 />
                 <Label className="font-light">{option.name}</Label>
               </div>
@@ -191,7 +218,7 @@ export default function QuestionDataField<T>({
                   ).record.map((_r) => (
                     <div
                       key={_r?._id}
-                      className="text-xs px-2 py-1 bg-sidebar border-1 rounded-lg"
+                      className="text-xs px-2 py-1 bg-sidebar border rounded-lg"
                     >
                       {_r?.institution + " - " + _r?.year}
                     </div>
@@ -226,6 +253,7 @@ export default function QuestionDataField<T>({
                             const _r = _o as unknown as IRecord & {
                               _id: string;
                             };
+                            console.log(_r);
                             return (
                               <CommandItem key={_r._id} className="flex gap-2">
                                 <div className="flex gap-2">

@@ -1,5 +1,5 @@
-import AllQuestion from "@/components/data-management-ui/question/all-question";
-import QuestionUpload from "@/components/data-management-ui/question/question-upload";
+import AllQuestion from "@/components/admin/question/all-questions/all-question";
+import QuestionUpload from "@/components/admin/question/question-upload";
 
 export default function page() {
   return (
