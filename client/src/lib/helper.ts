@@ -25,11 +25,11 @@ export async function getDataForOptions(tag: string) {
 }
 
 export const checkAuth = async () => {
-  console.log("checkauth hit");
+  console.log("checkauth hit 1");
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("connect.sid")?.value || "";
 
-  console.log(sessionCookie);
+  console.log("checkauth hit 2", sessionCookie);
   if (!sessionCookie) {
     return null;
   }

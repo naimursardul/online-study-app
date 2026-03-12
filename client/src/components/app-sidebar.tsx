@@ -22,7 +22,7 @@ import { SidebarItemType } from "@/lib/type";
 export function AppSidebar({ items }: { items: SidebarItemType[] }) {
   const pathname = usePathname();
   return (
-    <Sidebar collapsible="icon" className="w-[200px]">
+    <Sidebar collapsible="icon" className="w-50">
       <SidebarHeader className="mt-3">
         <SidebarMenu>
           <SidebarMenuItem>
