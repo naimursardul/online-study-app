@@ -29,7 +29,7 @@ export const checkAuth = async () => {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("connect.sid")?.value || "";
 
-  console.log(`checkauth hit 2: ${sessionCookie}`);
+  console.log(`checkauth hit - 2: ${sessionCookie}`);
   if (!sessionCookie) {
     return null;
   }
