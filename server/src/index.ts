@@ -49,6 +49,10 @@ app.use(
       secure: process.env.NODE_ENV === "production", // Send over HTTPS in production
       httpOnly: true, // Protect cookie from being accessed by client-side scripts
       path: "/",
+      domain:
+        process.env.NODE_ENV === "production"
+          ? "online-study-app-eta.vercel.app"
+          : "localhost",
       maxAge: 1000 * 60 * 60 * 24 * 7, // Expiry: 7 days
       sameSite: process.env.NODE_ENV === "development" ? "lax" : "none", // Adjust for cross-origin requirements if needed
     },
