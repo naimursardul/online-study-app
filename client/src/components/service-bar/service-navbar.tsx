@@ -11,15 +11,10 @@ import {
 import { BadgeCheck, Bell, CreditCard, LogOut, Sparkles } from "lucide-react";
 import { Button } from "../ui/button";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/lib/Auth-context";
 
 export default function ServiceNavbar() {
-  interface IUser {
-    name: string;
-    phone: string;
-    avatar: string;
-  }
-
-  const user: IUser = { name: "John Doe", phone: "123-456-7890", avatar: "" };
+  const { user, userExisted } = useAuth();
   console.log(user);
 
   // LOGOUT
@@ -59,11 +54,11 @@ export default function ServiceNavbar() {
   return (
     <div className="w-full flex justify-between items-center gap-2">
       <h2 className="text-2xl max-md:text-xl font-semibold">Question Bank</h2>
-      {user ? (
+      {user || userExisted ? (
         <DropdownMenu>
           <DropdownMenuTrigger className="cursor-pointer hover:opacity-90 border-none outline-none">
             <Avatar>
-              <AvatarImage src={user?.avatar} />
+              <AvatarImage src={user?.img} />
               <AvatarFallback className="bg-background font-bold">
                 {user?.name.slice(0, 1).toLocaleUpperCase()}
               </AvatarFallback>
@@ -76,14 +71,14 @@ export default function ServiceNavbar() {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user?.avatar} alt={user?.name} />
+                  <AvatarImage src={user?.img} alt={user?.name} />
                   <AvatarFallback className="rounded-full ">
                     {user?.name.slice(0, 1).toLocaleUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{user?.name}</span>
-                  <span className="truncate text-xs">{user.phone}</span>
+                  <span className="truncate text-xs">{user?.phone}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
