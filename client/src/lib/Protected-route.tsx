@@ -9,7 +9,7 @@ export type Role = "admin" | "user" | "super-admin";
 // ✅ Props
 type ProtectedRouteProps = {
   element: ReactNode;
-  roles?: Role[]; // optional → means any logged-in user
+  roles?: Role[];
 };
 
 const ProtectedRoute = ({ element, roles }: ProtectedRouteProps) => {
