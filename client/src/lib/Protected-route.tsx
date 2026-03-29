@@ -3,30 +3,30 @@ import { useAuth } from "./Auth-context";
 import Loader from "@/components/loader/Loader";
 import { type ReactNode } from "react";
 
-// 👉 Define allowed roles
-type Role = "admin" | "user" | "super-admin"; // adjust based on your app
+// ✅ Your roles
+export type Role = "admin" | "user" | "super-admin";
 
-// 👉 Props type
+// ✅ Props
 type ProtectedRouteProps = {
   element: ReactNode;
-  roles: Role[];
+  roles?: Role[]; // optional → means any logged-in user
 };
 
 const ProtectedRoute = ({ element, roles }: ProtectedRouteProps) => {
   const { authLoader, user } = useAuth();
 
-  // 🔄 Loading state
+  // 🔄 Loading
   if (authLoader) {
     return <Loader />;
   }
 
-  // ❌ Not authenticated
+  // ❌ Not logged in
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // ❌ Unauthorized
-  if (!roles.includes("all") && !roles.includes(user.role as Role)) {
+  // ❌ Unauthorized (only if roles are provided)
+  if (roles && !roles.includes(user.role)) {
     return <Navigate to="/" replace />;
   }
 

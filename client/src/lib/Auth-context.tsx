@@ -13,7 +13,7 @@ type User = {
   name: string;
   phone: string;
   img: string;
-  role: string;
+  role: "admin" | "user" | "super-admin";
 };
 
 // 👉 Context type
