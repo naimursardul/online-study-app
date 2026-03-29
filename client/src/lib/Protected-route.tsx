@@ -1,26 +1,37 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "./Auth-context";
 import Loader from "@/components/loader/Loader";
+import { type ReactNode } from "react";
 
-const ProtectedRoute = ({ element: Component, roles }) => {
+// 👉 Define allowed roles
+type Role = "admin" | "user" | "super-admin"; // adjust based on your app
+
+// 👉 Props type
+type ProtectedRouteProps = {
+  element: ReactNode;
+  roles: Role[];
+};
+
+const ProtectedRoute = ({ element, roles }: ProtectedRouteProps) => {
   const { authLoader, user } = useAuth();
+
+  // 🔄 Loading state
   if (authLoader) {
     return <Loader />;
   }
 
+  // ❌ Not authenticated
   if (!user) {
-    // Redirect to login if user is not authenticated
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
 
-  if (!roles.includes(user?.role) && !roles.includes("all")) {
-    console.log(2);
-    // Redirect to home if the actionName is false
-    return <Navigate to="/" />;
+  // ❌ Unauthorized
+  if (!roles.includes("all") && !roles.includes(user.role as Role)) {
+    return <Navigate to="/" replace />;
   }
 
-  // Render the component if authenticated and actionName is valid
-  return Component;
+  // ✅ Authorized
+  return <>{element}</>;
 };
 
 export default ProtectedRoute;
