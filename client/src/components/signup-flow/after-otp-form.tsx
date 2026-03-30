@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { useAuth } from "@/lib/Auth-context";
 
 // Schema
 const formSchema = z.object({
@@ -94,6 +95,8 @@ export default function AfterOtpForm({
     level: levelOptions,
     background: backgroundOptions,
   };
+  const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   const [filteredOptions, setFilteredOptions] = useState<
     Record<string, IOptionData[]>
@@ -136,7 +139,6 @@ export default function AfterOtpForm({
   }, [watchedValues]);
 
   // ON SUBMIT HANDLER
-  const navigate = useNavigate();
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     console.log("Final user info:", values);
 
@@ -150,6 +152,8 @@ export default function AfterOtpForm({
         return;
       }
       toast.success("Profile completed successfully!");
+      localStorage.setItem("userExisted", "true");
+      setUser(data.user);
       navigate("/", { replace: true });
       return;
     } catch (error) {

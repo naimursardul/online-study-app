@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/lib/Auth-context";
 
 // ✅ Zod Schema
 const formSchema = z.object({
@@ -30,6 +31,7 @@ const formSchema = z.object({
 });
 
 export default function LoginForm() {
+  const { setUser } = useAuth();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -50,6 +52,8 @@ export default function LoginForm() {
         toast.error(data.message || "Failed to Login.");
         return;
       }
+      localStorage.setItem("userExisted", "true");
+      setUser(data.user);
       navigate("/", { replace: true });
       return;
     } catch (error) {
