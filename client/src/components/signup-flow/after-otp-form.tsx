@@ -150,7 +150,7 @@ export default function AfterOtpForm({
         return;
       }
       toast.success("Profile completed successfully!");
-      navigate("/");
+      navigate("/", { replace: true });
       return;
     } catch (error) {
       console.log(error);
