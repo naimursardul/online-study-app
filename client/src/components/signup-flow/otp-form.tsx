@@ -48,11 +48,13 @@ export default function OtpForm({
 
       const { data } = res;
 
-      if (data.success) {
-        setStep(3);
-        toast.success("OTP submitted successfully!");
+      if (!data.success) {
+        toast.error(data.message || "Failed to submit OTP");
+        return;
       }
-      toast.error(data.message || "Failed to submit OTP");
+      setStep(3);
+      toast.success("OTP submitted successfully!");
+      return;
     } catch (error) {
       console.log(error);
       toast.error("There is a problem with the server.");

@@ -75,6 +75,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
       return;
     }
 
+    console.log(user);
     // Check if OTP is valid and not expired
     if (
       user.verificationToken !== otp ||

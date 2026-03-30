@@ -62,23 +62,23 @@ export default function Signup() {
 
   return (
     <div className="flex justify-center items-center mt-10">
-      <div className="min-w-87.5 max-md:w-[320px] overflow-hidden">
+      <div className="w-[320px] overflow-hidden">
         <div
-          className="flex max-w-[320px] transition-transform duration-300 "
-          style={{ transform: `translateX(-${(step - 1) * 350}px)` }}
+          className="flex gap-1 transition-transform duration-300 "
+          style={{ transform: `translateX(-${(step - 1) * 324}px)` }}
         >
           {/* STEP 1 */}
-          <Card className="border min-w-87.5 p-8 max-md:min-w-[320px] max-md:px-6">
+          <Card className="border min-w-[320px] p-8 max-md:px-6">
             <BeforeOtpForm setStep={setStep} setPhone={setPhone} />
           </Card>
 
           {/* STEP 2 */}
-          <Card className="border min-w-87.5 p-8 max-md:min-w-[320px] max-md:px-6">
+          <Card className="border min-w-[320px] p-8 max-md:px-6">
             <OtpForm setStep={setStep} phone={phone} />
           </Card>
 
           {/* STEP 3 */}
-          <Card className="border min-w-87.5 p-8 max-md:min-w-[320px] max-md:px-6">
+          <Card className="border min-w-[320px] p-8 max-md:px-6">
             <AfterOtpForm
               levelOptions={levelOptions}
               backgroundOptions={backgroundOptions}
