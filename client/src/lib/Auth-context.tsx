@@ -6,20 +6,24 @@ import {
   type ReactNode,
 } from "react";
 import { client } from "./utils";
+import type { IPopulatedData } from "@/types/types";
 
 // 👉 Define your user type
-type User = {
+interface IAuthUser {
   _id?: string;
   name: string;
   phone: string;
   img: string;
   role: "admin" | "user" | "super-admin";
-};
+  userCategory: "regular" | "premium";
+  level: IPopulatedData;
+  background: IPopulatedData;
+}
 
 // 👉 Context type
 type AuthContextType = {
-  user: User | null;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  user: IAuthUser | null;
+  setUser: React.Dispatch<React.SetStateAction<IAuthUser | null>>;
   authLoader: boolean;
   userExisted: boolean;
 };
@@ -33,7 +37,7 @@ type AuthProviderProps = {
 };
 
 const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<IAuthUser | null>(null);
   const [authLoader, setAuthLoader] = useState(true);
 
   const userExisted = localStorage.getItem("userExisted") === "true";

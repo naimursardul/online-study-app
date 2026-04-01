@@ -130,31 +130,31 @@ export interface ILevel {
 // Background
 export interface IBackground {
   name: string;
-  level: string;
+  level: IPopulatedData;
 }
 
 // Subject
 export interface ISubject {
   name: string;
-  level: string;
-  background: string[];
+  level: IPopulatedData;
+  background: IPopulatedData[];
 }
 
 // Chapter
 export interface IChapter {
   name: string;
-  level: string;
-  background: string;
-  subject: string;
+  level: IPopulatedData;
+  background: IPopulatedData;
+  subject: IPopulatedData;
 }
 
 // Topic
 export interface ITopic {
   name: string;
-  level: string;
-  background: string[]; // Array of background IDs
-  subject: string;
-  chapter: string;
+  level: IPopulatedData;
+  background: IPopulatedData[]; // Array of background IDs
+  subject: IPopulatedData;
+  chapter: IPopulatedData;
 }
 
 // IRegistrationFormField

@@ -20,9 +20,14 @@ const UserSchema = new Schema(
     email: { type: String },
     phone: { type: String },
     password: { type: String },
-    level: { type: String },
-    background: { type: String },
-
+    level: {
+      type: Schema.Types.ObjectId,
+      ref: "Level",
+    },
+    background: {
+      type: Schema.Types.ObjectId,
+      ref: "Background",
+    },
     verificationToken: { type: String },
     verificationTokenExpireAt: { type: Date },
     resetToken: { type: String },

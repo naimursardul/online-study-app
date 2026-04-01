@@ -133,7 +133,20 @@ export const createUser = async (req: Request, res: Response) => {
   }
 
   try {
-    const user = await User.findOne({ phone });
+    const user = await User.findOneAndUpdate(
+      { phone },
+      {
+        name,
+        email,
+        img,
+        level,
+        background,
+        lastLogin: new Date(),
+      },
+      { new: true }
+    )
+      .populate("level", "name")
+      .populate("background", "name");
 
     if (!user) {
       res
@@ -141,15 +154,6 @@ export const createUser = async (req: Request, res: Response) => {
         .json({ success: false, message: " User not found.", data: null });
       return;
     }
-
-    user.name = name;
-    user.email = email;
-    user.img = img;
-    user.level = level;
-    user.background = background;
-    user.lastLogin = new Date();
-
-    await user.save();
 
     // 🔥 CREATE JWT
     const token = createJWT({
@@ -202,7 +206,9 @@ export const requireAuth = (req: any, res: any, next: any) => {
 // check auth
 export const checkAuth = async (req: any, res: Response) => {
   try {
-    const data = await User.findById(req.user.userId);
+    const data = await User.findById(req.user.userId)
+      .populate("level", "name")
+      .populate("background", "name");
 
     if (!data) {
       res.status(200).json({
@@ -214,7 +220,7 @@ export const checkAuth = async (req: any, res: Response) => {
     }
 
     const userObj = data.toObject();
-    userObj.password = undefined;
+    delete userObj.password;
 
     res.status(200).json({
       success: true,
@@ -252,7 +258,9 @@ export const loginWithPhone = async (req: Request, res: Response) => {
       phone,
       isVerified: true,
       provider: "phone",
-    });
+    })
+      .populate("level", "name")
+      .populate("background", "name");
 
     if (!user) {
       res.status(400).json({

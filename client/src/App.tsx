@@ -1,16 +1,16 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Home from "./pages/Home.tsx";
-import About from "./pages/About.tsx";
-import QuestionBank from "./pages/service-pages/Question-bank.tsx";
-import Exam from "./pages/service-pages/Exam.tsx";
-import Doubt from "./pages/service-pages/Doubt.tsx";
+import Home from "./pages/home/Home.tsx";
+import About from "./pages/about/About.tsx";
+import QuestionBank from "./pages/service-pages/question-bank/Question-bank.tsx";
+import Exam from "./pages/service-pages/exam/Exam.tsx";
+import Doubt from "./pages/service-pages/doubt/Doubt.tsx";
 import ServiceLayout from "./pages/service-pages/Service-layout.tsx";
-import Login from "./pages/Login.tsx";
-import NotFoundPage from "./pages/Not-found-page.tsx";
-import Admin from "./pages/Admin.tsx";
+import Login from "./pages/login/Login.tsx";
+import Admin from "./pages/admin/Admin.tsx";
 import ProtectedRoute from "./lib/Protected-route.tsx";
 import HomeLayout from "./pages/Home-layout.tsx";
-import Signup from "./pages/Signup.tsx";
+import Signup from "./pages/signup/Signup.tsx";
+import NotFound from "./pages/not-found/Not-found.tsx";
 
 function App() {
   return (
@@ -33,7 +33,7 @@ function App() {
             <Route path="/exam" element={<Exam />} />
             <Route path="/doubt" element={<Doubt />} />
           </Route>
-          <Route path="/*" element={<NotFoundPage />} />
+          <Route path="/*" element={<NotFound />} />
         </Routes>
       </div>
     </BrowserRouter>
