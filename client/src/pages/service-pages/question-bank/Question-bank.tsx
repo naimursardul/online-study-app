@@ -71,7 +71,7 @@ export default function QuestionBank() {
     fetchData();
   }, []);
 
-  const filteredSubjects = useMemo(() => {
+  const userFilteredSubjects = useMemo(() => {
     return allSubject.filter((subject) => {
       const levelId = (subject.level as IPopulatedData)?._id;
       const backgrounds = (subject.background as IPopulatedData[]) || [];
@@ -90,35 +90,36 @@ export default function QuestionBank() {
       <div className="space-y-10">
         {/* My Level */}
         {(user || userExisted) && (
-          <section className="space-y-4">
-            <h2 className="font-bold text-xl pl-4">My Level</h2>
+          <>
+            <section className="space-y-4">
+              <h2 className="font-bold text-xl pl-4">My Level</h2>
 
-            {isLoading ? (
-              <QbSecSkeleton />
-            ) : (
-              <div className="space-y-3 bg-input rounded-2xl px-4 py-5">
-                <h2 className="font-semibold pl-2">
-                  {user?.level.name} ({user?.background.name})
-                </h2>
+              {!userFilteredSubjects[0] ? (
+                <QbSecSkeleton />
+              ) : (
+                <div className="space-y-3 bg-input rounded-2xl px-4 py-5">
+                  <h2 className="font-semibold pl-2">
+                    {user?.level.name} ({user?.background.name})
+                  </h2>
 
-                <div className="flex flex-wrap gap-4">
-                  {filteredSubjects.map((subject) => (
-                    <Link
-                      key={subject._id}
-                      to={`question-bank/${subject.name}`}
-                    >
-                      <Card className="bg-sidebar flex justify-center items-center text-sm font-semibold p-1 w-30 h-30 border cursor-pointer hover:opacity-70 transition-opacity">
-                        {subject.name}
-                      </Card>
-                    </Link>
-                  ))}
+                  <div className="flex flex-wrap gap-4">
+                    {userFilteredSubjects.map((subject) => (
+                      <Link
+                        key={subject._id}
+                        to={`question-bank/${subject.name}`}
+                      >
+                        <Card className="bg-sidebar flex justify-center items-center text-sm font-semibold p-1 w-30 h-30 border cursor-pointer hover:opacity-70 transition-opacity">
+                          {subject.name}
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </section>
+              )}
+            </section>
+            <Separator className="bg-input" />
+          </>
         )}
-
-        <Separator className="bg-input" />
 
         {/* All Levels */}
         <section className="flex flex-col gap-4">
