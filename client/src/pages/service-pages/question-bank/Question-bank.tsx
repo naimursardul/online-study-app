@@ -81,7 +81,7 @@ export default function QuestionBank() {
         backgrounds.some((bg) => bg._id === user?.background._id)
       );
     });
-  }, [allSubject]);
+  }, [allSubject, user]);
 
   const isLoading = loading.level || loading.bg || loading.subject;
 
