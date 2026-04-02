@@ -86,6 +86,7 @@ export default function QuestionBank() {
 
   const isLoading = loading.level || loading.bg || loading.subject;
 
+  console.log(userFilteredSubjects);
   return (
     <div className="flex flex-col gap-9 mt-5 mb-16">
       <div className="space-y-10">
@@ -95,9 +96,7 @@ export default function QuestionBank() {
             <section className="space-y-4">
               <h2 className="font-bold text-xl pl-4">My Level</h2>
 
-              {!user?.level?.name ? (
-                <QbSecSkeleton />
-              ) : (
+              {user?.level?.name ? (
                 <div className="space-y-3 bg-input rounded-2xl px-4 py-5">
                   <h2 className="flex gap-2 font-semibold pl-2">
                     <Layers size={"22px"} />
@@ -117,6 +116,8 @@ export default function QuestionBank() {
                     ))}
                   </div>
                 </div>
+              ) : (
+                <QbSecSkeleton />
               )}
             </section>
             <Separator className="bg-input" />
