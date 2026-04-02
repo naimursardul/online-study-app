@@ -10,6 +10,7 @@ import type {
 } from "@/types/types";
 import { client } from "@/lib/utils";
 import FormatTime from "@/components/format-time/format-time";
+import { Button } from "@/components/ui/button";
 
 export default function SingleQuestionBank({
   qDetails,
@@ -106,18 +107,18 @@ export default function SingleQuestionBank({
   function handleStart() {
     setAnswerScript([]);
     setExamStatus("started");
-    countdownRef.current = setInterval(() => {
-      setTimeRemaining((t) => {
-        if (t === 0) {
-          if (submitRef?.current) {
-            submitRef.current.click();
-            submitRef.current = null;
-          }
-          return 10 * 1000;
-        }
-        return t - 1000;
-      });
-    }, 1000);
+    // countdownRef.current = setInterval(() => {
+    //   setTimeRemaining((t) => {
+    //     if (t === 0) {
+    //       if (submitRef?.current) {
+    //         submitRef.current.click();
+    //         submitRef.current = null;
+    //       }
+    //       return 10 * 1000;
+    //     }
+    //     return t - 1000;
+    //   });
+    // }, 1000);
   }
 
   console.log(allQuestion);
