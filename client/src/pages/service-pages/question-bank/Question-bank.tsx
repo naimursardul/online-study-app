@@ -13,6 +13,7 @@ import type {
   ISubject,
 } from "@/types/types";
 import { useAuth } from "@/lib/Auth-context";
+import { BookOpen, Layers } from "lucide-react";
 
 type LoadingState = {
   level: boolean;
@@ -98,7 +99,8 @@ export default function QuestionBank() {
                 <QbSecSkeleton />
               ) : (
                 <div className="space-y-3 bg-input rounded-2xl px-4 py-5">
-                  <h2 className="font-semibold pl-2">
+                  <h2 className="flex gap-2 font-semibold pl-2">
+                    <Layers size={"22px"} />
                     {user?.level.name} ({user?.background.name})
                   </h2>
 
@@ -109,7 +111,7 @@ export default function QuestionBank() {
                         to={`question-bank/${subject.name}`}
                       >
                         <Card className="bg-sidebar flex justify-center items-center text-sm font-semibold p-1 w-30 h-30 border cursor-pointer hover:opacity-70 transition-opacity">
-                          {subject.name}
+                          <BookOpen /> {subject.name}
                         </Card>
                       </Link>
                     ))}

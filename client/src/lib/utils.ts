@@ -14,3 +14,24 @@ const client = axios.create({
   withCredentials: true,
 });
 export { client };
+
+/// GET BOARD QUESTION DETAILS from slug
+export const getBoardQusetonDetails = (slug: string) => {
+  // HSC_Physics-1st_mcq_dhaka_2024
+  const obj: {
+    level?: string;
+    subject?: string;
+    questionType?: string;
+    institution?: string;
+    year?: string;
+  } = {};
+  if (!slug) return obj;
+  const arr = slug.split("_");
+  if (arr[0]) obj.level = arr[0] || "";
+  if (arr[1]) obj.subject = arr[1] || "";
+  if (arr[2]) obj.questionType = arr[2] || "";
+  if (arr[3]) obj.institution = arr[3] || "";
+  if (arr[4]) obj.year = arr[4] || "";
+
+  return obj;
+};

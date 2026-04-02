@@ -11,6 +11,7 @@ import ProtectedRoute from "./lib/Protected-route.tsx";
 import HomeLayout from "./pages/Home-layout.tsx";
 import Signup from "./pages/signup/Signup.tsx";
 import NotFound from "./pages/not-found/Not-found.tsx";
+import InstitutionQuestion from "./pages/service-pages/question-bank/[...slug]/Institution-question.tsx";
 
 function App() {
   return (
@@ -23,17 +24,22 @@ function App() {
           />
 
           <Route path="/" element={<HomeLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/login" element={<Login />} />
+            <Route index element={<Home />} />
+            <Route path="about" element={<About />} />
+            <Route path="signup" element={<Signup />} />
+            <Route path="login" element={<Login />} />
           </Route>
+
           <Route path="/" element={<ServiceLayout />}>
-            <Route path="/question-bank" element={<QuestionBank />} />
-            <Route path="/exam" element={<Exam />} />
-            <Route path="/doubt" element={<Doubt />} />
+            <Route path="question-bank" element={<QuestionBank />} />
+            <Route path="question-bank/:slug" element={<InstitutionQuestion />}>
+              <Route path=":slug2" element={<InstitutionQuestion />} />
+            </Route>
+            <Route path="exam" element={<Exam />} />
+            <Route path="doubt" element={<Doubt />} />
           </Route>
-          <Route path="/*" element={<NotFound />} />
+
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
     </BrowserRouter>

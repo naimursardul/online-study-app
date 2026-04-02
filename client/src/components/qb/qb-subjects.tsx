@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card } from "../ui/card";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
+import { BookOpen, Layers } from "lucide-react";
 
 type Props = {
   level: ILevel & { _id: string };
@@ -47,7 +48,10 @@ export default function QbSection({ level, allBackground, allSubject }: Props) {
 
   return (
     <div className="space-y-3 bg-input rounded-2xl px-4 py-5">
-      <h2 className="font-semibold pl-2">{level.name}</h2>
+      <div className="flex gap-2">
+        <Layers size={"22px"} />
+        <h2 className="font-semibold">{level.name}</h2>
+      </div>
 
       {/* BACKGROUND FILTERS */}
       <ToggleGroup type="multiple" onValueChange={(value) => setFilter(value)}>
@@ -67,10 +71,10 @@ export default function QbSection({ level, allBackground, allSubject }: Props) {
         {subjects.map((s) => (
           <Link
             key={s._id}
-            to={`question-bank/${(s.level as IPopulatedData).name}_${s.name}`}
+            to={`${(s.level as IPopulatedData).name}_${s.name}`}
           >
             <Card className="bg-sidebar flex justify-center items-center text-sm font-semibold p-1 w-30 h-30 border cursor-pointer hover:opacity-70">
-              {s.name}
+              <BookOpen /> {s.name}
             </Card>
           </Link>
         ))}
