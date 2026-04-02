@@ -95,7 +95,7 @@ export default function QuestionBank() {
             <section className="space-y-4">
               <h2 className="font-bold text-xl pl-4">My Level</h2>
 
-              {!userFilteredSubjects[0] ? (
+              {!user?.level?.name ? (
                 <QbSecSkeleton />
               ) : (
                 <div className="space-y-3 bg-input rounded-2xl px-4 py-5">
