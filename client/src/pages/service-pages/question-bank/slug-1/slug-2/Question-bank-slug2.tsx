@@ -56,7 +56,7 @@ function QuestionBankSlug2() {
           level: qDetails?.level,
         });
 
-        const data = await res.json();
+        const { data } = res;
 
         console.log(data);
         if (data?.success) {
