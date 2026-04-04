@@ -16,7 +16,11 @@ type Props = {
   allSubject: (ISubject & { _id: string })[];
 };
 
-export default function QbSection({ level, allBackground, allSubject }: Props) {
+export default function InstitutionSubject({
+  level,
+  allBackground,
+  allSubject,
+}: Props) {
   const [filter, setFilter] = useState<string[]>([]);
 
   // ✅ Filter backgrounds belonging to this level

@@ -11,7 +11,9 @@ import ProtectedRoute from "./lib/Protected-route.tsx";
 import HomeLayout from "./pages/Home-layout.tsx";
 import Signup from "./pages/signup/Signup.tsx";
 import NotFound from "./pages/not-found/Not-found.tsx";
-import InstitutionQuestion from "./pages/service-pages/question-bank/[...slug]/Institution-question.tsx";
+import InstitutionQuestionLayout from "./pages/service-pages/question-bank/slug-1/Institution-question-layout.tsx";
+import QuestionBankSlug2 from "./pages/service-pages/question-bank/slug-1/slug-2/Question-bank-slug2.tsx";
+import QuestionBankSlug1 from "./pages/service-pages/question-bank/slug-1/Question-bank-slug1.tsx";
 
 function App() {
   return (
@@ -32,8 +34,12 @@ function App() {
 
           <Route path="/" element={<ServiceLayout />}>
             <Route path="question-bank" element={<QuestionBank />} />
-            <Route path="question-bank/:slug" element={<InstitutionQuestion />}>
-              <Route path=":slug2" element={<InstitutionQuestion />} />
+            <Route
+              path="question-bank/:slug1"
+              element={<InstitutionQuestionLayout />}
+            >
+              <Route index element={<QuestionBankSlug1 />} />
+              <Route path=":slug2" element={<QuestionBankSlug2 />} />
             </Route>
             <Route path="exam" element={<Exam />} />
             <Route path="doubt" element={<Doubt />} />

@@ -1,35 +1,33 @@
 import { useEffect, useRef, useState } from "react";
 import { MousePointerClick, TextSelect } from "lucide-react";
-import SingleCqQuestion from "./single-question/single-cq-queston";
-import SingleMcqQuestion from "./single-question/single-mcq-question";
+import { useOutletContext } from "react-router-dom";
+import SingleCqQuestion from "@/components/qb/institution-question/single-question/single-cq-queston";
+import SingleMcqQuestion from "@/components/qb/institution-question/single-question/single-mcq-question";
+import { Button } from "@/components/ui/button";
+import { client } from "@/lib/utils";
 import type {
+  ExamStatusType,
+  IBoardQusetonDetails,
   ICQ,
   IMCQ,
   ScriptResType,
   SingleMcqAnswerType,
+  ViewModeType,
 } from "@/types/types";
-import { client } from "@/lib/utils";
-import FormatTime from "@/components/format-time/format-time";
-import { Button } from "@/components/ui/button";
 
-export default function SingleQuestionBank({
-  qDetails,
-}: {
-  qDetails?: Record<string, string>;
-}) {
-  //
-  //
-  // ALL VARIABLES
-  const [viewMode, setViewMode] = useState<"viewOnly" | "showAns" | "practice">(
-    "viewOnly"
-  );
+type OutletContextType = {
+  setTimeRemaining: React.Dispatch<React.SetStateAction<number>>;
+  setExamStatus: React.Dispatch<React.SetStateAction<string>>;
+  viewMode: ViewModeType;
+  qDetails: IBoardQusetonDetails;
+  examStatus: ExamStatusType;
+};
+function QuestionBankSlug2() {
   const [allQuestion, setAllQuestion] = useState<
     ((IMCQ | ICQ) & { _id: string })[]
   >([]);
-  const [timeRemaining, setTimeRemaining] = useState<number>(10 * 1000);
-  const [examStatus, setExamStatus] = useState<
-    "ready" | "started" | "finished"
-  >("ready");
+  const { setTimeRemaining, setExamStatus, viewMode, qDetails, examStatus } =
+    useOutletContext<OutletContextType>();
   const [answerScript, setAnswerScript] = useState<SingleMcqAnswerType[]>([]);
   const [scriptRes, setScriptRes] = useState<ScriptResType>({
     correct: 0,
@@ -37,15 +35,19 @@ export default function SingleQuestionBank({
     obtain: 0,
     total: 0,
   });
-  const countdownRef = useRef(null);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     let qString: string = "";
     async function getAllQuestion() {
       for (const key in qDetails) {
-        if (key === "questionType") continue;
-        if (qDetails[key]) {
-          qString += (qString ? "&" : "?") + key + "=" + qDetails[key];
+        const typedKey = key as keyof IBoardQusetonDetails;
+
+        if (typedKey === "questionType") continue;
+
+        if (qDetails[typedKey]) {
+          qString +=
+            (qString ? "&" : "?") + typedKey + "=" + qDetails[typedKey];
         }
       }
       try {
@@ -54,7 +56,7 @@ export default function SingleQuestionBank({
           level: qDetails?.level,
         });
 
-        const { data } = res;
+        const data = await res.json();
 
         console.log(data);
         if (data?.success) {
@@ -107,71 +109,24 @@ export default function SingleQuestionBank({
   function handleStart() {
     setAnswerScript([]);
     setExamStatus("started");
-    // countdownRef.current = setInterval(() => {
-    //   setTimeRemaining((t) => {
-    //     if (t === 0) {
-    //       if (submitRef?.current) {
-    //         submitRef.current.click();
-    //         submitRef.current = null;
-    //       }
-    //       return 10 * 1000;
-    //     }
-    //     return t - 1000;
-    //   });
-    // }, 1000);
+    countdownRef.current = setInterval(() => {
+      setTimeRemaining((t) => {
+        if (t === 0) {
+          if (submitRef?.current) {
+            submitRef.current.click();
+            submitRef.current = null;
+          }
+          return 10 * 1000;
+        }
+        return t - 1000;
+      });
+    }, 1000);
   }
 
   console.log(allQuestion);
 
   return (
-    <div className="w-full space-y-8">
-      {/*  */}
-      {/*  */}
-      {/* TOPBAR */}
-      <div className="flex flex-col gap-2 bg-background rounded sticky top-0 p-3 border-b-2 border-border ">
-        <div className="flex gap-3 justify-between items-center ">
-          <div>
-            <h3 className="font-semibold">
-              {qDetails?.level} Board Question / {qDetails?.subject}
-            </h3>
-            <p className="text-xs text-chart-2 font-semibold">
-              {qDetails?.institution &&
-                qDetails?.year &&
-                qDetails?.questionType &&
-                `${qDetails?.institution} - ${qDetails?.year} (${qDetails?.questionType})`}
-            </p>
-          </div>
-
-          {/*  */}
-          {/*  */}
-          {/* MODE SELECTOR */}
-          {qDetails?.questionType === "MCQ" && (
-            <form
-              onChange={(e: React.ChangeEvent<HTMLFormElement>) =>
-                setViewMode(e.target?.value)
-              }
-              className="flex flex-col gap-1 text-xs md:text-sm font-semibold"
-            >
-              <select
-                name="viewMode"
-                id="viewMode"
-                disabled={examStatus === "started"}
-                className="border-none outline-none bg-sidebar-accent pl-2 py-2 rounded cursor-pointer"
-              >
-                <option value="viewOnly" defaultChecked>
-                  View Only
-                </option>
-                <option value="showAns">Show Answer</option>
-                <option value="practice">Practice</option>
-              </select>
-            </form>
-          )}
-        </div>
-        {examStatus === "started" && (
-          <FormatTime timeRemaining={timeRemaining} />
-        )}
-      </div>
-
+    <div>
       {qDetails?.questionType ? (
         <>
           <div className="space-y-5">
@@ -296,3 +251,5 @@ export default function SingleQuestionBank({
     </div>
   );
 }
+
+export default QuestionBankSlug2;

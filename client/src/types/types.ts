@@ -190,3 +190,14 @@ export interface IResponse {
   success: boolean;
   message: string;
 }
+
+export interface IBoardQusetonDetails {
+  level?: string;
+  subject?: string;
+  questionType?: string;
+  institution?: string;
+  year?: string;
+}
+
+export type ExamStatusType = "ready" | "started" | "finished";
+export type ViewModeType = "viewOnly" | "showAns" | "practice";

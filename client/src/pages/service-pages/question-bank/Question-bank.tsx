@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import QbSection from "@/components/qb/qb-subjects";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,6 +13,7 @@ import type {
 } from "@/types/types";
 import { useAuth } from "@/lib/Auth-context";
 import { BookOpen, Layers } from "lucide-react";
+import InstitutionSubject from "@/components/qb/Institution-subjects";
 
 type LoadingState = {
   level: boolean;
@@ -131,7 +131,7 @@ export default function QuestionBank() {
           {isLoading
             ? Array.from({ length: 4 }).map((_, i) => <QbSecSkeleton key={i} />)
             : allLevel.map((level) => (
-                <QbSection
+                <InstitutionSubject
                   key={level._id}
                   level={level}
                   allBackground={allBackground}
