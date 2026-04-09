@@ -13,7 +13,11 @@ const AnswerSchema = new Schema<IAnswer>(
     ],
     totalMarks: { type: Number, required: true },
     obtainedMarks: { type: Number, required: true },
-    percentage: { type: Number, required: true },
+    questionType: {
+      type: String,
+      enum: ["MCQ", "CQ"],
+      required: true,
+    },
     timeTaken: { type: Number, required: true },
     examDate: { type: Date, required: true },
   },

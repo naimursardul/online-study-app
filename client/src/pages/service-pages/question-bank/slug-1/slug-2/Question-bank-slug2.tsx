@@ -1,6 +1,12 @@
-import { useEffect, useRef, useState } from "react";
-import { MousePointerClick, TextSelect } from "lucide-react";
-import { useOutletContext } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Award,
+  CheckCircle2,
+  ListOrdered,
+  MousePointerClick,
+  XCircle,
+} from "lucide-react";
+import { useOutletContext, useParams } from "react-router-dom";
 import SingleCqQuestion from "@/components/qb/institution-question/single-question/single-cq-queston";
 import SingleMcqQuestion from "@/components/qb/institution-question/single-question/single-mcq-question";
 import { Button } from "@/components/ui/button";
@@ -14,20 +20,23 @@ import type {
   SingleMcqAnswerType,
   ViewModeType,
 } from "@/types/types";
+import { McqQuestionSkeleton } from "@/components/skeleton/McqQuestionSkeleton";
+import { CqQuestionSkeleton } from "@/components/skeleton/CqQuestionSkeleton";
 
 type OutletContextType = {
   setTimeRemaining: React.Dispatch<React.SetStateAction<number>>;
-  setExamStatus: React.Dispatch<React.SetStateAction<string>>;
+  setExamStatus: React.Dispatch<React.SetStateAction<ExamStatusType>>;
   viewMode: ViewModeType;
   qDetails: IBoardQusetonDetails;
   examStatus: ExamStatusType;
 };
+
 function QuestionBankSlug2() {
+  const { slug2 } = useParams();
+  const [loading, setLoading] = useState(true);
   const [allQuestion, setAllQuestion] = useState<
     ((IMCQ | ICQ) & { _id: string })[]
   >([]);
-  const { setTimeRemaining, setExamStatus, viewMode, qDetails, examStatus } =
-    useOutletContext<OutletContextType>();
   const [answerScript, setAnswerScript] = useState<SingleMcqAnswerType[]>([]);
   const [scriptRes, setScriptRes] = useState<ScriptResType>({
     correct: 0,
@@ -36,220 +45,257 @@ function QuestionBankSlug2() {
     total: 0,
   });
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { setTimeRemaining, setExamStatus, viewMode, qDetails, examStatus } =
+    useOutletContext<OutletContextType>();
 
   useEffect(() => {
-    let qString: string = "";
-    async function getAllQuestion() {
-      for (const key in qDetails) {
-        const typedKey = key as keyof IBoardQusetonDetails;
+    const fetchQuestions = async () => {
+      setLoading(true);
 
-        if (typedKey === "questionType") continue;
+      const params = new URLSearchParams();
 
-        if (qDetails[typedKey]) {
-          qString +=
-            (qString ? "&" : "?") + typedKey + "=" + qDetails[typedKey];
+      Object.entries(qDetails).forEach(([key, value]) => {
+        if (key !== "questionType" && value) {
+          params.append(key, String(value));
         }
-      }
+      });
+
       try {
-        const res = await client.post(`/question${qString}`, {
-          questionType: qDetails?.questionType,
-          level: qDetails?.level,
+        const res = await client.post(`/question?${params.toString()}`, {
+          questionType: qDetails.questionType,
+          level: qDetails.level,
         });
 
-        const { data } = res;
-
-        console.log(data);
-        if (data?.success) {
-          setAllQuestion(data?.data);
+        if (res.data?.success) {
+          setAllQuestion(res.data.data);
         }
       } catch (error) {
         console.log(error);
+      } finally {
+        setLoading(false);
       }
-    }
+    };
 
-    getAllQuestion();
+    fetchQuestions();
   }, [qDetails]);
 
-  //
-  //
-  // HANDLE MCQ SUBMIT
-  function handleMcqSubmit() {
-    console.log("inside: ", answerScript);
+  useEffect(() => {
+    resetQuestionState();
+  }, [slug2]);
+
+  function clearTimer() {
     if (countdownRef.current) {
       clearInterval(countdownRef.current);
       countdownRef.current = null;
-      setTimeRemaining(10 * 1000);
     }
-    setExamStatus("finished");
-    const obj = { ...scriptRes };
-    answerScript.map((as) => {
-      obj.total += as.mark;
-      if (as.isCorrect) {
-        obj.correct += as.mark;
-        obj.obtain += as.mark;
-      } else {
-        obj.wrong += as.mark;
-      }
-    });
-    setScriptRes(obj);
   }
 
-  //
-  //
-  // HANDLE PRACTICE STSRT
-  function handleRestart() {
-    setScriptRes({ correct: 0, wrong: 0, obtain: 0, total: 0 });
+  function resetQuestionState() {
+    clearTimer();
+
+    setAllQuestion([]);
+    setAnswerScript([]);
+
+    setScriptRes({
+      correct: 0,
+      wrong: 0,
+      obtain: 0,
+      total: 0,
+    });
+
+    setTimeRemaining(totalTime * 1000);
+
     setExamStatus("ready");
   }
 
-  const submitRef = useRef<HTMLButtonElement | null>(null);
-  //
-  //
-  // HANDLE PRACTICE STSRT
-  function handleStart() {
-    setAnswerScript([]);
-    setExamStatus("started");
-    countdownRef.current = setInterval(() => {
-      setTimeRemaining((t) => {
-        if (t === 0) {
-          if (submitRef?.current) {
-            submitRef.current.click();
-            submitRef.current = null;
-          }
-          return 10 * 1000;
+  function handleMcqSubmit() {
+    clearTimer();
+
+    setTimeRemaining(totalTime * 1000);
+
+    setExamStatus("finished");
+
+    const result = answerScript.reduce(
+      (acc, item) => {
+        acc.total += item.mark;
+
+        if (item.isCorrect) {
+          acc.correct += item.mark;
+
+          acc.obtain += item.mark;
+        } else {
+          acc.wrong += item.mark;
         }
-        return t - 1000;
+
+        return acc;
+      },
+      {
+        correct: 0,
+        wrong: 0,
+        obtain: 0,
+        total: 0,
+      }
+    );
+
+    setScriptRes(result);
+  }
+
+  function handleRestart() {
+    clearTimer();
+
+    setAnswerScript([]);
+
+    setScriptRes({
+      correct: 0,
+      wrong: 0,
+      obtain: 0,
+      total: 0,
+    });
+
+    setExamStatus("ready");
+
+    setTimeRemaining(totalTime * 1000);
+  }
+
+  function handleStart() {
+    clearTimer();
+
+    setAnswerScript([]);
+
+    setScriptRes({
+      correct: 0,
+      wrong: 0,
+      obtain: 0,
+      total: 0,
+    });
+
+    setExamStatus("started");
+
+    countdownRef.current = setInterval(() => {
+      setTimeRemaining((time) => {
+        if (time <= 1000) {
+          handleMcqSubmit();
+          return 0;
+        }
+
+        return time - 1000;
       });
     }, 1000);
   }
 
-  console.log(allQuestion);
+  const totalTime = useMemo(() => {
+    return allQuestion.reduce((acc, cur) => {
+      console.log(acc, cur);
+      return acc + cur?.timeRequired;
+    }, 0);
+  }, [slug2, viewMode]);
+  const totalMarks = useMemo(() => {
+    return allQuestion.reduce((acc, cur) => acc + cur?.marks, 0);
+  }, [slug2, viewMode]);
 
-  return (
-    <div>
-      {qDetails?.questionType ? (
-        <>
-          <div className="space-y-5">
-            {/*  */}
-            {/*  */}
-            {/* SHOW RESULT */}
-            {viewMode === "practice" && examStatus === "finished" && (
-              <>
-                <div className="grid grid-cols-2 max-md:text-sm gap-1 border-2 border-sidebar-border bg-sidebar px-4 py-4 rounded text-chart-2">
-                  <div className="space-x-2">
-                    <span className="font-semibold">Total</span>
-                    <span>: {scriptRes?.total}</span>
-                  </div>
-                  <div className="space-x-2">
-                    <span className="font-semibold">Correct</span>
-                    <span>: {scriptRes?.correct}</span>
-                  </div>
-                  <div className="space-x-2">
-                    <span className="font-semibold">Obtain</span>
-                    <span>: {scriptRes?.obtain}</span>
-                  </div>
-                  <div className="space-x-2">
-                    <span className="font-semibold">Wrong</span>
-                    <span>: {scriptRes?.wrong}</span>
-                  </div>
-                </div>
+  console.log({ allQuestion });
+  if (loading) {
+    return qDetails?.questionType === "MCQ" ? (
+      <div className="space-y-5">
+        <McqQuestionSkeleton />
+        <McqQuestionSkeleton />
+        <McqQuestionSkeleton />
+      </div>
+    ) : (
+      <div className="space-y-5">
+        <CqQuestionSkeleton />
+        <CqQuestionSkeleton />
+        <CqQuestionSkeleton />
+      </div>
+    );
+  }
 
-                {/*  */}
-                {/*  */}
-                {/* RESTART BUTTON */}
-                <Button className="cursor-pointer" onClick={handleRestart}>
-                  Restart
-                </Button>
-              </>
-            )}
+  if (qDetails.questionType === "MCQ") {
+    return (
+      <div className="space-y-5">
+        {viewMode === "practice" && examStatus === "finished" && (
+          <>
+            <div className="grid grid-cols-2 gap-2 border-2 border-sidebar-border bg-sidebar px-4 py-4 rounded text-chart-2">
+              <div className="flex gap-1 items-center ">
+                <ListOrdered className="size-5" /> <span>Total:</span>{" "}
+                {scriptRes.total}
+              </div>
+              <div className="flex gap-1 items-center ">
+                <CheckCircle2 className="size-5" /> <span>Correct:</span>{" "}
+                {scriptRes.correct}
+              </div>
+              <div className="flex gap-1 items-center ">
+                <Award className="size-5" /> <span>Obtain:</span>{" "}
+                {scriptRes.obtain}
+              </div>
+              <div className="flex gap-1 items-center ">
+                <XCircle className="size-5" /> <span>Wrong:</span>{" "}
+                {scriptRes.wrong}
+              </div>
+            </div>
 
-            {/*  */}
-            {/*  */}
-            {/* QUESTON - MCQ */}
-            {((viewMode === "practice" && examStatus !== "ready") ||
-              viewMode !== "practice") && (
-              <h3 className="font-bold text-xl text-center">Physics (18)</h3>
-            )}
-            {qDetails?.questionType === "MCQ" && (
-              <>
-                {allQuestion?.length > 0 &&
-                  (allQuestion as (IMCQ & { _id: string })[]).map((q, i) => (
-                    <div key={i}>
-                      {((viewMode === "practice" && examStatus !== "ready") ||
-                        viewMode === "showAns" ||
-                        viewMode === "viewOnly") && (
-                        <SingleMcqQuestion
-                          q={q}
-                          i={i + 1}
-                          viewMode={viewMode}
-                          setAnswerScript={setAnswerScript}
-                          examStatus={examStatus}
-                        />
-                      )}
-                    </div>
-                  ))}
-                {/*  */}
-                {/*  */}
-                {/* SUBMIT BUTTON */}
-                {viewMode === "practice" && examStatus === "started" && (
-                  <Button
-                    ref={submitRef}
-                    className="w-full cursor-pointer"
-                    onClick={handleMcqSubmit}
-                  >
-                    Submit
-                  </Button>
-                )}
+            <Button className="cursor-pointer" onClick={handleRestart}>
+              Restart
+            </Button>
+          </>
+        )}
 
-                {/*  */}
-                {/*  */}
-                {/* READY TEXTS */}
-                {viewMode === "practice" && examStatus === "ready" && (
-                  <div className="flex flex-col gap-2 justify-center items-center text-chart-2 font-semibold">
-                    <div>Total MCQ: 25</div>
-                    <div>Time: 25 mins</div>
-                    <div>Total Marks: 25</div>
+        {((viewMode === "practice" && examStatus !== "ready") ||
+          viewMode !== "practice") &&
+          allQuestion.map((q, i) => (
+            <SingleMcqQuestion
+              key={q._id}
+              q={
+                q as IMCQ & {
+                  _id: string;
+                }
+              }
+              i={i + 1}
+              viewMode={viewMode}
+              setAnswerScript={setAnswerScript}
+              examStatus={examStatus}
+            />
+          ))}
 
-                    {/*  */}
-                    {/*  */}
-                    {/* START BUTTON */}
-                    <Button className="cursor-pointer" onClick={handleStart}>
-                      Start
-                    </Button>
-                    <br />
-                    <div className="flex gap-2">
-                      <MousePointerClick />
-                      <span>
-                        Click on{" "}
-                        <span className="px-2 py-1 bg-sidebar-border text-sm rounded">
-                          Start
-                        </span>{" "}
-                        button to start the exam.
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
+        {viewMode === "practice" && examStatus === "started" && (
+          <Button className="w-full" onClick={handleMcqSubmit}>
+            Submit
+          </Button>
+        )}
 
-            {/*  */}
-            {/*  */}
-            {/* QUESTON - CQ */}
-            {qDetails?.questionType === "CQ" &&
-              allQuestion?.length > 0 &&
-              (allQuestion as (ICQ & { _id: string })[]).map((q, i) => (
-                <SingleCqQuestion key={i} q={q} i={i + 1} />
-              ))}
+        {viewMode === "practice" && examStatus === "ready" && (
+          <div className="flex flex-col gap-2 justify-center items-center text-chart-2 font-semibold">
+            <div>Total MCQ: {allQuestion.length}</div>
+
+            <div>Time: {totalTime}</div>
+
+            <div>Total Marks: {totalMarks}</div>
+
+            <Button className="cursor-pointer" onClick={handleStart}>
+              Start
+            </Button>
+
+            <div className="flex gap-2">
+              <MousePointerClick />
+              <span>Click Start button to begin exam</span>
+            </div>
           </div>
-        </>
-      ) : (
-        <div className="flex gap-2 justify-center items-center text-chart-2 font-semibold">
-          <TextSelect />
-          <span>Select from the sidebar</span>
-        </div>
-      )}
-    </div>
-  );
+        )}
+      </div>
+    );
+  }
+
+  if (qDetails.questionType === "CQ") {
+    return (
+      <div className="space-y-5">
+        {allQuestion.map((q, i) => (
+          <SingleCqQuestion key={q._id} q={q as ICQ} i={i + 1} />
+        ))}
+      </div>
+    );
+  }
+
+  return null;
 }
 
 export default QuestionBankSlug2;

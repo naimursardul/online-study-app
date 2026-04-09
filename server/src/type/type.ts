@@ -126,7 +126,7 @@ export interface IAnswer extends Document {
   q_ids: IQuestionAnswer[];
   totalMarks: number; // keeping your original field name
   obtainedMarks: number;
-  percentage: number;
+  questionType: "MCQ" | "CQ";
   timeTaken: number;
   examDate: Date;
   createdAt?: Date;
