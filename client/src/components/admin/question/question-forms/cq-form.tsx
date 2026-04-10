@@ -1,0 +1,176 @@
+import React, { useEffect, useState } from "react";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { ICQ, ITopic } from "@/types/types";
+import TextEditor from "@/components/text-editor/TextEditor";
+import { client } from "@/lib/utils";
+
+export default function CqForm({
+  formData,
+  setFormData,
+  defaultTopicId,
+}: {
+  formData: ICQ;
+  setFormData: React.Dispatch<React.SetStateAction<ICQ>>;
+  defaultTopicId: string;
+}) {
+  const [topics, setTopics] = useState<{ _id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    async function getOptions() {
+      if (formData?.chapter) {
+        const query = [
+          formData?.levelId,
+          [...formData?.backgroundId],
+          formData?.subjectId,
+          formData?.chapterId,
+        ];
+        try {
+          const res = await client.get(
+            `/topic${query?.length > 0 ? "?" + query.join("&") : ""}`
+          );
+          const { data } = res;
+
+          if (data.success) {
+            setTopics(
+              data?.data?.map((t: ITopic & { _id: string }) => {
+                return { _id: t?._id, name: t?.name };
+              })
+            );
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    }
+
+    getOptions();
+  }, [formData]);
+
+  useEffect(() => {
+    if (!defaultTopicId) return;
+
+    setFormData((prev) => {
+      if (!Array.isArray(prev.subQuestions) || prev.subQuestions.length !== 4) {
+        return prev;
+      }
+
+      const newSubQuestions = prev.subQuestions.map((sq) => ({
+        ...sq,
+        topicId: prev.topicId,
+        topic: prev.topic,
+      }));
+
+      return { ...prev, subQuestions: newSubQuestions };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultTopicId]);
+
+  return (
+    <>
+      <div className="space-y-2">
+        <Label>Statement</Label>
+        <TextEditor
+          onChangeFn={(val) =>
+            setFormData((prev) => ({ ...prev, statement: val }))
+          }
+        />
+      </div>
+
+      <div className="space-y-4">
+        <Label>Sub Questions</Label>
+        <div className="space-y-8">
+          {["A", "B", "C", "D"].map((_sq, i) => (
+            <div className="space-y-4  pl-3" key={i}>
+              <Label>
+                Question No:{" "}
+                <span className="font-bold bg-accent-foreground text-accent p-1 rounded">
+                  {_sq}
+                </span>
+              </Label>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="font-light">Topic</Label>
+                  <Select
+                    value={
+                      defaultTopicId && formData?.subQuestions
+                        ? formData?.subQuestions[i].topicId +
+                          "," +
+                          formData?.subQuestions[i].topic
+                        : undefined
+                    }
+                    onValueChange={(value) => {
+                      const [topicId, topic] = value.split(",");
+                      setFormData((prev) => {
+                        const newSub = prev.subQuestions.map((sq, idx) =>
+                          idx === i ? { ...sq, topicId, topic } : sq
+                        );
+                        return { ...prev, subQuestions: newSub };
+                      });
+                    }}
+                  >
+                    <SelectTrigger className="w-full cursor-pointer">
+                      <SelectValue placeholder={`Select topic`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {topics?.length > 0 ? (
+                          topics.map((_o, i) => (
+                            <SelectItem
+                              className="cursor-pointer"
+                              key={i}
+                              value={_o?._id + "," + _o?.name}
+                            >
+                              {_o?.name}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="No-val" disabled>
+                            No topic found.
+                          </SelectItem>
+                        )}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-light">Question</Label>
+                  <TextEditor
+                    onChangeFn={(val) => {
+                      setFormData((prev) => {
+                        const newSub = prev.subQuestions.map((sq, idx) =>
+                          idx === i ? { ...sq, question: val } : sq
+                        );
+                        return { ...prev, subQuestions: newSub };
+                      });
+                    }}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-light">Answer</Label>
+                  <TextEditor
+                    onChangeFn={(val) => {
+                      setFormData((prev) => {
+                        const newSub = prev.subQuestions.map((sq, idx) =>
+                          idx === i ? { ...sq, answer: val } : sq
+                        );
+                        return { ...prev, subQuestions: newSub };
+                      });
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}

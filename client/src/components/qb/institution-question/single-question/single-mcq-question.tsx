@@ -5,7 +5,6 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
-
 import { Bookmark, BookmarkCheck, ChevronsUpDown, X } from "lucide-react";
 import type { IMCQ, SingleMcqAnswerType } from "@/types/types";
 import { Button } from "@/components/ui/button";

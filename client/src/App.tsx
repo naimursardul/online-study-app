@@ -14,6 +14,14 @@ import NotFound from "./pages/not-found/Not-found.tsx";
 import InstitutionQuestionLayout from "./pages/service-pages/question-bank/slug-1/Institution-question-layout.tsx";
 import QuestionBankSlug2 from "./pages/service-pages/question-bank/slug-1/slug-2/Question-bank-slug2.tsx";
 import QuestionBankSlug1 from "./pages/service-pages/question-bank/slug-1/Question-bank-slug1.tsx";
+import AdminLayout from "./pages/admin/AdminLayout.tsx";
+import Question from "./pages/admin/(allUploadPages)/question/Question.tsx";
+import Level from "./pages/admin/(allUploadPages)/level/Level.tsx";
+import Background from "./pages/admin/(allUploadPages)/background/Background.tsx";
+import Subject from "./pages/admin/(allUploadPages)/subject/Subject.tsx";
+import Chapter from "./pages/admin/(allUploadPages)/chapter/Chapter.tsx";
+import Topic from "./pages/admin/(allUploadPages)/topic/Topic.tsx";
+import Record from "./pages/admin/(allUploadPages)/record/Record.tsx";
 
 function App() {
   return (
@@ -22,8 +30,19 @@ function App() {
         <Routes>
           <Route
             path="/admin"
-            element={<ProtectedRoute roles={["admin"]} element={<Admin />} />}
-          />
+            element={
+              <ProtectedRoute roles={["user"]} element={<AdminLayout />} />
+            }
+          >
+            <Route index element={<Admin />} />
+            <Route path="question" element={<Question />} />
+            <Route path="record" element={<Record />} />
+            <Route path="level" element={<Level />} />
+            <Route path="background" element={<Background />} />
+            <Route path="subject" element={<Subject />} />
+            <Route path="chapter" element={<Chapter />} />
+            <Route path="topic" element={<Topic />} />
+          </Route>
 
           <Route path="/" element={<HomeLayout />}>
             <Route index element={<Home />} />

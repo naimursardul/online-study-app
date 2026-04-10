@@ -15,9 +15,10 @@ import {
 } from "@/components/ui/sidebar";
 import type { SidebarItemType } from "@/types/types";
 
-function ServiceSidebar({ items }: { items: SidebarItemType[] }) {
+function SidebarTemplate({ items }: { items: SidebarItemType[] }) {
   const location = useLocation();
   const pathname = location.pathname;
+  console.log(pathname);
   return (
     <Sidebar collapsible="icon" className="w-50">
       <SidebarHeader className="mt-3">
@@ -73,4 +74,4 @@ function ServiceSidebar({ items }: { items: SidebarItemType[] }) {
   );
 }
 
-export default ServiceSidebar;
+export default SidebarTemplate;

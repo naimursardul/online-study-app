@@ -10,47 +10,34 @@ import {
 } from "../ui/dropdown-menu";
 import { BadgeCheck, Bell, CreditCard, LogOut, Sparkles } from "lucide-react";
 import { Button } from "../ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/Auth-context";
+import { client } from "@/lib/utils";
+import { toast } from "sonner";
 
 export default function ServiceNavbar() {
-  const { user, userExisted } = useAuth();
+  const { user, userExisted, setUser } = useAuth();
   console.log(user);
-
+  const navigate = useNavigate();
   // LOGOUT
-  // const handleLogout = async () => {
-  //   "use server";
-  //   console.log("logout");
-  //   const cookieStore = await cookies();
-  //   const sessionCookie = cookieStore.get("connect.sid")?.value || "";
-  //   if (!sessionCookie) {
-  //     return;
-  //   }
-  //   const cookieToSend = `connect.sid=${sessionCookie}`;
-  //   try {
-  //     const response = await fetch(
-  //       `${process.env.NEXT_PUBLIC_DEVELOPMENT_API}/api/auth/logout`,
-  //       {
-  //         credentials: "include",
-  //         headers: {
-  //           cookies: cookieToSend,
-  //         },
-  //       }
-  //     );
+  const handleLogout = async () => {
+    try {
+      const res = await client.get(`/auth/logout`);
 
-  //     const data = await response.json();
-  //     if (!data.success) {
-  //       return;
-  //     }
-
-  //     if (sessionCookie) cookieStore.delete("connect.sid");
-  //   } catch (error) {
-  //     console.log(error);
-  //     return;
-  //   }
-
-  //   redirect("/login", RedirectType.replace);
-  // };
+      const { data } = res;
+      if (!data.success) {
+        toast.warning(data.message);
+        return;
+      }
+      setUser(null);
+      navigate("/login", { replace: true });
+      return;
+    } catch (error) {
+      console.log(error);
+      toast.error("There is an error in server side.");
+      return;
+    }
+  };
   return (
     <div className="w-full flex justify-between items-center gap-2">
       <h2 className="text-2xl max-md:text-xl font-semibold">Question Bank</h2>
@@ -105,7 +92,7 @@ export default function ServiceNavbar() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <form>
+            <form onSubmit={handleLogout}>
               <button className="w-full">
                 <DropdownMenuItem className="cursor-pointer">
                   <LogOut />
