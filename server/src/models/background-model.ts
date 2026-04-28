@@ -8,7 +8,7 @@ const backgroundSchema = new Schema<IBackground>(
       required: true,
       trim: true,
     },
-    level: {
+    levelId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Level",
       required: true,

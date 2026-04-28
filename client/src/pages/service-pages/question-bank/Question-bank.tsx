@@ -74,19 +74,21 @@ export default function QuestionBank() {
 
   const userFilteredSubjects = useMemo(() => {
     return allSubject.filter((subject) => {
-      const levelId = (subject.level as IPopulatedData)?._id;
-      const backgrounds = (subject.background as IPopulatedData[]) || [];
+      const levelId = (subject.levelId as IPopulatedData)?._id;
+      const backgrounds = (subject.backgroundId as IPopulatedData[]) || [];
 
+      // console.log(levelId, backgrounds);
       return (
         levelId === user?.level._id &&
-        backgrounds.some((bg) => bg._id === user?.background._id)
+        backgrounds.some((bg) => bg._id === user?.background?._id)
       );
     });
   }, [allSubject, user]);
 
   const isLoading = loading.level || loading.bg || loading.subject;
 
-  console.log(userFilteredSubjects);
+  // console.log(allSubject);
+  // console.log(userFilteredSubjects);
   return (
     <div className="flex flex-col gap-9 mt-5 mb-16">
       <div className="space-y-10">
@@ -100,14 +102,16 @@ export default function QuestionBank() {
                 <div className="space-y-3 bg-input rounded-2xl px-4 py-5">
                   <h2 className="flex gap-2 font-semibold pl-2">
                     <Layers size={"22px"} />
-                    {user?.level.name} ({user?.background.name})
+                    {user?.level.name} ({user?.background?.name})
                   </h2>
 
                   <div className="flex flex-wrap gap-4">
                     {userFilteredSubjects.map((subject) => (
                       <Link
                         key={subject._id}
-                        to={`question-bank/${subject.name}`}
+                        to={`${(subject.levelId as IPopulatedData).name}_${
+                          subject.name
+                        }`}
                       >
                         <Card className="bg-sidebar flex justify-center items-center text-sm font-semibold p-1 w-30 h-30 border cursor-pointer hover:opacity-70 transition-opacity">
                           <BookOpen /> {subject.name}

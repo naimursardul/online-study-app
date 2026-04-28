@@ -48,8 +48,15 @@ export const createLevel = async (req: Request, res: Response) => {
 
 // READ all levels
 export const getAllLevels = async (_req: Request, res: Response) => {
+  const { search } = _req.query;
+  const filter: any = {};
+  // ✅ SEARCH IMPLEMENTATION
+  if (search) {
+    filter.name = { $regex: search, $options: "i" }; // case-insensitive
+  }
+
   try {
-    const levels = await Level.find();
+    const levels = await Level.find(filter).sort({ createdAt: -1 });
     res.status(200).json({
       success: true,
       message: "Levels fetched successfully.",

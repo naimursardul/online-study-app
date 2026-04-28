@@ -10,7 +10,6 @@ import { MCQ, CQ, BaseQuestion } from "../models/question-model";
 
 // CREATE QUESTION
 async function createQuestion(req: Request, res: Response) {
-  console.log("req:", req.body);
   try {
     const {
       questionType,
@@ -42,7 +41,7 @@ async function createQuestion(req: Request, res: Response) {
 
     // Validate that the provided questionType is supported
     if (!supportedQuestionTypes.includes(questionType)) {
-      res.status(400).json({
+      res.status(200).json({
         success: false,
         message: `Invalid question type. Supported types are: ${supportedQuestionTypes.join(
           ", "
@@ -74,7 +73,7 @@ async function createQuestion(req: Request, res: Response) {
       !marks ||
       !difficulty
     ) {
-      res.status(400).json({
+      res.status(200).json({
         success: false,
         message:
           "Missing required fields: level, background, subject, chapter, topic, record, timeRequired, and difficulty.",
@@ -94,7 +93,7 @@ async function createQuestion(req: Request, res: Response) {
           !correctAnswer ||
           !explanation
         ) {
-          res.status(400).json({
+          res.status(200).json({
             success: false,
             message:
               "Invalid MCQ question. Ensure 'question', 'options' (with at least 4 options), 'correctAnswer', and 'explanation' are provided.",
@@ -106,7 +105,7 @@ async function createQuestion(req: Request, res: Response) {
         // Check if the MCQ already exists
         const existingMCQ = await MCQ.findOne({ question });
         if (existingMCQ) {
-          res.status(400).json({
+          res.status(200).json({
             success: false,
             message: "This MCQ question already exists.",
             data: null,
@@ -123,7 +122,7 @@ async function createQuestion(req: Request, res: Response) {
       case "CQ":
         // Handle CQ-specific validation
         if (!statement || !subQuestions || subQuestions.length !== 4) {
-          res.status(400).json({
+          res.status(200).json({
             success: false,
             message:
               "Invalid CQ question. Ensure 'statement' and 'subQuestions' (with at least 4 questions) are provided.",
@@ -139,7 +138,7 @@ async function createQuestion(req: Request, res: Response) {
             !sq?.topic ||
             !sq?.topicId
           ) {
-            res.status(400).json({
+            res.status(200).json({
               success: false,
               message:
                 "Sub-Questions must have information of question, answer, topic.",
@@ -152,7 +151,7 @@ async function createQuestion(req: Request, res: Response) {
         // Check if the CQ already exists
         const existingCQ = await CQ.findOne({ statement });
         if (existingCQ) {
-          res.status(400).json({
+          res.status(200).json({
             success: false,
             message: "This CQ question already exists.",
             data: null,
@@ -166,7 +165,7 @@ async function createQuestion(req: Request, res: Response) {
         break;
     }
 
-    res.status(201).json({
+    res.status(200).json({
       success: true,
       message: "Question created successfully.",
       data: null,
@@ -267,7 +266,7 @@ const getSingleQuestion = async (req: Request, res: Response) => {
     const foundQuestion = await BaseQuestion.findById(id);
     if (!foundQuestion) {
       res
-        .status(404)
+        .status(200)
         .json({ success: false, message: "Question not found.", data: null });
       return;
     }
@@ -292,7 +291,7 @@ const updateSingleQuestion = async (req: Request, res: Response) => {
   const { questionType, ...newData } = req.body;
 
   if (!questionType) {
-    res.status(404).json({
+    res.status(200).json({
       success: false,
       message: "Question type must be given.",
       data: null,
@@ -303,13 +302,13 @@ const updateSingleQuestion = async (req: Request, res: Response) => {
   const qExisted = await BaseQuestion.findById(id);
   if (!qExisted) {
     res
-      .status(404)
+      .status(200)
       .json({ success: false, message: "Question not found.", data: null });
     return;
   }
 
   if (qExisted.questionType !== questionType) {
-    res.status(404).json({
+    res.status(200).json({
       success: false,
       message: "Question type doesn't match.",
       data: null,
@@ -357,7 +356,7 @@ const deleteSingleQuestion = async (req: Request, res: Response) => {
     console.log(qExisted);
     if (!qExisted) {
       res
-        .status(404)
+        .status(200)
         .json({ success: false, message: "Question not found.", data: null });
       return;
     }

@@ -6,12 +6,12 @@ import { IPopulatedData } from "../type/type";
 // Create Chapter
 export const createChapter = async (req: Request, res: Response) => {
   try {
-    const { name, level, background, subject } = req.body;
+    const { name, levelId, backgroundId, subjectId } = req.body;
 
-    if (!name || !level || !background || !subject) {
+    if (!name || !levelId || !backgroundId || !subjectId) {
       res.status(400).json({
         success: false,
-        message: "Name, level, background, and subject are required.",
+        message: "Name, levelId, backgroundId, and subjectId are required.",
         data: null,
       });
       return;
@@ -19,10 +19,11 @@ export const createChapter = async (req: Request, res: Response) => {
 
     const existing = await Chapter.findOne({
       name,
-      level,
-      background,
-      subject,
+      levelId,
+      backgroundId,
+      subjectId,
     });
+
     if (existing) {
       res.status(400).json({
         success: false,
@@ -33,7 +34,13 @@ export const createChapter = async (req: Request, res: Response) => {
       return;
     }
 
-    const newChapter = new Chapter({ name, level, background, subject });
+    const newChapter = new Chapter({
+      name,
+      levelId,
+      backgroundId,
+      subjectId,
+    });
+
     await newChapter.save();
 
     res.status(201).json({
@@ -41,6 +48,7 @@ export const createChapter = async (req: Request, res: Response) => {
       message: "Chapter created successfully.",
       data: newChapter,
     });
+    return;
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -48,31 +56,42 @@ export const createChapter = async (req: Request, res: Response) => {
       message: "Server error.",
       data: null,
     });
+    return;
   }
 };
 
-// Get All Chapters (with optional filters)
+// Get All Chapters
 export const getAllChapters = async (req: Request, res: Response) => {
   try {
-    const { level, background, subject } = req.query;
+    const { levelId, backgroundId, subjectId, search } = req.query;
+
     const filter: any = {};
-    if (level) filter.level = level;
-    if (background)
-      filter.background = Array.isArray(background)
-        ? [...background]
-        : [background];
-    if (subject) filter.subject = subject;
+
+    if (levelId) filter.levelId = levelId;
+
+    if (backgroundId) {
+      filter.backgroundId = Array.isArray(backgroundId)
+        ? backgroundId
+        : [backgroundId];
+    }
+
+    if (subjectId) filter.subjectId = subjectId;
+    // ✅ SEARCH IMPLEMENTATION
+    if (search) {
+      filter.name = { $regex: search, $options: "i" }; // case-insensitive
+    }
 
     const chapters = await Chapter.find(filter)
-      .populate("level", "name")
-      .populate("background", "name")
-      .populate("subject", "name");
+      .populate("levelId", "name")
+      .populate("backgroundId", "name")
+      .populate("subjectId", "name");
 
     res.status(200).json({
       success: true,
       message: "Chapters fetched successfully.",
       data: chapters,
     });
+    return;
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -80,6 +99,7 @@ export const getAllChapters = async (req: Request, res: Response) => {
       message: "Server error.",
       data: null,
     });
+    return;
   }
 };
 
@@ -89,9 +109,9 @@ export const getSingleChapter = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     const chapter = await Chapter.findById(id)
-      .populate("level", "name")
-      .populate("background", "name")
-      .populate("subject", "name");
+      .populate("levelId", "name")
+      .populate("backgroundId", "name")
+      .populate("subjectId", "name");
 
     if (!chapter) {
       res.status(404).json({
@@ -107,6 +127,7 @@ export const getSingleChapter = async (req: Request, res: Response) => {
       message: "Chapter fetched successfully.",
       data: chapter,
     });
+    return;
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -114,10 +135,11 @@ export const getSingleChapter = async (req: Request, res: Response) => {
       message: "Server error.",
       data: null,
     });
+    return;
   }
 };
 
-// Update Chapter and related BaseQuestions
+// Update Chapter + sync questions
 export const updateChapter = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -127,9 +149,9 @@ export const updateChapter = async (req: Request, res: Response) => {
       new: true,
       runValidators: true,
     })
-      .populate("level", "name")
-      .populate("background", "name")
-      .populate("subject", "name");
+      .populate("levelId", "name")
+      .populate("backgroundId", "name")
+      .populate("subjectId", "name");
 
     if (!chapter) {
       res.status(404).json({
@@ -141,26 +163,25 @@ export const updateChapter = async (req: Request, res: Response) => {
     }
 
     const questions = await BaseQuestion.find({ chapterId: id });
+
     for (const question of questions) {
       question.chapter = chapter.name;
+      question.chapterId = chapter._id.toString();
 
-      if (
-        chapter.level &&
-        typeof chapter.level === "object" &&
-        "name" in chapter.level &&
-        "_id" in chapter.level
-      ) {
-        const level = chapter.level as IPopulatedData;
+      // level
+      if (chapter.levelId && typeof chapter.levelId === "object") {
+        const level = chapter.levelId as unknown as IPopulatedData;
         question.level = level.name;
         question.levelId = level._id.toString();
       }
 
-      if (Array.isArray(chapter.background)) {
+      // background
+      if (Array.isArray(chapter.backgroundId)) {
         const bgNames: string[] = [];
         const bgIds: string[] = [];
 
-        for (const bg of chapter.background) {
-          if (typeof bg === "object" && "name" in bg && "_id" in bg) {
+        for (const bg of chapter.backgroundId) {
+          if (typeof bg === "object") {
             const background = bg as IPopulatedData;
             bgNames.push(background.name);
             bgIds.push(background._id.toString());
@@ -171,13 +192,9 @@ export const updateChapter = async (req: Request, res: Response) => {
         question.backgroundId = bgIds;
       }
 
-      if (
-        chapter.subject &&
-        typeof chapter.subject === "object" &&
-        "name" in chapter.subject &&
-        "_id" in chapter.subject
-      ) {
-        const subject = chapter.subject as IPopulatedData;
+      // subject
+      if (chapter.subjectId && typeof chapter.subjectId === "object") {
+        const subject = chapter.subjectId as unknown as IPopulatedData;
         question.subject = subject.name;
         question.subjectId = subject._id.toString();
       }
@@ -190,6 +207,7 @@ export const updateChapter = async (req: Request, res: Response) => {
       message: "Chapter updated successfully and questions synced.",
       data: chapter,
     });
+    return;
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -197,6 +215,7 @@ export const updateChapter = async (req: Request, res: Response) => {
       message: "Server error.",
       data: null,
     });
+    return;
   }
 };
 
@@ -221,6 +240,7 @@ export const deleteChapter = async (req: Request, res: Response) => {
       message: "Chapter deleted successfully.",
       data: deleted,
     });
+    return;
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -228,5 +248,6 @@ export const deleteChapter = async (req: Request, res: Response) => {
       message: "Server error.",
       data: null,
     });
+    return;
   }
 };

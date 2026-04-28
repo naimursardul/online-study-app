@@ -86,31 +86,31 @@ export interface ILevel extends Document {
 // Background
 export interface IBackground extends Document {
   name: string;
-  level: mongoose.Schema.Types.ObjectId;
+  levelId: mongoose.Schema.Types.ObjectId;
 }
 
 // Subject
 export interface ISubject extends Document {
   name: string;
-  level: mongoose.Types.ObjectId;
-  background: mongoose.Types.ObjectId[];
+  levelId: mongoose.Types.ObjectId;
+  backgroundId: mongoose.Types.ObjectId[];
 }
 
 // Chapter
 export interface IChapter extends Document {
   name: string;
-  level: mongoose.Types.ObjectId;
-  background: mongoose.Types.ObjectId;
-  subject: mongoose.Types.ObjectId;
+  levelId: mongoose.Types.ObjectId;
+  backgroundId: mongoose.Types.ObjectId;
+  subjectId: mongoose.Types.ObjectId;
 }
 
 // Topic
 export interface ITopic extends Document {
   name: string;
-  level: mongoose.Types.ObjectId;
-  background: mongoose.Types.ObjectId[]; // Array of background IDs
-  subject: mongoose.Types.ObjectId;
-  chapter: mongoose.Types.ObjectId;
+  levelId: mongoose.Types.ObjectId;
+  backgroundId: mongoose.Types.ObjectId[]; // Array of background IDs
+  subjectId: mongoose.Types.ObjectId;
+  chapterId: mongoose.Types.ObjectId;
 }
 
 // QUESTION ANSWER

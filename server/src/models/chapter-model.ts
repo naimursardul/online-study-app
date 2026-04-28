@@ -8,19 +8,19 @@ const chapterSchema = new Schema<IChapter>(
       required: true,
       trim: true,
     },
-    level: {
+    levelId: {
       type: Schema.Types.ObjectId,
       ref: "Level",
       required: true,
     },
-    background: [
+    backgroundId: [
       {
         type: Schema.Types.ObjectId,
         ref: "Background",
         required: true,
       },
     ],
-    subject: {
+    subjectId: {
       type: Schema.Types.ObjectId,
       ref: "Subject",
       required: true,

@@ -6,7 +6,7 @@ type ApiResponse<T> = {
   data: T[];
 };
 
-async function getDataForOptions<T>(tag: string): Promise<T[]> {
+export async function getDataForOptions<T>(tag: string): Promise<T[]> {
   try {
     const res = await client.get<ApiResponse<T>>(`/${tag}`);
 
@@ -21,5 +21,3 @@ async function getDataForOptions<T>(tag: string): Promise<T[]> {
     return [];
   }
 }
-
-export { getDataForOptions };

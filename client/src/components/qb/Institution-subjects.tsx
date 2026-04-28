@@ -26,7 +26,7 @@ export default function InstitutionSubject({
   // ✅ Filter backgrounds belonging to this level
   const backgrounds = useMemo(() => {
     return allBackground.filter((b) => {
-      const levelId = b.level?._id;
+      const levelId = b.levelId?._id;
       return levelId === level._id;
     });
   }, [allBackground, level._id]);
@@ -34,8 +34,8 @@ export default function InstitutionSubject({
   // ✅ Filter subjects by level + selected backgrounds
   const subjects = useMemo(() => {
     return allSubject.filter((s) => {
-      const subjectLevelId = s.level?._id;
-      const subjectBackgrounds = s.background || [];
+      const subjectLevelId = s.levelId?._id;
+      const subjectBackgrounds = s.backgroundId || [];
 
       // must match level
       if (subjectLevelId !== level._id) return false;
@@ -75,7 +75,7 @@ export default function InstitutionSubject({
         {subjects.map((s) => (
           <Link
             key={s._id}
-            to={`${(s.level as IPopulatedData).name}_${s.name}`}
+            to={`${(s.levelId as IPopulatedData).name}_${s.name}`}
           >
             <Card className="bg-sidebar flex justify-center items-center text-sm font-semibold p-1 w-30 h-30 border cursor-pointer hover:opacity-70">
               <BookOpen /> {s.name}

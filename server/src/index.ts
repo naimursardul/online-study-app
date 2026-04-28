@@ -10,6 +10,7 @@ import ChapterRouter from "./routes/chapter-routes";
 import TopicRouter from "./routes/topic-routes";
 import RecordRouter from "./routes/record-routes";
 import AuthRouter from "./routes/auth-routes";
+import MasterDataRouter from "./routes/master-question-data-route";
 import { errorHandler } from "./middlewares/errorHandler";
 import ConnectDB from "./db/db";
 
@@ -33,6 +34,7 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 // ROUTES
+app.use("/api/master-data", MasterDataRouter);
 app.use("/api/question", QuestionRouter);
 app.use("/api/level", LevelRouter);
 app.use("/api/background", BackgroundRouter);

@@ -7,6 +7,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import type { ICQ } from "@/types/types";
+import ReactMarkdownRender from "@/components/text-editor/ReactMarkdownRender";
 
 export default function SingleCqQuestion({ q, i }: { q: ICQ; i: number }) {
   const [isMarked, setIsMarked] = useState<boolean>(false);
@@ -31,7 +32,10 @@ export default function SingleCqQuestion({ q, i }: { q: ICQ; i: number }) {
             )}
           </Button>
         </div>
-        <p className="w-full max-sm:text-sm">{q?.statement}</p>
+        <p className="w-full max-sm:text-sm">
+          {" "}
+          <ReactMarkdownRender text={q?.statement} />
+        </p>
         <div className="flex justify-end ">
           <p className="bg-sidebar-accent px-2 py-2 text-chart-2 text-xs max-sm:text-[11px] font-bold rounded">
             {Array.isArray(q?.record) &&
@@ -46,13 +50,15 @@ export default function SingleCqQuestion({ q, i }: { q: ICQ; i: number }) {
                 <span className="font-semibold text-chart-2">
                   {sq?.questionNo}
                 </span>
-                <p className="w-full">{sq?.question}</p>
+                <p className="w-full">
+                  <ReactMarkdownRender text={sq?.question} />
+                </p>
                 <CollapsibleTrigger className="cursor-pointer rounded ">
                   <ChevronsUpDown className="size-5 max-sm:size-4 hover:bg-sidebar-accent p-.5" />
                 </CollapsibleTrigger>
               </div>
               <CollapsibleContent className="px-4 py-3 max-sm:text-sm text-chart-2">
-                {sq?.answer}
+                <ReactMarkdownRender text={sq?.answer} />
               </CollapsibleContent>
             </Collapsible>
           ))}

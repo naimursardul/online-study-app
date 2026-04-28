@@ -10,7 +10,7 @@ export default function Background() {
     {
       label: "Level",
       inputType: "select",
-      name: "level",
+      name: "levelId",
     },
     {
       label: "Name",
@@ -18,6 +18,8 @@ export default function Background() {
       name: "name",
     },
   ];
+
+  const formInfo = createFormInfo("POST", `/background`, fields);
 
   return (
     <div className="w-full flex flex-col items-center gap-10">
@@ -27,9 +29,7 @@ export default function Background() {
             <PlusCircle />
             <span>Create a Background</span>
           </h2>
-          <UploadForm
-            formInfo={createFormInfo("POST", `/background`, fields)}
-          />
+          <UploadForm formInfo={formInfo} />
         </CardContent>
       </Card>
       <AllData heading={"Background"} route={`/background`} fields={fields} />

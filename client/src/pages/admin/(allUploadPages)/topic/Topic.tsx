@@ -10,22 +10,22 @@ export default function Topic() {
     {
       label: "Level",
       inputType: "select",
-      name: "level",
+      name: "levelId",
     },
     {
       label: "Background",
       inputType: "checkbox",
-      name: "background",
+      name: "backgroundId",
     },
     {
       label: "Subject",
       inputType: "select",
-      name: "subject",
+      name: "subjectId",
     },
     {
       label: "Chapter",
       inputType: "select",
-      name: "chapter",
+      name: "chapterId",
     },
     {
       label: "Name",

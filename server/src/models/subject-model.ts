@@ -1,5 +1,5 @@
 // ===== models/subject-model.ts =====
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import { ISubject } from "../type/type";
 
 const subjectSchema = new Schema<ISubject>(
@@ -9,12 +9,12 @@ const subjectSchema = new Schema<ISubject>(
       required: true,
       trim: true,
     },
-    level: {
+    levelId: {
       type: Schema.Types.ObjectId,
       ref: "Level",
       required: true,
     },
-    background: [
+    backgroundId: [
       {
         type: Schema.Types.ObjectId,
         ref: "Background",

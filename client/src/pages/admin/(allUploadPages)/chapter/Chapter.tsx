@@ -10,17 +10,17 @@ export default function Chapter() {
     {
       label: "Level",
       inputType: "select",
-      name: "level",
+      name: "levelId",
     },
     {
       label: "Background",
       inputType: "checkbox",
-      name: "background",
+      name: "backgroundId",
     },
     {
       label: "Subject",
       inputType: "select",
-      name: "subject",
+      name: "subjectId",
     },
     {
       label: "Name",

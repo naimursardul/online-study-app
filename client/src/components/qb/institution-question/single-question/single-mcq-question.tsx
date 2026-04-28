@@ -13,6 +13,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import ReactMarkdownRender from "@/components/text-editor/ReactMarkdownRender";
 
 export default function SingleMcqQuestion({
   q,
@@ -167,7 +168,10 @@ export default function SingleMcqQuestion({
         {/* QUESTION DETAILS */}
         {/*  */}
         {/*  */}
-        <p className="w-full max-sm:text-sm">{q?.question}</p>
+        <p className="w-full max-sm:text-sm">
+          <ReactMarkdownRender text={q?.question} />
+          {/* {q?.question} */}
+        </p>
         {/*  */}
         {/*  */}
         {/*  */}
@@ -264,7 +268,7 @@ export default function SingleMcqQuestion({
                   <ChevronsUpDown className="size-4 max-sm:size-3" />
                 </CollapsibleTrigger>
                 <CollapsibleContent className="px-4 py-3 max-sm:text-sm ">
-                  {q?.explanation}
+                  <ReactMarkdownRender text={q?.explanation} />
                 </CollapsibleContent>
               </Collapsible>
             )}
@@ -281,7 +285,7 @@ export default function SingleMcqQuestion({
               q.options.map((o, j) => (
                 <div
                   key={j}
-                  className={`flex gap-2 items-center px-2 py-2 rounded-lg  ${
+                  className={` flex gap-2 items-center px-2 py-2 rounded-lg  ${
                     viewMode === "showAns" && q?.correctAnswer === o
                       ? "bg-green-500 text-white border-none"
                       : "bg-sidebar-accent"
@@ -293,7 +297,7 @@ export default function SingleMcqQuestion({
                   {/* OPTION NUMBERING */}
                   {/*  */}
                   {/*  */}
-                  <div
+                  <span
                     className={`min-w-4 min-h-4 md:min-w-5 md:min-h-5 flex items-center justify-center border  ${
                       viewMode === "showAns" && q?.correctAnswer === o
                         ? "border-white"
@@ -301,14 +305,16 @@ export default function SingleMcqQuestion({
                     } rounded-full text-xs md:text-sm`}
                   >
                     {optionSetting[j]}
-                  </div>
+                  </span>
                   {/*  */}
                   {/*  */}
                   {/*  */}
                   {/* OPTION DETAILS */}
                   {/*  */}
                   {/*  */}
-                  <p className="max-sm:text-sm ">{o}</p>
+                  <span className="bg-amber-200 flex justify-center items-center max-sm:text-sm">
+                    <ReactMarkdownRender text={o} />
+                  </span>
                 </div>
               ))}
           </div>
@@ -330,7 +336,7 @@ export default function SingleMcqQuestion({
               <ChevronsUpDown className="size-4 max-sm:size-3" />
             </CollapsibleTrigger>
             <CollapsibleContent className="px-4 py-3 max-sm:text-sm ">
-              {q?.explanation}
+              <ReactMarkdownRender text={q?.explanation} />
             </CollapsibleContent>
           </Collapsible>
         )}

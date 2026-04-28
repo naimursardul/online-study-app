@@ -20,10 +20,17 @@ export interface IField {
   name: string;
   placeholder?: string;
   type?: string;
-  manualOptionData?: boolean;
-  optionData?: IOptionData[];
   req?: boolean;
-  dependencies?: string[];
+  manualOptionData?: boolean;
+  optionData?: (
+    | (ILevel & { _id: string })
+    | (IBackground & { _id: string })
+    | (ISubject & { _id: string })
+    | (IChapter & { _id: string })
+    | (ITopic & { _id: string })
+    | (IRecord & { _id: string })
+    | IOptionData
+  )[];
   description?: string;
 }
 
@@ -31,7 +38,8 @@ export interface IField {
 export interface DataFieldProps<T> {
   formData: T;
   setFormData: React.Dispatch<React.SetStateAction<T>>;
-  field?: IField;
+  field: IField;
+  forAllDataPage?: boolean;
 }
 
 // FORM ARRAY
@@ -130,31 +138,31 @@ export interface ILevel {
 // Background
 export interface IBackground {
   name: string;
-  level: IPopulatedData;
+  levelId: IPopulatedData;
 }
 
 // Subject
 export interface ISubject {
   name: string;
-  level: IPopulatedData;
-  background: IPopulatedData[];
+  levelId: IPopulatedData;
+  backgroundId: IPopulatedData[];
 }
 
 // Chapter
 export interface IChapter {
   name: string;
-  level: IPopulatedData;
-  background: IPopulatedData;
-  subject: IPopulatedData;
+  levelId: IPopulatedData;
+  backgroundId: IPopulatedData;
+  subjectId: IPopulatedData;
 }
 
 // Topic
 export interface ITopic {
   name: string;
-  level: IPopulatedData;
-  background: IPopulatedData[]; // Array of background IDs
-  subject: IPopulatedData;
-  chapter: IPopulatedData;
+  levelId: IPopulatedData;
+  backgroundId: IPopulatedData[]; // Array of background IDs
+  subjectId: IPopulatedData;
+  chapterId: IPopulatedData;
 }
 
 // IRegistrationFormField
@@ -201,3 +209,21 @@ export interface IBoardQusetonDetails {
 
 export type ExamStatusType = "ready" | "started" | "finished";
 export type ViewModeType = "viewOnly" | "showAns" | "practice";
+
+export interface IMasterData {
+  levels: (ILevel & { _id: string })[];
+  backgrounds: (IBackground & { _id: string })[];
+  subjects: (ISubject & { _id: string })[];
+  chapters: (IChapter & { _id: string })[];
+  topics: (ITopic & { _id: string })[];
+  records: (IRecord & { _id: string })[];
+}
+
+// Query form data
+export interface IQueryFormData {
+  levelId?: string;
+  backgroundId?: string[];
+  subjectId?: string;
+  chapterId?: string;
+  search?: string;
+}

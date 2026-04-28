@@ -6,20 +6,25 @@ import { IPopulatedData } from "../type/type";
 // Create Subject
 export const createSubject = async (req: Request, res: Response) => {
   try {
-    const { name, level, background } = req.body;
+    const { name, levelId, backgroundId } = req.body;
 
-    if (!name || !level || !background) {
-      res.status(400).json({
+    if (!name || !levelId || !backgroundId) {
+      res.status(200).json({
         success: false,
-        message: "Name, level, and background are required.",
+        message: "Name, levelId, and backgroundId are required.",
         data: null,
       });
       return;
     }
 
-    const existing = await Subject.findOne({ name, level, background });
+    const existing = await Subject.findOne({
+      name,
+      levelId,
+      backgroundId,
+    });
+
     if (existing) {
-      res.status(400).json({
+      res.status(200).json({
         success: false,
         message: "Subject already exists with this level and background.",
         data: null,
@@ -27,14 +32,20 @@ export const createSubject = async (req: Request, res: Response) => {
       return;
     }
 
-    const newSubject = new Subject({ name, level, background });
+    const newSubject = new Subject({
+      name,
+      levelId,
+      backgroundId,
+    });
+
     await newSubject.save();
 
-    res.status(201).json({
+    res.status(200).json({
       success: true,
       message: "Subject created successfully.",
       data: newSubject,
     });
+    return;
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -42,29 +53,38 @@ export const createSubject = async (req: Request, res: Response) => {
       message: "Server error.",
       data: null,
     });
+    return;
   }
 };
 
-// Get All Subjects (with optional level or background filter)
+// Get All Subjects
 export const getAllSubjects = async (req: Request, res: Response) => {
   try {
-    const { level, background } = req.query;
-    const filter: any = {};
-    if (level) filter.level = level;
-    if (background)
-      filter.background = Array.isArray(background)
-        ? [...background]
-        : [background];
+    const { levelId, backgroundId, search } = req.query;
 
+    const filter: any = {};
+
+    if (levelId) filter.levelId = levelId;
+
+    if (backgroundId) {
+      filter.backgroundId = Array.isArray(backgroundId)
+        ? backgroundId
+        : [backgroundId];
+    }
+    // ✅ SEARCH IMPLEMENTATION
+    if (search) {
+      filter.name = { $regex: search, $options: "i" }; // case-insensitive
+    }
     const subjects = await Subject.find(filter)
-      .populate("level", "name")
-      .populate("background", "name");
+      .populate("levelId", "name")
+      .populate("backgroundId", "name");
 
     res.status(200).json({
       success: true,
       message: "Subjects fetched successfully.",
       data: subjects,
     });
+    return;
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -72,6 +92,7 @@ export const getAllSubjects = async (req: Request, res: Response) => {
       message: "Server error.",
       data: null,
     });
+    return;
   }
 };
 
@@ -81,11 +102,11 @@ export const getSingleSubject = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     const subject = await Subject.findById(id)
-      .populate("level", "name")
-      .populate("background", "name");
+      .populate("levelId", "name")
+      .populate("backgroundId", "name");
 
     if (!subject) {
-      res.status(404).json({
+      res.status(200).json({
         success: false,
         message: "Subject not found.",
         data: null,
@@ -98,6 +119,7 @@ export const getSingleSubject = async (req: Request, res: Response) => {
       message: "Subject fetched successfully.",
       data: subject,
     });
+    return;
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -105,10 +127,11 @@ export const getSingleSubject = async (req: Request, res: Response) => {
       message: "Server error.",
       data: null,
     });
+    return;
   }
 };
 
-// Update Subject and related BaseQuestions
+// Update Subject + sync questions
 export const updateSubject = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -118,12 +141,11 @@ export const updateSubject = async (req: Request, res: Response) => {
       new: true,
       runValidators: true,
     })
-      .sort({ name: 1 })
-      .populate("level", "name")
-      .populate("background", "name");
+      .populate("levelId", "name")
+      .populate("backgroundId", "name");
 
     if (!subject) {
-      res.status(404).json({
+      res.status(200).json({
         success: false,
         message: "Subject not found.",
         data: null,
@@ -131,29 +153,29 @@ export const updateSubject = async (req: Request, res: Response) => {
       return;
     }
 
-    // Update related BaseQuestions
-    const questions = await BaseQuestion.find({ subjectId: id });
+    const questions = await BaseQuestion.find({
+      subjectId: id,
+    });
+
     for (const question of questions) {
       question.subject = subject.name;
+      question.subjectId = subject._id.toString();
 
-      if (
-        subject.level &&
-        typeof subject.level === "object" &&
-        "name" in subject.level &&
-        "_id" in subject.level
-      ) {
-        const level = subject.level as IPopulatedData;
+      // level
+      if (subject.levelId && typeof subject.levelId === "object") {
+        const level = subject.levelId as unknown as IPopulatedData;
         question.level = level.name;
         question.levelId = level._id.toString();
       }
 
-      if (Array.isArray(subject.background)) {
+      // background
+      if (Array.isArray(subject.backgroundId)) {
         const bgNames: string[] = [];
         const bgIds: string[] = [];
 
-        for (const bg of subject.background) {
-          if (typeof bg === "object" && "name" in bg && "_id" in bg) {
-            const background = bg as IPopulatedData;
+        for (const bg of subject.backgroundId) {
+          if (typeof bg === "object") {
+            const background = bg as unknown as IPopulatedData;
             bgNames.push(background.name);
             bgIds.push(background._id.toString());
           }
@@ -171,6 +193,7 @@ export const updateSubject = async (req: Request, res: Response) => {
       message: "Subject updated successfully and questions synced.",
       data: subject,
     });
+    return;
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -178,6 +201,7 @@ export const updateSubject = async (req: Request, res: Response) => {
       message: "Server error.",
       data: null,
     });
+    return;
   }
 };
 
@@ -189,7 +213,7 @@ export const deleteSubject = async (req: Request, res: Response) => {
     const deleted = await Subject.findByIdAndDelete(id);
 
     if (!deleted) {
-      res.status(404).json({
+      res.status(200).json({
         success: false,
         message: "Subject not found.",
         data: null,
@@ -202,6 +226,7 @@ export const deleteSubject = async (req: Request, res: Response) => {
       message: "Subject deleted successfully.",
       data: deleted,
     });
+    return;
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -209,5 +234,6 @@ export const deleteSubject = async (req: Request, res: Response) => {
       message: "Server error.",
       data: null,
     });
+    return;
   }
 };

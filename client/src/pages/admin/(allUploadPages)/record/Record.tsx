@@ -1,9 +1,9 @@
-import AllData from "@/components/admin/all-data";
-import UploadForm from "@/components/admin/upload-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { createFormInfo } from "@/lib/utils";
 import type { IField } from "@/types/types";
 import { PlusCircle } from "lucide-react";
+import AllData from "@/components/admin/all-data";
+import UploadForm from "@/components/admin/upload-form";
 
 export default function Record() {
   const fields: IField[] = [
@@ -13,8 +13,8 @@ export default function Record() {
       name: "recordType",
       manualOptionData: true,
       optionData: [
-        { _id: "1board", name: "Board" },
-        { _id: "2admission", name: "Admission" },
+        { _id: "Board", name: "Board" },
+        { _id: "Admission", name: "Admission" },
       ],
     },
     {

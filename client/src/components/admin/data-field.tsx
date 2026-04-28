@@ -1,4 +1,7 @@
+import type { DataFieldProps } from "@/types/types";
+import { Label } from "../ui/label";
 import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
 import {
   Select,
   SelectContent,
@@ -7,141 +10,161 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { Label } from "../ui/label";
-import type { DataFieldProps } from "@/types/types";
-import { Textarea } from "../ui/textarea";
 import { Checkbox } from "../ui/checkbox";
 
 export default function DataField<T>({
   formData,
   setFormData,
   field,
+  forAllDataPage,
 }: DataFieldProps<T>) {
+  const fieldValue = (formData as any)[field.name];
+
   return (
     <div className="space-y-2">
-      {field?.label && <Label htmlFor="title">{field.label}</Label>}
+      {!forAllDataPage && field?.label && <Label>{field.label}</Label>}
+
+      {/* Input */}
       {field?.inputType === "input" && (
         <Input
+          type={field?.type || "text"}
           id={field?.name}
           name={field?.name}
-          defaultValue={
-            (formData as unknown as Record<string, string>)[field?.name]
-          }
+          value={fieldValue || ""}
           onChange={(e) =>
             setFormData({
               ...formData,
-              [field.name]: e.target.value,
+              [field.name]:
+                field.type === "number"
+                  ? Number(e.target.value)
+                  : e.target.value,
             })
           }
-          placeholder={`Enter ${field?.name}`}
+          placeholder={
+            forAllDataPage
+              ? `Search by ${field?.label}`
+              : `Enter ${field?.placeholder || field?.label}`
+          }
         />
       )}
 
+      {/* Textarea */}
       {field?.inputType === "textarea" && (
         <Textarea
           id={field?.name}
           name={field?.name}
-          defaultValue={
-            (formData as unknown as Record<string, string>)[field?.name]
-          }
+          value={fieldValue || ""}
           onChange={(e) =>
             setFormData({
               ...formData,
               [field.name]: e.target.value,
             })
           }
-          placeholder={`Enter ${field?.name}`}
+          placeholder={`Enter ${field?.placeholder || field?.label}`}
         />
       )}
 
+      {/* Select */}
       {field?.inputType === "select" && (
         <Select
-          defaultValue={
-            (formData as unknown as Record<string, string>)[field?.name]
-          }
-          onValueChange={(value) =>
-            setFormData({ ...formData, [field?.name]: value })
-          }
+          value={fieldValue ? fieldValue : ""}
+          onValueChange={(value) => {
+            const obj: Record<string, any> = {};
+            obj[field.name] = value;
+            const dependentMap: Record<string, string[]> = {
+              levelId: ["backgroundId", "subjectId", "chapterId", "topicId"],
+              backgroundId: ["subjectId", "chapterId", "topicId"],
+              subjectId: ["chapterId", "topicId"],
+              chapterId: ["topicId"],
+            };
+
+            if (dependentMap[field.name]) {
+              dependentMap[field.name].forEach((dep) => {
+                obj[dep] = dep === "backgroundId" ? [] : "";
+              });
+            }
+
+            setFormData({
+              ...formData,
+              ...obj,
+            });
+          }}
         >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder={`Select ${field?.name}`} />
+          <SelectTrigger className="w-full cursor-pointer">
+            <SelectValue
+              placeholder={`Select ${field?.placeholder || field?.label}`}
+            />
           </SelectTrigger>
+
           <SelectContent>
             <SelectGroup>
-              {field?.optionData && field?.optionData.length > 0 ? (
-                field.optionData.map((option) => (
-                  <SelectItem
-                    key={option?._id}
-                    value={field?.manualOptionData ? option?.name : option?._id}
-                  >
-                    {option?.name}
-                  </SelectItem>
-                ))
+              {field?.optionData && field.optionData.length > 0 ? (
+                field.optionData.map((option) => {
+                  if ("name" in option)
+                    return (
+                      <SelectItem
+                        className="cursor-pointer"
+                        key={option._id}
+                        value={option._id}
+                      >
+                        {option.name}
+                      </SelectItem>
+                    );
+                })
               ) : (
-                <SelectItem value="No-value" disabled>
-                  No {field?.name} available
+                <SelectItem value="empty" disabled>
+                  No {field.name} available
                 </SelectItem>
               )}
             </SelectGroup>
           </SelectContent>
         </Select>
       )}
+
+      {/* Checkbox */}
       {field?.inputType === "checkbox" &&
-        (field?.optionData ? (
-          field?.optionData.length > 0 &&
-          field.optionData.map((option) => (
-            <div key={option?._id} className="flex gap-2">
-              <Checkbox
-                defaultChecked={(
-                  (formData as unknown as Record<string, string>)[
-                    field?.name
-                  ] as unknown as string[]
-                ).includes(option?._id)}
-                onCheckedChange={(change: boolean) =>
-                  setFormData(() => {
-                    if (change) {
-                      if (
-                        !(
-                          (formData as unknown as Record<string, string>)[
-                            field?.name
-                          ] as unknown as string[]
-                        ).includes(option?._id)
-                      ) {
-                        (
-                          (formData as unknown as Record<string, string>)[
-                            field?.name
-                          ] as unknown as string[]
-                        ).push(option?._id);
-                      }
-                    } else {
-                      if (
-                        (
-                          (formData as unknown as Record<string, string>)[
-                            field?.name
-                          ] as unknown as string[]
-                        ).includes(option?._id)
-                      ) {
-                        const index = (
-                          (formData as unknown as Record<string, string>)[
-                            field?.name
-                          ] as unknown as string[]
-                        ).indexOf(option?._id);
-                        (
-                          (formData as unknown as Record<string, string>)[
-                            field?.name
-                          ] as unknown as string[]
-                        ).splice(index, 1);
-                      }
-                    }
-                    return {
-                      ...formData,
-                    };
-                  })
-                }
-              />
-              <Label className="font-light">{option.name}</Label>
-            </div>
-          ))
+        (field?.optionData?.length ? (
+          field.optionData.map((option) => {
+            if ("name" in option)
+              return (
+                <div key={option._id} className="flex gap-2">
+                  <Checkbox
+                    className="cursor-pointer"
+                    checked={(fieldValue || []).includes(option._id)}
+                    onCheckedChange={(checked: boolean) => {
+                      setFormData((prev) => {
+                        const ids = [...((prev as any)[field.name] || [])];
+
+                        if (checked) {
+                          if (!ids.includes(option._id)) {
+                            ids.push(option._id);
+                          }
+                        } else {
+                          const idIndex = ids.indexOf(option._id);
+
+                          if (idIndex > -1) ids.splice(idIndex, 1);
+                        }
+
+                        const updated: Record<string, any> = {
+                          ...prev,
+                          [field.name]: ids,
+                        };
+
+                        if (field.name === "backgroundId") {
+                          updated.subjectId = "";
+                          updated.chapterId = "";
+                          updated.topicId = "";
+                        }
+
+                        return updated as T;
+                      });
+                    }}
+                  />
+
+                  <Label className="font-light">{option.name}</Label>
+                </div>
+              );
+          })
         ) : (
           <small className="font-light pl-3">No {field?.name} available.</small>
         ))}

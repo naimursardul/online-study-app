@@ -121,8 +121,8 @@ export default function AfterOtpForm({
         ? fieldData[child]
         : fieldData[child].filter((o) => {
             if (
-              (o as unknown as Record<string, { _id: string }>)[parent]?._id ===
-              (watchedValues as Record<string, string>)[parent]
+              (o as unknown as Record<string, { _id: string }>)[parent + "Id"]
+                ?._id === (watchedValues as Record<string, string>)[parent]
             ) {
               return { _id: o._id, name: o.name } as IOptionData;
             }

@@ -42,8 +42,9 @@ export const getAllRecord = async (req: Request, res: Response) => {
     const { recordType, institution, year } = req.query;
     const filter: any = {};
     if (recordType) filter.recordType = recordType;
-    if (institution) filter.institution = institution;
-    if (year) filter.year = year;
+    if (institution)
+      filter.institution = { $regex: institution, $options: "i" };
+    if (year) filter.year = { $regex: year, $options: "i" };
 
     const record = await Record.find(filter);
 

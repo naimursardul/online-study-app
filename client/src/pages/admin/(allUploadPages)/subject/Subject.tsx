@@ -10,12 +10,12 @@ export default function Subject() {
     {
       label: "Level",
       inputType: "select",
-      name: "level",
+      name: "levelId",
     },
     {
       label: "Background",
       inputType: "checkbox",
-      name: "background",
+      name: "backgroundId",
     },
     {
       label: "Name",

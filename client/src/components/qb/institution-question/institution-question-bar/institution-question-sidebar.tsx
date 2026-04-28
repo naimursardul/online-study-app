@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { client } from "@/lib/utils";
 import type { IRecord } from "@/types/types";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 export default function SingleQuestionBankSidebar({
   slug,
@@ -11,6 +11,7 @@ export default function SingleQuestionBankSidebar({
 }) {
   const [allData, setAllData] = useState<(IRecord & { _id: string })[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const { pathname } = useLocation();
 
   useEffect(() => {
     async function getAllData() {
@@ -33,8 +34,6 @@ export default function SingleQuestionBankSidebar({
     getAllData();
   }, []);
 
-  console.log(slug);
-
   return (
     <div className="md:sticky top-1.25 md:min-w-47.5 md:max-h-[calc(100vh-15px)] bg-background rounded-lg px-4 py-5 border border-sidebar-border">
       <form action="" className="h-12.5 ">
@@ -51,7 +50,8 @@ export default function SingleQuestionBankSidebar({
               <div key={i} className="flex md:flex-col gap-2">
                 <Link
                   className={
-                    `${slug}/MCQ_${d?.institution}_${d?.year}` === slug
+                    `/question-bank/${slug}/MCQ_${d?.institution}_${d?.year}` ===
+                    pathname
                       ? "bg-muted px-3 py-2 rounded-lg border-none outline-none"
                       : "hover:bg-muted px-3 py-2 rounded-lg border-none outline-none "
                   }
@@ -61,7 +61,8 @@ export default function SingleQuestionBankSidebar({
                 </Link>
                 <Link
                   className={
-                    `${slug}/CQ_${d?.institution}_${d?.year}` === slug
+                    `/question-bank/${slug}/CQ_${d?.institution}_${d?.year}` ===
+                    pathname
                       ? "bg-muted px-3 py-2 rounded-lg border-none outline-none"
                       : "hover:bg-muted px-3 py-2 rounded-lg border-none outline-none "
                   }

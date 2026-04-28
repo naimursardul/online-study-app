@@ -6,20 +6,27 @@ import { IPopulatedData } from "../type/type";
 // Create Topic
 export const createTopic = async (req: Request, res: Response) => {
   try {
-    const { name, level, background, subject, chapter } = req.body;
+    const { name, levelId, backgroundId, subjectId, chapterId } = req.body;
 
-    if (!name || !level || !background || !subject || !chapter) {
-      res.status(400).json({
+    if (!name || !levelId || !backgroundId || !subjectId || !chapterId) {
+      res.status(200).json({
         success: false,
-        message: "Name, level, background, subject, and chapter are required.",
+        message:
+          "Name, levelId, backgroundId, subjectId, and chapterId are required.",
         data: null,
       });
       return;
     }
 
-    const existing = await Topic.findOne({ name, level, subject, chapter });
+    const existing = await Topic.findOne({
+      name,
+      levelId,
+      subjectId,
+      chapterId,
+    });
+
     if (existing) {
-      res.status(400).json({
+      res.status(200).json({
         success: false,
         message: "Topic already exists with this level, subject, and chapter.",
         data: null,
@@ -27,10 +34,17 @@ export const createTopic = async (req: Request, res: Response) => {
       return;
     }
 
-    const newTopic = new Topic({ name, level, background, subject, chapter });
+    const newTopic = new Topic({
+      name,
+      levelId,
+      backgroundId,
+      subjectId,
+      chapterId,
+    });
+
     await newTopic.save();
 
-    res.status(201).json({
+    res.status(200).json({
       success: true,
       message: "Topic created successfully.",
       data: newTopic,
@@ -50,28 +64,36 @@ export const createTopic = async (req: Request, res: Response) => {
 // Get All Topics (with optional filters)
 export const getAllTopics = async (req: Request, res: Response) => {
   try {
-    const { level, background, subject, chapter } = req.query;
+    const { levelId, backgroundId, subjectId, chapterId, search } = req.query;
+
     const filter: any = {};
-    if (level) filter.level = level;
-    if (background)
-      filter.background = Array.isArray(background)
-        ? [...background]
-        : [background];
-    if (subject) filter.subject = subject;
-    if (chapter) filter.chapter = chapter;
+
+    if (levelId) filter.levelId = levelId;
+
+    if (backgroundId) {
+      filter.backgroundId = Array.isArray(backgroundId)
+        ? backgroundId
+        : [backgroundId];
+    }
+
+    if (subjectId) filter.subjectId = subjectId;
+    if (chapterId) filter.chapterId = chapterId;
+    // ✅ SEARCH IMPLEMENTATION
+    if (search) {
+      filter.name = { $regex: search, $options: "i" }; // case-insensitive
+    }
 
     const topics = await Topic.find(filter)
-      .populate("level", "name")
-      .populate("background", "name")
-      .populate("subject", "name")
-      .populate("chapter", "name");
+      .populate("levelId", "name")
+      .populate("backgroundId", "name")
+      .populate("subjectId", "name")
+      .populate("chapterId", "name");
 
     res.status(200).json({
       success: true,
       message: "Topics fetched successfully.",
       data: topics,
     });
-    return;
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -79,7 +101,6 @@ export const getAllTopics = async (req: Request, res: Response) => {
       message: "Server error.",
       data: null,
     });
-    return;
   }
 };
 
@@ -89,10 +110,10 @@ export const getSingleTopic = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     const topic = await Topic.findById(id)
-      .populate("level", "name")
-      .populate("background", "name")
-      .populate("subject", "name")
-      .populate("chapter", "name");
+      .populate("levelId", "name")
+      .populate("backgroundId", "name")
+      .populate("subjectId", "name")
+      .populate("chapterId", "name");
 
     if (!topic) {
       res.status(404).json({
@@ -130,10 +151,10 @@ export const updateTopic = async (req: Request, res: Response) => {
       new: true,
       runValidators: true,
     })
-      .populate("level", "name")
-      .populate("background", "name")
-      .populate("subject", "name")
-      .populate("chapter", "name");
+      .populate("levelId", "name")
+      .populate("backgroundId", "name")
+      .populate("subjectId", "name")
+      .populate("chapterId", "name");
 
     if (!topic) {
       res.status(404).json({
@@ -144,31 +165,27 @@ export const updateTopic = async (req: Request, res: Response) => {
       return;
     }
 
-    // Update related BaseQuestions
     const questions = await BaseQuestion.find({ topicId: id });
+
     for (const question of questions) {
       question.topic = topic.name;
+      question.topicId = topic._id.toString();
 
       // level
-      if (
-        topic.level &&
-        typeof topic.level === "object" &&
-        "name" in topic.level &&
-        "_id" in topic.level
-      ) {
-        const level = topic.level as IPopulatedData;
+      if (topic.levelId && typeof topic.levelId === "object") {
+        const level = topic.levelId as unknown as IPopulatedData;
         question.level = level.name;
         question.levelId = level._id.toString();
       }
 
-      // background - full replacement
-      if (Array.isArray(topic.background)) {
+      // background (array)
+      if (Array.isArray(topic.backgroundId)) {
         const bgNames: string[] = [];
         const bgIds: string[] = [];
 
-        for (const bg of topic.background) {
-          if (typeof bg === "object" && "name" in bg && "_id" in bg) {
-            const background = bg as IPopulatedData;
+        for (const bg of topic.backgroundId) {
+          if (typeof bg === "object") {
+            const background = bg as unknown as IPopulatedData;
             bgNames.push(background.name);
             bgIds.push(background._id.toString());
           }
@@ -179,25 +196,15 @@ export const updateTopic = async (req: Request, res: Response) => {
       }
 
       // subject
-      if (
-        topic.subject &&
-        typeof topic.subject === "object" &&
-        "name" in topic.subject &&
-        "_id" in topic.subject
-      ) {
-        const subject = topic.subject as IPopulatedData;
+      if (topic.subjectId && typeof topic.subjectId === "object") {
+        const subject = topic.subjectId as unknown as IPopulatedData;
         question.subject = subject.name;
         question.subjectId = subject._id.toString();
       }
 
       // chapter
-      if (
-        topic.chapter &&
-        typeof topic.chapter === "object" &&
-        "name" in topic.chapter &&
-        "_id" in topic.chapter
-      ) {
-        const chapter = topic.chapter as IPopulatedData;
+      if (topic.chapterId && typeof topic.chapterId === "object") {
+        const chapter = topic.chapterId as unknown as IPopulatedData;
         question.chapter = chapter.name;
         question.chapterId = chapter._id.toString();
       }

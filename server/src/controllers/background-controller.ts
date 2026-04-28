@@ -2,25 +2,28 @@ import { Request, Response } from "express";
 import Background from "../models/background-model";
 import { BaseQuestion } from "../models/question-model";
 import { IPopulatedData } from "../type/type";
-import mongoose from "mongoose";
 
 // Create Background
 export const createBackground = async (req: Request, res: Response) => {
   try {
-    const { name, level } = req.body;
+    const { name, levelId } = req.body;
 
-    if (!name || !level) {
-      res.status(400).json({
+    if (!name || !levelId) {
+      res.status(200).json({
         success: false,
-        message: "Name and level are required.",
+        message: "Name and levelId are required.",
         data: null,
       });
       return;
     }
 
-    const existing = await Background.findOne({ name, level });
+    const existing = await Background.findOne({
+      name,
+      levelId,
+    });
+
     if (existing) {
-      res.status(400).json({
+      res.status(200).json({
         success: false,
         message: "Background already exists for this level.",
         data: null,
@@ -28,10 +31,14 @@ export const createBackground = async (req: Request, res: Response) => {
       return;
     }
 
-    const newBackground = new Background({ name, level });
+    const newBackground = new Background({
+      name,
+      levelId,
+    });
+
     await newBackground.save();
 
-    res.status(201).json({
+    res.status(200).json({
       success: true,
       message: "Background created successfully.",
       data: newBackground,
@@ -48,14 +55,23 @@ export const createBackground = async (req: Request, res: Response) => {
   }
 };
 
-// Get All Backgrounds (with optional level filter)
+// Get All Backgrounds
 export const getAllBackgrounds = async (req: Request, res: Response) => {
   try {
-    const { level } = req.query;
+    const { levelId, search } = req.query;
 
     const filter: any = {};
-    if (level) filter.level = level;
-    const backgrounds = await Background.find(filter).populate("level", "name");
+
+    if (levelId) filter.levelId = levelId;
+    // ✅ SEARCH IMPLEMENTATION
+    if (search) {
+      filter.name = { $regex: search, $options: "i" }; // case-insensitive
+    }
+
+    const backgrounds = await Background.find(filter).populate(
+      "levelId",
+      "name"
+    );
 
     res.status(200).json({
       success: true,
@@ -78,10 +94,14 @@ export const getAllBackgrounds = async (req: Request, res: Response) => {
 export const getSingleBackground = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const background = await Background.findById(id).populate("level", "name");
+
+    const background = await Background.findById(id).populate(
+      "levelId",
+      "name"
+    );
 
     if (!background) {
-      res.status(404).json({
+      res.status(200).json({
         success: false,
         message: "Background not found.",
         data: null,
@@ -106,18 +126,19 @@ export const getSingleBackground = async (req: Request, res: Response) => {
   }
 };
 
-// Update Background and related BaseQuestions
+// Update Background + sync questions
 export const updateBackground = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const updatedData = req.body;
+
     const background = await Background.findByIdAndUpdate(id, updatedData, {
       new: true,
       runValidators: true,
-    }).populate("level", "name");
+    }).populate("levelId", "name");
 
     if (!background) {
-      res.status(404).json({
+      res.status(200).json({
         success: false,
         message: "Background not found.",
         data: null,
@@ -125,27 +146,27 @@ export const updateBackground = async (req: Request, res: Response) => {
       return;
     }
 
-    const questions = await BaseQuestion.find({ backgroundId: id });
+    const questions = await BaseQuestion.find({
+      backgroundId: id,
+    });
+
     for (const question of questions) {
-      //  Background update in Question
       const index = question.backgroundId.findIndex(
         (bgId) => bgId.toString() === id
       );
+
       if (index !== -1) {
         question.background[index] = background.name;
       }
 
-      //  Level update in Question
-      if (
-        typeof background.level === "object" &&
-        "name" in background.level &&
-        "_id" in background.level
-      ) {
-        const level = background.level as IPopulatedData;
+      // sync level
+      if (background.levelId && typeof background.levelId === "object") {
+        const level = background.levelId as unknown as IPopulatedData;
 
         question.level = level.name;
         question.levelId = level._id.toString();
       }
+
       await question.save();
     }
 
@@ -170,10 +191,11 @@ export const updateBackground = async (req: Request, res: Response) => {
 export const deleteBackground = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+
     const deleted = await Background.findByIdAndDelete(id);
 
     if (!deleted) {
-      res.status(404).json({
+      res.status(200).json({
         success: false,
         message: "Background not found.",
         data: null,
