@@ -138,7 +138,7 @@ export default function QuestionUpload({ masterData }: QuestionUploadProps) {
 
       (Object.keys(baseInit) as (keyof IBaseQuestion)[]).forEach((key) => {
         if (prev[key] !== undefined) {
-          cleaned[key] = prev[key];
+          (cleaned as any)[key] = prev[key];
         }
       });
 

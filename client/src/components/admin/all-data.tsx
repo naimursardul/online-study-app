@@ -23,7 +23,7 @@ import UploadForm from "./upload-form";
 import { client, createFormInfo, getQuestionDataOption } from "@/lib/utils";
 import DataField from "./data-field";
 import { useOutletContext } from "react-router-dom";
-import { Skeleton } from "../ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AllData({
   heading,
@@ -76,16 +76,17 @@ export default function AllData({
         const { data } = res;
         if (data.success) {
           setAllData(data.data);
-          setLoading(true);
         }
       } catch (error) {
         console.log(error);
-        setLoading(true);
+      } finally {
+        setLoading(false);
       }
     }
     geAllData();
   }, [route, queryFormData]);
 
+  console.log(loading);
   // DELETE
   async function deleteData(id: string) {
     try {
@@ -130,7 +131,6 @@ export default function AllData({
               );
           })}
       </div>
-
       <Table>
         <TableHeader>
           <TableRow>
@@ -142,103 +142,101 @@ export default function AllData({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {
-            // loading ? (
-            //   <div>
-            //     <Skeleton className="size-5 rounded" />
-            //   </div>
-            // ) :
-            allData.length > 0 ? (
-              allData.map((data, index) => (
-                <TableRow className="space-x-8" key={index}>
-                  {fields.length > 0 &&
-                    fields.map((field, i) => (
-                      <TableCell className="whitespace-pre-wrap" key={i}>
-                        {(() => {
-                          const value = data[field?.name];
-                          if (Array.isArray(value)) {
-                            return (value as { name: string; _id: string }[])
-                              .map((v) => v.name)
-                              .join(" ,");
-                          }
-                          if (
-                            typeof value === "object" &&
-                            value !== null &&
-                            "name" in value
-                          ) {
-                            return (value as { name: string }).name;
-                          } else {
-                            return value;
-                          }
-                        })()}
-                      </TableCell>
-                    ))}
-                  <TableCell className="flex gap-3">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="cursor-pointer"
-                          ref={closeRef}
-                        >
-                          <Edit />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-106.25">
-                        <DialogHeader>
-                          <DialogTitle>Update the {heading}</DialogTitle>
-                          <DialogDescription>
-                            Changes will reflect the Questions.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <UploadForm
-                          formInfo={createFormInfo("PUT", route, fields, data)}
-                          closeRef={closeRef}
-                        />
-                      </DialogContent>
-                    </Dialog>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          ref={closeRef}
-                          size="sm"
-                          variant="outline"
-                          className="cursor-pointer"
-                        >
-                          <ArchiveX />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-106.25">
-                        <DialogHeader>
-                          <DialogTitle>{`Are you sure want to delete the ${heading} '${data?.name}'?`}</DialogTitle>
-                          <DialogDescription>
-                            {"Once deleted, level won't be restored."}
-                          </DialogDescription>
-                        </DialogHeader>
-                        <Button
-                          size="sm"
-                          className="cursor-pointer"
-                          onClick={() => deleteData(data?._id)}
-                        >
-                          Yes
-                        </Button>
-                      </DialogContent>
-                    </Dialog>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={fields?.length + 1}
-                  className=" text-center"
-                >
-                  No Data available.
+          {loading ? (
+            [...Array(5)].map((_, i) => (
+              <TableRow key={i}>
+                <TableCell colSpan={fields?.length + 1}>
+                  <Skeleton className="h-6 w-full mb-2 bg-input" />
                 </TableCell>
               </TableRow>
-            )
-          }
+            ))
+          ) : allData.length > 0 ? (
+            allData.map((data, index) => (
+              <TableRow className="space-x-8" key={index}>
+                {fields.length > 0 &&
+                  fields.map((field, i) => (
+                    <TableCell className="whitespace-pre-wrap" key={i}>
+                      {(() => {
+                        const value = data[field?.name];
+                        if (Array.isArray(value)) {
+                          return (value as { name: string; _id: string }[])
+                            .map((v) => v.name)
+                            .join(" ,");
+                        }
+                        if (
+                          typeof value === "object" &&
+                          value !== null &&
+                          "name" in value
+                        ) {
+                          return (value as { name: string }).name;
+                        } else {
+                          return value;
+                        }
+                      })()}
+                    </TableCell>
+                  ))}
+                <TableCell className="flex gap-3">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="cursor-pointer"
+                        ref={closeRef}
+                      >
+                        <Edit />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-106.25">
+                      <DialogHeader>
+                        <DialogTitle>Update the {heading}</DialogTitle>
+                        <DialogDescription>
+                          Changes will reflect the Questions.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <UploadForm
+                        formInfo={createFormInfo("PUT", route, fields, data)}
+                        closeRef={closeRef}
+                      />
+                    </DialogContent>
+                  </Dialog>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        ref={closeRef}
+                        size="sm"
+                        variant="outline"
+                        className="cursor-pointer"
+                      >
+                        <ArchiveX />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-106.25">
+                      <DialogHeader>
+                        <DialogTitle>{`Are you sure want to delete the ${heading} '${data?.name}'?`}</DialogTitle>
+                        <DialogDescription>
+                          {"Once deleted, level won't be restored."}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <Button
+                        size="sm"
+                        className="cursor-pointer"
+                        onClick={() => deleteData(data?._id)}
+                      >
+                        Yes
+                      </Button>
+                    </DialogContent>
+                  </Dialog>
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={fields?.length + 1} className=" text-center">
+                No Data available.
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
       <div className="flex items-center justify-center space-x-2 py-4">
