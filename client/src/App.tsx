@@ -24,6 +24,11 @@ import Topic from "./pages/admin/(allUploadPages)/topic/Topic.tsx";
 import Record from "./pages/admin/(allUploadPages)/record/Record.tsx";
 
 function App() {
+  console.log(
+    import.meta.env.VITE_NODE_ENV === "production"
+      ? `${import.meta.env.VITE_PRODUCTION_API}/api`
+      : `${import.meta.env.VITE_DEVELOPMENT_API}/api`
+  );
   return (
     <BrowserRouter>
       <div className="">
