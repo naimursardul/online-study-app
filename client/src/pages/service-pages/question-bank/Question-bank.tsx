@@ -98,7 +98,7 @@ export default function QuestionBank() {
             <section className="space-y-4">
               <h2 className="font-bold text-xl pl-4">My Level</h2>
 
-              {user?.level?.name ? (
+              {user?.level?.name && userFilteredSubjects?.length ? (
                 <div className="space-y-3 bg-input rounded-2xl px-4 py-5">
                   <h2 className="flex gap-2 font-semibold pl-2">
                     <Layers size={"22px"} />
