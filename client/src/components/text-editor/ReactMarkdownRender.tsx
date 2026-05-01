@@ -11,35 +11,35 @@ export default function ReactMarkdownRender({ text }: { text: string }) {
       rehypePlugins={[rehypeKatex]}
       components={{
         h1: ({ children }) => (
-          <h1 className="text-4xl font-bold mb-4">{children}</h1>
+          <h1 className="text-4xl font-bold mt-2">{children}</h1>
         ),
         h2: ({ children }) => (
-          <h2 className="text-3xl font-semibold mb-3">{children}</h2>
+          <h2 className="text-3xl font-semibold my-1.5">{children}</h2>
         ),
         h3: ({ children }) => (
-          <h3 className="text-2xl font-semibold mb-2">{children}</h3>
+          <h3 className="text-2xl font-semibold my-1">{children}</h3>
         ),
         h4: ({ children }) => (
-          <h4 className="text-xl font-semibold mb-2">{children}</h4>
+          <h4 className="text-xl font-semibold my-1">{children}</h4>
         ),
         h5: ({ children }) => (
-          <h5 className="text-lg font-semibold mb-1">{children}</h5>
+          <h5 className="text-lg font-semibold my-0.5">{children}</h5>
         ),
         h6: ({ children }) => (
-          <h6 className="text-base font-semibold mb-1">{children}</h6>
+          <h6 className="text-base font-semibold my-0.5">{children}</h6>
         ),
 
-        p: ({ children }) => <p className="mb-4 leading-relaxed">{children}</p>,
+        p: ({ children }) => <p className="my-2 leading-relaxed">{children}</p>,
 
         ul: ({ children }) => (
-          <ul className="list-disc pl-6 mb-4">{children}</ul>
+          <ul className="list-disc pl-6 my-2">{children}</ul>
         ),
 
         ol: ({ children }) => (
-          <ol className="list-decimal pl-6 mb-4">{children}</ol>
+          <ol className="list-decimal pl-6 my-2">{children}</ol>
         ),
 
-        li: ({ children }) => <li className="mb-1">{children}</li>,
+        li: ({ children }) => <li className="my-0.5">{children}</li>,
 
         blockquote: ({ children }) => (
           <blockquote className="border-l-4 border-gray-300 pl-4 italic my-4 text-gray-600">
@@ -57,7 +57,7 @@ export default function ReactMarkdownRender({ text }: { text: string }) {
           }
 
           return (
-            <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto mb-4">
+            <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-2">
               <code className={className} {...props}>
                 {children}
               </code>

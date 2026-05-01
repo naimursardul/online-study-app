@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { client } from "@/lib/utils";
 import type {
   ExamStatusType,
+  IBaseQuestion,
   IBoardQusetonDetails,
   ICQ,
   IMCQ,
@@ -68,6 +69,12 @@ function QuestionBankSlug2() {
 
         if (res.data?.success) {
           setAllQuestion(res.data.data);
+          //setting time remaining based on question time required
+          setTimeRemaining(
+            (res.data.data as IBaseQuestion[]).reduce((acc, cur) => {
+              return acc + cur?.timeRequired;
+            }, 0) * 1000
+          );
         }
       } catch (error) {
         console.log(error);
@@ -79,10 +86,46 @@ function QuestionBankSlug2() {
     fetchQuestions();
   }, [qDetails]);
 
+  //
+  //
+  // RESET QUESTION STATE ON QUESTION CHANGE
   useEffect(() => {
+    function resetQuestionState() {
+      clearTimer();
+      setScriptRes({
+        correct: 0,
+        wrong: 0,
+        obtain: 0,
+        total: 0,
+      });
+      setTimeRemaining(totalTime * 1000);
+      setExamStatus("ready");
+    }
     resetQuestionState();
   }, [slug2]);
 
+  useEffect(() => {
+    setAnswerScript(
+      allQuestion.reduce(
+        (acc: SingleMcqAnswerType[], curr: IBaseQuestion & { _id: string }) => {
+          if (curr.questionType === "MCQ") {
+            acc.push({
+              id: curr._id,
+              givenAns: undefined,
+              mark: curr.marks,
+              isCorrect: false,
+            });
+          }
+          return acc;
+        },
+        []
+      )
+    );
+  }, [allQuestion]);
+
+  //
+  //
+  // CLEAR TIMER
   function clearTimer() {
     if (countdownRef.current) {
       clearInterval(countdownRef.current);
@@ -90,31 +133,15 @@ function QuestionBankSlug2() {
     }
   }
 
-  function resetQuestionState() {
-    clearTimer();
-
-    setAllQuestion([]);
-    setAnswerScript([]);
-
-    setScriptRes({
-      correct: 0,
-      wrong: 0,
-      obtain: 0,
-      total: 0,
-    });
-
-    setTimeRemaining(totalTime * 1000);
-
-    setExamStatus("ready");
-  }
-
+  //
+  //
+  // MCQ SUBMIT HANDLER
   function handleMcqSubmit() {
     clearTimer();
-
     setTimeRemaining(totalTime * 1000);
-
     setExamStatus("finished");
 
+    console.log(answerScript);
     const result = answerScript.reduce(
       (acc, item) => {
         acc.total += item.mark;
@@ -123,9 +150,8 @@ function QuestionBankSlug2() {
           acc.correct += item.mark;
 
           acc.obtain += item.mark;
-        } else {
-          acc.wrong += item.mark;
         }
+        acc.wrong += item.mark;
 
         return acc;
       },
@@ -140,35 +166,50 @@ function QuestionBankSlug2() {
     setScriptRes(result);
   }
 
+  //
+  //
+  // RESTART EXAM
   function handleRestart() {
     clearTimer();
-
-    setAnswerScript([]);
-
     setScriptRes({
       correct: 0,
       wrong: 0,
       obtain: 0,
       total: 0,
     });
-
     setExamStatus("ready");
-
     setTimeRemaining(totalTime * 1000);
+    setAnswerScript(() => {
+      const initMcqAns: SingleMcqAnswerType[] = allQuestion.reduce(
+        (acc: SingleMcqAnswerType[], curr: IBaseQuestion & { _id: string }) => {
+          if (curr.questionType === "MCQ") {
+            acc.push({
+              id: curr._id,
+              givenAns: undefined,
+              mark: curr.marks,
+              isCorrect: false,
+            });
+          }
+          return acc;
+        },
+        []
+      );
+
+      return initMcqAns;
+    });
   }
 
+  //
+  //
+  // START EXAM
   function handleStart() {
     clearTimer();
-
-    setAnswerScript([]);
-
     setScriptRes({
       correct: 0,
       wrong: 0,
       obtain: 0,
       total: 0,
     });
-
     setExamStatus("started");
 
     countdownRef.current = setInterval(() => {
@@ -181,11 +222,14 @@ function QuestionBankSlug2() {
         return time - 1000;
       });
     }, 1000);
+    console.log("finished");
   }
 
+  //
+  //
+  // TOTAL TIME
   const totalTime = useMemo(() => {
     return allQuestion.reduce((acc, cur) => {
-      console.log(acc, cur);
       return acc + cur?.timeRequired;
     }, 0);
   }, [slug2, viewMode]);

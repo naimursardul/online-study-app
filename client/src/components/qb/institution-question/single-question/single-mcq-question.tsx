@@ -55,20 +55,6 @@ export default function SingleMcqQuestion({
 
   //
   //
-  // SET ANSWER SCRIPT ARRAY WITH DEFAULT QUESTON
-  useEffect(() => {
-    setAnswerScript((p) => {
-      const findQ = p.find((t) => t.id === singleMcqAnswer?.id);
-      if (findQ) {
-        return p;
-      }
-      return [...p, singleMcqAnswer];
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  //
-  //
   // HANDLE AFTER SELECTING AN OPTION
   function handleSingleMcqSubmit(e: React.ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -312,7 +298,7 @@ export default function SingleMcqQuestion({
                   {/* OPTION DETAILS */}
                   {/*  */}
                   {/*  */}
-                  <span className="bg-amber-200 flex justify-center items-center max-sm:text-sm">
+                  <span className="flex justify-center items-center max-sm:text-sm">
                     <ReactMarkdownRender text={o} />
                   </span>
                 </div>

@@ -19,7 +19,7 @@ function InstitutionQuestionLayout() {
 
   const [examStatus, setExamStatus] = useState<ExamStatusType>("ready");
 
-  const [timeRemaining, setTimeRemaining] = useState<number>(10 * 1000);
+  const [timeRemaining, setTimeRemaining] = useState<number>();
 
   useEffect(() => {
     setViewMode("viewOnly");
