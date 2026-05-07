@@ -25,7 +25,7 @@ export default function SingleMcqQuestion({
   const [isMarked, setIsMarked] = useState<boolean>(false);
   const [changeOption, setChangeOption] = useState<boolean>(true);
   const [singleMcqAnswer, setSingleMcqAnswer] = useState<SingleMcqAnswerType>({
-    id: q._id || "",
+    questionId: q._id || "",
     givenAns: undefined,
   });
   const optionRefs = useRef<(HTMLInputElement | null)[]>([]);
