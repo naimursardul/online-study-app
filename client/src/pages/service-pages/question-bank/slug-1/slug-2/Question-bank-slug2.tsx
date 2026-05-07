@@ -23,8 +23,11 @@ import type {
 } from "@/types/types";
 import { McqQuestionSkeleton } from "@/components/skeleton/McqQuestionSkeleton";
 import { CqQuestionSkeleton } from "@/components/skeleton/CqQuestionSkeleton";
+import { useAuth } from "@/lib/Auth-context";
+import { toast } from "sonner";
 
 type OutletContextType = {
+  timeRemaining: number;
   setTimeRemaining: React.Dispatch<React.SetStateAction<number>>;
   setExamStatus: React.Dispatch<React.SetStateAction<ExamStatusType>>;
   viewMode: ViewModeType;
@@ -33,22 +36,48 @@ type OutletContextType = {
 };
 
 function QuestionBankSlug2() {
+  const { user } = useAuth();
   const { slug2 } = useParams();
+
   const [loading, setLoading] = useState(true);
+
   const [allQuestion, setAllQuestion] = useState<
     ((IMCQ | ICQ) & { _id: string })[]
   >([]);
+
   const [answerScript, setAnswerScript] = useState<SingleMcqAnswerType[]>([]);
+
   const [scriptRes, setScriptRes] = useState<ScriptResType>({
     correct: 0,
     wrong: 0,
     obtain: 0,
     total: 0,
   });
-  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const { setTimeRemaining, setExamStatus, viewMode, qDetails, examStatus } =
-    useOutletContext<OutletContextType>();
 
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // ✅ latest answerScript ref
+  const answerScriptRef = useRef<SingleMcqAnswerType[]>([]);
+
+  const {
+    timeRemaining,
+    setTimeRemaining,
+    setExamStatus,
+    viewMode,
+    qDetails,
+    examStatus,
+  } = useOutletContext<OutletContextType>();
+
+  // =========================
+  // KEEP REF UPDATED
+  // =========================
+  useEffect(() => {
+    answerScriptRef.current = answerScript;
+  }, [answerScript]);
+
+  // =========================
+  // FETCH QUESTIONS
+  // =========================
   useEffect(() => {
     const fetchQuestions = async () => {
       setLoading(true);
@@ -69,7 +98,7 @@ function QuestionBankSlug2() {
 
         if (res.data?.success) {
           setAllQuestion(res.data.data);
-          //setting time remaining based on question time required
+
           setTimeRemaining(
             (res.data.data as IBaseQuestion[]).reduce((acc, cur) => {
               return acc + cur?.timeRequired;
@@ -86,46 +115,22 @@ function QuestionBankSlug2() {
     fetchQuestions();
   }, [qDetails]);
 
-  //
-  //
-  // RESET QUESTION STATE ON QUESTION CHANGE
-  useEffect(() => {
-    function resetQuestionState() {
-      clearTimer();
-      setScriptRes({
-        correct: 0,
-        wrong: 0,
-        obtain: 0,
-        total: 0,
-      });
-      setTimeRemaining(totalTime * 1000);
-      setExamStatus("ready");
-    }
-    resetQuestionState();
-  }, [slug2]);
+  // =========================
+  // TOTAL TIME
+  // =========================
+  const totalTime = useMemo(() => {
+    return allQuestion.reduce((acc, cur) => {
+      return acc + cur?.timeRequired;
+    }, 0);
+  }, [slug2, viewMode, allQuestion]);
 
-  useEffect(() => {
-    setAnswerScript(
-      allQuestion.reduce(
-        (acc: SingleMcqAnswerType[], curr: IBaseQuestion & { _id: string }) => {
-          if (curr.questionType === "MCQ") {
-            acc.push({
-              id: curr._id,
-              givenAns: undefined,
-              mark: curr.marks,
-              isCorrect: false,
-            });
-          }
-          return acc;
-        },
-        []
-      )
-    );
-  }, [allQuestion]);
+  const totalMarks = useMemo(() => {
+    return allQuestion.reduce((acc, cur) => acc + cur?.marks, 0);
+  }, [slug2, viewMode, allQuestion]);
 
-  //
-  //
+  // =========================
   // CLEAR TIMER
+  // =========================
   function clearTimer() {
     if (countdownRef.current) {
       clearInterval(countdownRef.current);
@@ -133,111 +138,120 @@ function QuestionBankSlug2() {
     }
   }
 
-  //
-  //
-  // MCQ SUBMIT HANDLER
-  function handleMcqSubmit() {
+  // =========================
+  // RESET QUESTION STATE
+  // =========================
+  function resetQuestionState() {
     clearTimer();
+
+    setScriptRes({
+      correct: 0,
+      wrong: 0,
+      obtain: 0,
+      total: 0,
+    });
+
     setTimeRemaining(totalTime * 1000);
-    setExamStatus("finished");
 
-    console.log(answerScript);
-    const result = answerScript.reduce(
-      (acc, item) => {
-        acc.total += item.mark;
+    setExamStatus("ready");
 
-        if (item.isCorrect) {
-          acc.correct += item.mark;
-
-          acc.obtain += item.mark;
+    const initialAnswers = allQuestion.reduce(
+      (acc: SingleMcqAnswerType[], curr: IBaseQuestion & { _id: string }) => {
+        if (curr.questionType === "MCQ") {
+          acc.push({
+            questionId: curr._id,
+            givenAns: undefined,
+          });
         }
-        acc.wrong += item.mark;
 
         return acc;
       },
-      {
-        correct: 0,
-        wrong: 0,
-        obtain: 0,
-        total: 0,
-      }
+      []
     );
 
-    setScriptRes(result);
+    setAnswerScript(initialAnswers);
+
+    // update ref immediately
+    answerScriptRef.current = initialAnswers;
   }
 
-  //
-  //
-  // RESTART EXAM
-  function handleRestart() {
-    clearTimer();
-    setScriptRes({
-      correct: 0,
-      wrong: 0,
-      obtain: 0,
-      total: 0,
-    });
-    setExamStatus("ready");
-    setTimeRemaining(totalTime * 1000);
-    setAnswerScript(() => {
-      const initMcqAns: SingleMcqAnswerType[] = allQuestion.reduce(
-        (acc: SingleMcqAnswerType[], curr: IBaseQuestion & { _id: string }) => {
-          if (curr.questionType === "MCQ") {
-            acc.push({
-              id: curr._id,
-              givenAns: undefined,
-              mark: curr.marks,
-              isCorrect: false,
-            });
-          }
-          return acc;
-        },
-        []
-      );
+  useEffect(() => {
+    resetQuestionState();
+  }, [slug2, allQuestion]);
 
-      return initMcqAns;
-    });
+  // =========================
+  // MCQ SUBMIT
+  // =========================
+  async function handleMcqSubmit() {
+    try {
+      clearTimer();
+      console.log("Submitting:", timeRemaining);
+
+      const res = await client.post("/exam/create-answer", {
+        u_id: user?._id,
+
+        examName: `${qDetails.level} - ${qDetails.subject} - ${qDetails.institution} - ${qDetails.year}`,
+
+        // ✅ latest data
+        answers: answerScriptRef.current,
+
+        timeTaken: totalTime - timeRemaining / 1000,
+      });
+
+      if (!res.data.success) {
+        toast.error("Failed to submit exam. Please try again.");
+        return;
+      }
+
+      setScriptRes({
+        correct: res.data.data.correctCount,
+        wrong: res.data.data.wrongCount,
+        obtain: res.data.data.obtainedMarks,
+        total: res.data.data.totalMarks,
+      });
+
+      setExamStatus("finished");
+    } catch (error) {
+      console.log(error);
+
+      toast.error("An error occurred while submitting the exam.");
+    }
   }
 
-  //
-  //
+  // =========================
   // START EXAM
+  // =========================
   function handleStart() {
     clearTimer();
+
     setScriptRes({
       correct: 0,
       wrong: 0,
       obtain: 0,
       total: 0,
     });
+
     setExamStatus("started");
 
     countdownRef.current = setInterval(() => {
       setTimeRemaining((time) => {
         if (time <= 1000) {
+          clearTimer();
+
+          // ✅ latest answerScript available
           handleMcqSubmit();
+
           return 0;
         }
 
         return time - 1000;
       });
     }, 1000);
-    console.log("finished");
   }
 
-  //
-  //
-  // TOTAL TIME
-  const totalTime = useMemo(() => {
-    return allQuestion.reduce((acc, cur) => {
-      return acc + cur?.timeRequired;
-    }, 0);
-  }, [slug2, viewMode]);
-  const totalMarks = useMemo(() => {
-    return allQuestion.reduce((acc, cur) => acc + cur?.marks, 0);
-  }, [slug2, viewMode]);
-
-  console.log({ allQuestion });
+  // =========================
+  // LOADING
+  // =========================
   if (loading) {
     return qDetails?.questionType === "MCQ" ? (
       <div className="space-y-5">
@@ -254,31 +268,41 @@ function QuestionBankSlug2() {
     );
   }
 
+  // =========================
+  // MCQ VIEW
+  // =========================
   if (qDetails.questionType === "MCQ") {
     return (
       <div className="space-y-5">
         {viewMode === "practice" && examStatus === "finished" && (
           <>
             <div className="grid grid-cols-2 gap-2 border-2 border-sidebar-border bg-sidebar px-4 py-4 rounded text-chart-2">
-              <div className="flex gap-1 items-center ">
-                <ListOrdered className="size-5" /> <span>Total:</span>{" "}
+              <div className="flex gap-1 items-center">
+                <ListOrdered className="size-5" />
+                <span>Total:</span>
                 {scriptRes.total}
               </div>
-              <div className="flex gap-1 items-center ">
-                <CheckCircle2 className="size-5" /> <span>Correct:</span>{" "}
+
+              <div className="flex gap-1 items-center">
+                <CheckCircle2 className="size-5" />
+                <span>Correct:</span>
                 {scriptRes.correct}
               </div>
-              <div className="flex gap-1 items-center ">
-                <Award className="size-5" /> <span>Obtain:</span>{" "}
+
+              <div className="flex gap-1 items-center">
+                <Award className="size-5" />
+                <span>Obtain:</span>
                 {scriptRes.obtain}
               </div>
-              <div className="flex gap-1 items-center ">
-                <XCircle className="size-5" /> <span>Wrong:</span>{" "}
+
+              <div className="flex gap-1 items-center">
+                <XCircle className="size-5" />
+                <span>Wrong:</span>
                 {scriptRes.wrong}
               </div>
             </div>
 
-            <Button className="cursor-pointer" onClick={handleRestart}>
+            <Button className="cursor-pointer" onClick={resetQuestionState}>
               Restart
             </Button>
           </>
@@ -329,6 +353,9 @@ function QuestionBankSlug2() {
     );
   }
 
+  // =========================
+  // CQ VIEW
+  // =========================
   if (qDetails.questionType === "CQ") {
     return (
       <div className="space-y-5">

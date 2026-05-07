@@ -43,6 +43,7 @@ function InstitutionQuestionLayout() {
         <main>
           <Outlet
             context={{
+              timeRemaining,
               setTimeRemaining,
               setExamStatus,
               viewMode,

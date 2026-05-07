@@ -52,10 +52,8 @@ export interface IFormInfo {
 
 // SingleMcqAnswerType
 export interface SingleMcqAnswerType {
-  id: string;
+  questionId: string;
   givenAns: string | undefined;
-  mark: number;
-  isCorrect: boolean;
 }
 
 export interface SidebarItemType {

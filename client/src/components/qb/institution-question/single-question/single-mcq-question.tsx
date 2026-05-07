@@ -27,8 +27,6 @@ export default function SingleMcqQuestion({
   const [singleMcqAnswer, setSingleMcqAnswer] = useState<SingleMcqAnswerType>({
     id: q._id || "",
     givenAns: undefined,
-    mark: q.marks,
-    isCorrect: false,
   });
   const optionRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -52,11 +50,10 @@ export default function SingleMcqQuestion({
   // HANDLE AFTER SELECTING AN OPTION
   function handleSingleMcqSubmit(e: React.ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
+    console.log(e.target.value);
     const singleAnsObj: SingleMcqAnswerType = {
-      id: q._id || "",
+      questionId: q._id,
       givenAns: e.target.value,
-      mark: q?.marks,
-      isCorrect: e.target.value === q.correctAnswer,
     };
     setSingleMcqAnswer(singleAnsObj);
     setChangeOption(false);
@@ -64,7 +61,7 @@ export default function SingleMcqQuestion({
     // setting answer to answer script array
     setAnswerScript((p) => {
       const newP = p.map((t) => {
-        if (t.id === singleAnsObj.id) {
+        if (t.questionId === singleAnsObj.questionId) {
           t = { ...singleAnsObj };
         }
         return t;

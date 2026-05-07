@@ -122,13 +122,42 @@ export interface IQuestionAnswer {
 // ANSWER
 export interface IAnswer extends Document {
   u_id: string;
-  record: string;
-  q_ids: IQuestionAnswer[];
-  totalMarks: number; // keeping your original field name
+  examName: string;
+
+  answerScript: {
+    questionId: string;
+    givenAns: string;
+    isCorrect: boolean;
+  }[];
+
+  totalMarks: number;
   obtainedMarks: number;
-  questionType: "MCQ" | "CQ";
+  percentage: number;
+
+  totalQuestions: number;
+  correctCount: number;
+  wrongCount: number;
+
   timeTaken: number;
   examDate: Date;
-  createdAt?: Date;
-  updatedAt?: Date;
+}
+
+// ANALYTICS
+interface ITopicStat {
+  topicId: string;
+  topicName: string;
+
+  subjectId: string;
+  subjectName: string;
+
+  chapterId: string;
+  chapterName: string;
+
+  correct: number;
+  total: number;
+}
+
+export interface IUserAnalytics extends Document {
+  u_id: string;
+  topicStats: ITopicStat[];
 }

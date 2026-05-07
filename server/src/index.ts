@@ -10,7 +10,8 @@ import ChapterRouter from "./routes/chapter-routes";
 import TopicRouter from "./routes/topic-routes";
 import RecordRouter from "./routes/record-routes";
 import AuthRouter from "./routes/auth-routes";
-import MasterDataRouter from "./routes/master-question-data-route";
+import MasterDataRouter from "./routes/master-question-data-routes";
+import ExamRouter from "./routes/exam-routes";
 import { errorHandler } from "./middlewares/errorHandler";
 import ConnectDB from "./db/db";
 
@@ -43,6 +44,7 @@ app.use("/api/chapter", ChapterRouter);
 app.use("/api/topic", TopicRouter);
 app.use("/api/record", RecordRouter);
 app.use("/api/auth", AuthRouter);
+app.use("/api/exam", ExamRouter);
 
 // Global error handler (should be after routes)
 app.use(errorHandler);
