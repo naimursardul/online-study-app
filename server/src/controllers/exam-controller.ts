@@ -8,7 +8,7 @@ export const createAnswer = async (req: Request, res: Response) => {
     const { u_id, examName, answers, timeTaken } = req.body;
 
     if (!u_id || !examName || !answers || timeTaken === undefined) {
-      console.log("Missing field in request body:");
+      console.log("Missing field in request body:", req.body);
       res.status(200).json({
         success: false,
         message: "Missinig Field",

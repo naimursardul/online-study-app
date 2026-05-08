@@ -22,6 +22,7 @@ import Subject from "./pages/admin/(allUploadPages)/subject/Subject.tsx";
 import Chapter from "./pages/admin/(allUploadPages)/chapter/Chapter.tsx";
 import Topic from "./pages/admin/(allUploadPages)/topic/Topic.tsx";
 import Record from "./pages/admin/(allUploadPages)/record/Record.tsx";
+import Contact from "./pages/contact/Contact.tsx";
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
           <Route path="/" element={<HomeLayout />}>
             <Route index element={<Home />} />
             <Route path="about" element={<About />} />
+            <Route path="contact" element={<Contact />} />
             <Route path="signup" element={<Signup />} />
             <Route path="login" element={<Login />} />
           </Route>

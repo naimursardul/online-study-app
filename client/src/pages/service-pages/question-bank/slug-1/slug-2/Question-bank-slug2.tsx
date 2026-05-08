@@ -199,7 +199,9 @@ function QuestionBankSlug2() {
       });
 
       if (!res.data.success) {
-        toast.error("Failed to submit exam. Please try again.");
+        toast.error(
+          res.data.message || "Failed to submit exam. Please try again."
+        );
         return;
       }
 
