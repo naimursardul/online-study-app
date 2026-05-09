@@ -10,19 +10,20 @@ import { Link, useLocation } from "react-router-dom";
 
 export default function NavBar() {
   const { pathname } = useLocation();
+  const activePath = (p: string) => (pathname === p ? "bg-muted" : "");
   return (
     <NavigationMenu>
-      <NavigationMenuList>
+      <NavigationMenuList className="gap-2 max-sm:gap-1">
         <NavigationMenuItem>
-          <NavigationMenuLink className={pathname === "/" ? "bg-muted" : ""}>
-            <Link to="/" className="font-medium">
+          <NavigationMenuLink className={activePath("/") + "max-sm:p-1.5"}>
+            <Link to="/" className="font-medium max-sm:text-sm">
               Home
             </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
 
         <NavigationMenuItem>
-          <NavigationMenuTrigger className="font-medium">
+          <NavigationMenuTrigger className="font-medium max-sm:text-sm max-sm:pr-1 max-sm:px-1.5 max-sm:h-8">
             Services
           </NavigationMenuTrigger>
           <NavigationMenuContent>
@@ -43,19 +44,17 @@ export default function NavBar() {
           </NavigationMenuContent>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <NavigationMenuLink
-            className={pathname === "/about" ? "bg-muted" : ""}
-          >
-            <Link to="/about" className="font-medium">
+          <NavigationMenuLink className={activePath("/about") + "max-sm:p-1.5"}>
+            <Link to="/about" className="font-medium max-sm:text-sm">
               About
             </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
         <NavigationMenuItem>
           <NavigationMenuLink
-            className={pathname === "/contact" ? "bg-muted" : ""}
+            className={activePath("/contact") + "max-sm:p-1.5"}
           >
-            <Link to="/contact" className="font-medium">
+            <Link to="/contact" className="font-medium max-sm:text-sm">
               Contact
             </Link>
           </NavigationMenuLink>

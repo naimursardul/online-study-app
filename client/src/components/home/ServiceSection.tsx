@@ -26,7 +26,6 @@ export default function ServiceSection() {
     <section className="globPad flex flex-col gap-10 items-center mt-12.5 bg-secondary rounded-3xl p-10">
       <div className="flex flex-col gap-3 justify-center text-center max-w-3xl">
         <h2 className="text-4xl font-bold text-primary">Our Services</h2>
-
         <p className="text-muted-foreground">
           Lorem ipsum dolor sit amet consectetur adipisicing elit. Doloribus
           voluptas reiciendis inventore laborum qui aliquam enim, tenetur fuga
@@ -42,7 +41,7 @@ export default function ServiceSection() {
           return (
             <Card
               key={index}
-              className="cursor-pointer group bg-card border-border transition-all duration-300 hover:shadow-xl hover:bg-primary/6"
+              className="cursor-pointer group bg-card border-border transition-all duration-300 hover:shadow-xl hover:bg-secondary"
             >
               <CardContent className="h-45 flex flex-col gap-4 items-center justify-center text-center px-4">
                 <div className="p-4 rounded-full bg-primary/10">
