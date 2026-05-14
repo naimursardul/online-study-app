@@ -39,7 +39,7 @@ export const createAnswer = async (req: Request, res: Response) => {
     });
 
     // 🔹 Step 3: Update analytics
-    await updateUserAnalytics(u_id, result.topicStats);
+    await updateUserAnalytics(u_id, result.topicStats, result.questionStats);
 
     res.status(200).json({
       success: true,

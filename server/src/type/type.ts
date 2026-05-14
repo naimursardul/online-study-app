@@ -28,6 +28,14 @@ export interface IRecord {
   year: string;
 }
 
+// IMAGE SCHEMA TYPE
+export interface IImage {
+  key: string;
+  url: string;
+  mimeType: string;
+  size: number;
+}
+
 // Base Question
 export interface IBaseQuestion extends Document {
   questionType: "MCQ" | "CQ";
@@ -51,9 +59,11 @@ export interface IBaseQuestion extends Document {
 // MCQ
 export interface IMCQ extends IBaseQuestion {
   question: string;
-  options: string[];
-  correctAnswer: string;
-  explanation: string;
+  questionImg?: string;
+  options: { text?: String; optionImg?: string }[];
+  correctAnswer: number;
+  explanation?: string;
+  explanationImg?: String;
 }
 
 // Sub Question
@@ -61,6 +71,7 @@ export interface ISubQuestions {
   questionNo: string;
   question: string;
   answer: string;
+  subQuestionAnswerImg?: string;
   topic: string;
   topicId: string;
 }
@@ -68,6 +79,7 @@ export interface ISubQuestions {
 // CQ
 export interface ICQ extends IBaseQuestion {
   statement: string;
+  statementImg?: string;
   subQuestions: ISubQuestions[];
 }
 
@@ -157,7 +169,20 @@ interface ITopicStat {
   total: number;
 }
 
+interface IQuestionStat {
+  questionId: string;
+
+  attempts: number;
+  correctAttempts: number;
+  wrongAttempts: number;
+
+  lastAttemptedAt: Date;
+}
+
 export interface IUserAnalytics extends Document {
   u_id: string;
+
   topicStats: ITopicStat[];
+
+  questionStats: IQuestionStat[];
 }

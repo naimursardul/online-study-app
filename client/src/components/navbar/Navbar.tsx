@@ -10,7 +10,7 @@ import { Link, useLocation } from "react-router-dom";
 
 export default function NavBar() {
   const { pathname } = useLocation();
-  const activePath = (p: string) => (pathname === p ? "bg-muted" : "");
+  const activePath = (p: string) => (pathname === p ? "bg-muted " : " ");
   return (
     <NavigationMenu>
       <NavigationMenuList className="gap-2 max-sm:gap-1">

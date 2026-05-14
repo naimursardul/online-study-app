@@ -14,8 +14,16 @@ const AnswerSchema = new Schema<IAnswer>(
           ref: "BaseQuestion",
           required: true,
         },
-        givenAns: { type: String },
-        isCorrect: { type: Boolean, required: true },
+
+        givenAns: {
+          type: String,
+          required: true,
+        },
+
+        isCorrect: {
+          type: Boolean,
+          required: true,
+        },
       },
     ],
 

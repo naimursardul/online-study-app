@@ -17,7 +17,6 @@ import { toast } from "sonner";
 
 export default function NavbarAuth() {
   const { user, userExisted, setUser } = useAuth();
-  console.log(user);
   const isMobile = window.innerWidth < 640; // Example breakpoint for mobile devices
 
   const navigate = useNavigate();

@@ -12,6 +12,7 @@ import RecordRouter from "./routes/record-routes";
 import AuthRouter from "./routes/auth-routes";
 import MasterDataRouter from "./routes/master-question-data-routes";
 import ExamRouter from "./routes/exam-routes";
+import AnalyticsRouter from "./routes/analytics-routes";
 import { errorHandler } from "./middlewares/errorHandler";
 import ConnectDB from "./db/db";
 
@@ -45,6 +46,7 @@ app.use("/api/topic", TopicRouter);
 app.use("/api/record", RecordRouter);
 app.use("/api/auth", AuthRouter);
 app.use("/api/exam", ExamRouter);
+app.use("/api/analytics", AnalyticsRouter);
 
 // Global error handler (should be after routes)
 app.use(errorHandler);

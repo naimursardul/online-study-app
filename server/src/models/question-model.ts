@@ -6,11 +6,32 @@
  */
 
 import mongoose, { Schema } from "mongoose";
-import { IBaseQuestion, ICQ, IMCQ } from "../type/type";
+import { IBaseQuestion, ICQ, IImage, IMCQ } from "../type/type";
 
 // -----------------------
 // Schemas
 // -----------------------
+
+const imageSchema = new Schema<IImage>(
+  {
+    key: {
+      type: String,
+      required: true,
+    },
+    url: {
+      type: String,
+      required: true,
+    },
+    mimeType: {
+      type: String,
+      default: "image/webp",
+    },
+    size: {
+      type: Number,
+    },
+  },
+  { _id: false }
+);
 
 const baseQuestionSchema = new Schema<IBaseQuestion>(
   {
@@ -121,31 +142,38 @@ const mcqSchema = new Schema<IMCQ>({
     type: String,
     required: true,
   },
+  questionImg: imageSchema,
   options: {
-    type: [String],
+    type: [{ text: String, optionImg: imageSchema }],
     validate: [
       {
-        validator: (val: string[]) => val.length === 4,
+        validator: (options: any[]) => {
+          return options.length === 4;
+        },
         message: "Options must have exactly 4 choices.",
+      },
+      {
+        validator: (options: any[]) => {
+          return options.every((option) => {
+            return option.text?.trim() || option.optionImg;
+          });
+        },
+        message: "Each option must contain text or image.",
       },
     ],
     required: true,
   },
   correctAnswer: {
-    type: String,
+    type: Number,
     required: true,
-    validate: {
-      validator: function (value: string) {
-        const doc = this as IMCQ;
-        return doc.options.includes(value);
-      },
-      message: "Correct answer must be one of the provided options.",
-    },
+    min: 0,
+    max: 3,
   },
   explanation: {
     type: String,
     required: true,
   },
+  explanationImg: imageSchema,
 });
 
 const MCQ = BaseQuestion.discriminator<IMCQ>("MCQ", mcqSchema);
@@ -156,6 +184,7 @@ const cqSchema = new Schema<ICQ>({
     type: String,
     required: true,
   },
+  statementImg: imageSchema,
   subQuestions: {
     type: [
       {
@@ -171,6 +200,7 @@ const cqSchema = new Schema<ICQ>({
           type: String,
           required: true,
         },
+        subQuestionAnswerImg: imageSchema,
         topic: {
           type: String,
           required: true,
