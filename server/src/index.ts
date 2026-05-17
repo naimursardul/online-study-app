@@ -27,7 +27,7 @@ app.use(
         ? process.env.FRONTEND_URL
         : process.env.DEV_FRONTEND_URL,
     credentials: true,
-  })
+  }),
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

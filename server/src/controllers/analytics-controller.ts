@@ -15,7 +15,7 @@ export const weakTopicsController = async (req: Request, res: Response) => {
 
     const limit = Number(req.query.limit) || 5;
 
-    const data = await getWeakTopics(u_id, limit);
+    const data = await getWeakTopics(String(u_id), limit);
 
     res.status(200).json({
       message: "Weak topics retrieved successfully",
@@ -41,7 +41,7 @@ export const dashboardController = async (req: Request, res: Response) => {
   try {
     const { u_id } = req.params;
 
-    const data = await getDashboardSummary(u_id);
+    const data = await getDashboardSummary(String(u_id));
 
     res.status(200).json({
       message: "Dashboard data retrived.",
@@ -65,14 +65,14 @@ export const dashboardController = async (req: Request, res: Response) => {
 
 export const performanceGraphController = async (
   req: Request,
-  res: Response
+  res: Response,
 ) => {
   try {
     const { u_id } = req.params;
 
     const limit = Number(req.query.limit) || 20;
 
-    const data = await getPerformanceGraph(u_id, limit);
+    const data = await getPerformanceGraph(String(u_id), limit);
 
     res.status(200).json({
       message: "Graph data retrived successfully.",
