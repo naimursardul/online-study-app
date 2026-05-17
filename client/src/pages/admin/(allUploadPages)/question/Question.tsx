@@ -1,5 +1,6 @@
 import AllQuestion from "@/components/admin/question/all-questions/all-question";
 import QuestionUpload from "@/components/admin/question/question-upload";
+import FloatingUploadWidget from "@/components/imgUpload/ImgUploadUi";
 import type { IMasterData } from "@/types/types";
 import { useOutletContext } from "react-router-dom";
 
@@ -14,6 +15,7 @@ export default function Question() {
       </div>
 
       <AllQuestion />
+      <FloatingUploadWidget />
     </div>
   );
 }

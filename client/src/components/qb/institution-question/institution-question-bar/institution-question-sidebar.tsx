@@ -1,5 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { client } from "@/lib/utils";
+import { client } from "@/utils/utils";
 import type { IRecord } from "@/types/types";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";

@@ -12,7 +12,7 @@ import {
 import { Input } from "../ui/input";
 import { toast } from "sonner";
 import type { Dispatch, SetStateAction } from "react";
-import { client } from "@/lib/utils";
+import { client } from "@/utils/utils";
 import SubmitBtn from "../submit-btn/submit-btn";
 import { Link } from "react-router-dom";
 

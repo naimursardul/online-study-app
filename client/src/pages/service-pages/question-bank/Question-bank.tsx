@@ -3,8 +3,7 @@ import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { client } from "@/lib/utils";
-
+import { client } from "@/utils/utils";
 import type {
   IBackground,
   ILevel,

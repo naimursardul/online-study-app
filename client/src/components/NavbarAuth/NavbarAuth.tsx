@@ -12,8 +12,8 @@ import { BadgeCheck, Bell, CreditCard, LogOut, Sparkles } from "lucide-react";
 import { Button } from "../ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/Auth-context";
-import { client } from "@/lib/utils";
 import { toast } from "sonner";
+import { client } from "@/utils/utils";
 
 export default function NavbarAuth() {
   const { user, userExisted, setUser } = useAuth();

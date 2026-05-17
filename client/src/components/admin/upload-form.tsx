@@ -1,7 +1,7 @@
 import { useMemo, useState, type RefObject } from "react";
 import { toast } from "sonner";
 import type { IField, IFormInfo, IMasterData } from "@/types/types";
-import { client, getQuestionDataOption } from "@/lib/utils";
+import { client, getQuestionDataOption } from "@/utils/utils";
 import SubmitBtn from "../submit-btn/submit-btn";
 import { useOutletContext } from "react-router-dom";
 import DataField from "./data-field";

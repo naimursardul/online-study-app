@@ -1,9 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { createFormInfo } from "@/lib/utils";
 import type { IField } from "@/types/types";
 import { PlusCircle } from "lucide-react";
 import AllData from "@/components/admin/all-data";
 import UploadForm from "@/components/admin/upload-form";
+import { createFormInfo } from "@/utils/utils";
 
 export default function Record() {
   const fields: IField[] = [

@@ -18,10 +18,6 @@ const imageSchema = new Schema<IImage>(
       type: String,
       required: true,
     },
-    url: {
-      type: String,
-      required: true,
-    },
     mimeType: {
       type: String,
       default: "image/webp",

@@ -15,6 +15,7 @@ import ExamRouter from "./routes/exam-routes";
 import AnalyticsRouter from "./routes/analytics-routes";
 import { errorHandler } from "./middlewares/errorHandler";
 import ConnectDB from "./db/db";
+import ImgUploadRoutes from "./routes/img-upload-routes";
 
 dotenv.config();
 const app = express();
@@ -47,6 +48,7 @@ app.use("/api/record", RecordRouter);
 app.use("/api/auth", AuthRouter);
 app.use("/api/exam", ExamRouter);
 app.use("/api/analytics", AnalyticsRouter);
+app.use("/api/img-upload", ImgUploadRoutes);
 
 // Global error handler (should be after routes)
 app.use(errorHandler);

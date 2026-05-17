@@ -17,8 +17,8 @@ import {
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 import type { Dispatch, SetStateAction } from "react";
-import { client } from "@/lib/utils";
 import SubmitBtn from "../submit-btn/submit-btn";
+import { client } from "@/utils/utils";
 
 const otpSchema = z.object({
   otp: z.string().min(6, "OTP must be 6 digits").max(6, "OTP must be 6 digits"),

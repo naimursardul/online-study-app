@@ -6,7 +6,7 @@ import {
   client,
   createManualOptions,
   getQuestionDataOption,
-} from "@/lib/utils";
+} from "@/utils/utils";
 import McqForm from "./question-forms/mcq-form";
 import CqForm from "./question-forms/cq-form";
 import { Label } from "@/components/ui/label";

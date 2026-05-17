@@ -1,4 +1,4 @@
-import { client } from "./utils";
+import { client } from "../utils/utils";
 
 type ApiResponse<T> = {
   message: string;

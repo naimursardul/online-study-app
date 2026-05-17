@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import UploadForm from "./upload-form";
-import { client, createFormInfo, getQuestionDataOption } from "@/lib/utils";
+import { client, createFormInfo, getQuestionDataOption } from "@/utils/utils";
 import DataField from "./data-field";
 import { useOutletContext } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";

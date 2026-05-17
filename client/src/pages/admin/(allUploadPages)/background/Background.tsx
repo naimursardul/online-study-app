@@ -1,8 +1,8 @@
 import AllData from "@/components/admin/all-data";
 import UploadForm from "@/components/admin/upload-form";
 import { Card, CardContent } from "@/components/ui/card";
-import { createFormInfo } from "@/lib/utils";
 import type { IField } from "@/types/types";
+import { createFormInfo } from "@/utils/utils";
 import { PlusCircle } from "lucide-react";
 
 export default function Background() {

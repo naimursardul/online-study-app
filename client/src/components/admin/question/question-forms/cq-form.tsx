@@ -10,8 +10,7 @@ import {
 } from "@/components/ui/select";
 import type { ICQ, ITopic } from "@/types/types";
 import TextEditor from "@/components/text-editor/TextEditor";
-import { client } from "@/lib/utils";
-
+import { client } from "@/utils/utils";
 export default function CqForm({
   formData,
   setFormData,

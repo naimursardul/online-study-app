@@ -31,7 +31,6 @@ export interface IRecord {
 // IMAGE SCHEMA TYPE
 export interface IImage {
   key: string;
-  url: string;
   mimeType: string;
   size: number;
 }

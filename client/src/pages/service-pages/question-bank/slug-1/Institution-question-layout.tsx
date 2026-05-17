@@ -1,6 +1,6 @@
 import SingleQuestionBankSidebar from "@/components/qb/institution-question/institution-question-bar/institution-question-sidebar";
 import InstitutionQuestionTopbar from "@/components/qb/institution-question/institution-question-bar/institution-question-topbar";
-import { getBoardQusetonDetails } from "@/lib/utils";
+import { getBoardQusetonDetails } from "@/utils/utils";
 import type { ExamStatusType, ViewModeType } from "@/types/types";
 
 import { useEffect, useMemo, useState } from "react";

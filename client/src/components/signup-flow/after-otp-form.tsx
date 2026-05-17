@@ -14,7 +14,7 @@ import { Input } from "../ui/input";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { IBackground, IField, ILevel, IOptionData } from "@/types/types";
-import { client } from "@/lib/utils";
+import { client } from "@/utils/utils";
 import { useNavigate } from "react-router-dom";
 import SubmitBtn from "../submit-btn/submit-btn";
 import {

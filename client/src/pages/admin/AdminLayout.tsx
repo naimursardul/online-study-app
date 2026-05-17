@@ -4,8 +4,7 @@ import type { IMasterData, SidebarItemType } from "@/types/types";
 import { LayoutDashboard, Upload, User } from "lucide-react";
 import { Outlet } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { client } from "@/lib/utils";
-
+import { client } from "@/utils/utils";
 export default function AdminLayout() {
   const [masterData, setMasterData] = useState<IMasterData>({
     levels: [],

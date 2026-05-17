@@ -7,7 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import type { IRegistrationFormField } from "@/types/types";
 import { Card } from "@/components/ui/card";
 import SubmitBtn from "@/components/submit-btn/submit-btn";
-import { client } from "@/lib/utils";
+import { client } from "@/utils/utils";
 import {
   Form,
   FormControl,

@@ -5,7 +5,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { client } from "./utils";
+import { client } from "../utils/utils";
 import type { IPopulatedData } from "@/types/types";
 
 // 👉 Define your user type

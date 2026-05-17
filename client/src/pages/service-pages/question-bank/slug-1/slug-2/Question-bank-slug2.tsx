@@ -10,7 +10,7 @@ import { useOutletContext, useParams } from "react-router-dom";
 import SingleCqQuestion from "@/components/qb/institution-question/single-question/single-cq-queston";
 import SingleMcqQuestion from "@/components/qb/institution-question/single-question/single-mcq-question";
 import { Button } from "@/components/ui/button";
-import { client } from "@/lib/utils";
+import { client } from "@/utils/utils";
 import type {
   ExamStatusType,
   IBaseQuestion,
