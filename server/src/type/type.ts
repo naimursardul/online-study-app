@@ -28,13 +28,6 @@ export interface IRecord {
   year: string;
 }
 
-// IMAGE SCHEMA TYPE
-export interface IImage {
-  key: string;
-  mimeType: string;
-  size: number;
-}
-
 // Base Question
 export interface IBaseQuestion extends Document {
   questionType: "MCQ" | "CQ";
@@ -58,11 +51,9 @@ export interface IBaseQuestion extends Document {
 // MCQ
 export interface IMCQ extends IBaseQuestion {
   question: string;
-  questionImg?: string;
-  options: { text?: String; optionImg?: string }[];
+  options: String;
   correctAnswer: number;
   explanation?: string;
-  explanationImg?: String;
 }
 
 // Sub Question
@@ -70,7 +61,6 @@ export interface ISubQuestions {
   questionNo: string;
   question: string;
   answer: string;
-  subQuestionAnswerImg?: string;
   topic: string;
   topicId: string;
 }
@@ -78,7 +68,6 @@ export interface ISubQuestions {
 // CQ
 export interface ICQ extends IBaseQuestion {
   statement: string;
-  statementImg?: string;
   subQuestions: ISubQuestions[];
 }
 
