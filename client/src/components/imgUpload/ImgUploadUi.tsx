@@ -66,6 +66,7 @@ export default function FloatingUploadWidget() {
     } finally {
       setIsUploading(false);
 
+      setImageFile(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
