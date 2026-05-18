@@ -47,7 +47,6 @@ export default function LoginForm() {
       const res = await client.post(`/auth/login-with-phone`, { ...values });
 
       const { data } = res;
-      console.log(data);
       if (!data.success) {
         toast.error(data.message || "Failed to Login.");
         return;

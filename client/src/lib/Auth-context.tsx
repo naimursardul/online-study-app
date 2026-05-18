@@ -55,6 +55,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
         localStorage.removeItem("userExisted");
       }
     } catch (error) {
+      console.log(error);
       setUser(null);
       localStorage.removeItem("userExisted");
     } finally {
