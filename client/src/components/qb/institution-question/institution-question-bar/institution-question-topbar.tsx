@@ -17,7 +17,7 @@ function InstitutionQuestionTopbar({
   >;
 }) {
   return (
-    <div className="flex flex-col gap-2 bg-background rounded sticky top-0 p-3 border-b-2 border-border ">
+    <div className="flex flex-col gap-2 bg-background rounded sticky top-0 p-3 border-b-2 border-border z-50">
       <div className="flex gap-3 justify-between items-center">
         <div>
           <h3 className="font-semibold">
