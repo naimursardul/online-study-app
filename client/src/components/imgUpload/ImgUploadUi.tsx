@@ -97,9 +97,9 @@ export default function FloatingUploadWidget() {
         <PopoverContent
           side="top"
           align="end"
-          className="w-105 overflow-hidden rounded-2xl p-0"
+          className="w-105 max-md:max-w-85 overflow-hidden rounded-2xl p-0"
         >
-          <div className="flex max-h-137.5 flex-col">
+          <div className="flex flex-col">
             {/* Header */}
             <div className="border-b p-4">
               <h3 className="text-lg font-semibold">Upload Images</h3>
@@ -110,7 +110,7 @@ export default function FloatingUploadWidget() {
             </div>
 
             {/* Scroll Area */}
-            <ScrollArea className="h-120">
+            <ScrollArea className="h-100">
               <div className="space-y-5 p-4">
                 {/* Folder Name */}
                 <div className="space-y-2">
