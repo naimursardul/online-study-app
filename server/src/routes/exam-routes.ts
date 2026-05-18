@@ -4,6 +4,6 @@ import { checkAuth, requireAuth } from "../controllers/auth-controller";
 
 const router = express.Router();
 
-router.post("/create-answer", requireAuth, checkAuth, createAnswer);
+router.post("/create-answer", requireAuth, createAnswer);
 
 export default router;

@@ -102,7 +102,7 @@ function QuestionBankSlug2() {
           setTimeRemaining(
             (res.data.data as IBaseQuestion[]).reduce((acc, cur) => {
               return acc + cur?.timeRequired;
-            }, 0) * 1000
+            }, 0) * 1000,
           );
         }
       } catch (error) {
@@ -166,7 +166,7 @@ function QuestionBankSlug2() {
 
         return acc;
       },
-      []
+      [],
     );
 
     setAnswerScript(initialAnswers);
@@ -187,6 +187,7 @@ function QuestionBankSlug2() {
       clearTimer();
       console.log("Submitting:", timeRemaining);
 
+      console.log(answerScriptRef.current);
       const res = await client.post("/exam/create-answer", {
         u_id: user?._id,
 
@@ -200,23 +201,27 @@ function QuestionBankSlug2() {
 
       if (!res.data.success) {
         toast.error(
-          res.data.message || "Failed to submit exam. Please try again."
+          res.data.message || "Failed to submit exam. Please try again.",
         );
         return;
       }
 
+      console.log(res.data);
       setScriptRes({
-        correct: res.data.data.correctCount,
-        wrong: res.data.data.wrongCount,
-        obtain: res.data.data.obtainedMarks,
-        total: res.data.data.totalMarks,
+        correct: res.data.data?.correctCount,
+        wrong: res.data.data?.wrongCount,
+        obtain: res.data.data?.obtainedMarks,
+        total: res.data.data?.totalMarks,
       });
 
       setExamStatus("finished");
+      toast.success("Exam submitted successfully!");
+      return;
     } catch (error) {
       console.log(error);
 
       toast.error("An error occurred while submitting the exam.");
+      return;
     }
   }
 

@@ -52,7 +52,7 @@ export interface IBaseQuestion extends Document {
 export interface IMCQ extends IBaseQuestion {
   question: string;
   options: String;
-  correctAnswer: number;
+  correctAnswer: string;
   explanation?: string;
 }
 

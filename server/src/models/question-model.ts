@@ -142,10 +142,8 @@ const mcqSchema = new Schema<IMCQ>({
     required: true,
   },
   correctAnswer: {
-    type: Number,
+    type: String,
     required: true,
-    min: 0,
-    max: 3,
   },
   explanation: {
     type: String,

@@ -17,7 +17,6 @@ const AnswerSchema = new Schema<IAnswer>(
 
         givenAns: {
           type: String,
-          required: true,
         },
 
         isCorrect: {
@@ -42,7 +41,7 @@ const AnswerSchema = new Schema<IAnswer>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const Answer = mongoose.model<IAnswer>("Answer", AnswerSchema);

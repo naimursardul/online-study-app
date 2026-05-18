@@ -74,21 +74,21 @@ export default function SingleMcqQuestion({
   //
   //
   // OPTION BG SELECTOR FUNCTION
-  const optionBg = (o: string) => {
+  const optionBg = (optionNumber: string) => {
     if (examStatus === "finished") {
-      if (o === q.correctAnswer) {
+      if (optionNumber === q.correctAnswer) {
         return "bg-green-500 text-white";
       }
 
       if (
-        singleMcqAnswer?.givenAns === o &&
+        singleMcqAnswer?.givenAns === optionNumber &&
         singleMcqAnswer?.givenAns !== q.correctAnswer
       ) {
         return "bg-red-500 text-white";
       }
     }
 
-    if (singleMcqAnswer?.givenAns === o) {
+    if (singleMcqAnswer?.givenAns === optionNumber) {
       return "bg-green-500 text-white";
     }
     return "bg-sidebar-accent";
@@ -182,7 +182,7 @@ export default function SingleMcqQuestion({
                     key={j}
                     onClick={() => optionRefs.current[j]?.click()}
                     className={`flex gap-2 items-center px-2 py-2 rounded-lg cursor-pointer ${optionBg(
-                      o
+                      String(j),
                     )}`}
                   >
                     {/*  */}
@@ -193,8 +193,9 @@ export default function SingleMcqQuestion({
                     {/*  */}
                     <div
                       className={`min-w-4 min-h-4 md:min-w-5 md:min-h-5 flex items-center justify-center border border-primary rounded-full text-xs md:text-sm ${
-                        singleMcqAnswer?.givenAns === o ||
-                        (examStatus === "finished" && q?.correctAnswer === o)
+                        singleMcqAnswer?.givenAns === String(j) ||
+                        (examStatus === "finished" &&
+                          q?.correctAnswer === String(j))
                           ? "border-white"
                           : "border-primary"
                       }`}
@@ -216,7 +217,7 @@ export default function SingleMcqQuestion({
                       type="radio"
                       name="mcq"
                       id="mcq"
-                      value={o}
+                      value={String(j)}
                     />
                     {/*  */}
                     {/*  */}
@@ -263,7 +264,7 @@ export default function SingleMcqQuestion({
                 <div
                   key={j}
                   className={` flex gap-2 items-center px-2 py-2 rounded-lg  ${
-                    viewMode === "showAns" && q?.correctAnswer === o
+                    viewMode === "showAns" && q?.correctAnswer === String(j)
                       ? "bg-green-500 text-white border-none"
                       : "bg-sidebar-accent"
                   }`}
@@ -276,7 +277,7 @@ export default function SingleMcqQuestion({
                   {/*  */}
                   <span
                     className={`min-w-4 min-h-4 md:min-w-5 md:min-h-5 flex items-center justify-center border  ${
-                      viewMode === "showAns" && q?.correctAnswer === o
+                      viewMode === "showAns" && q?.correctAnswer === String(j)
                         ? "border-white"
                         : "border-primary"
                     } rounded-full text-xs md:text-sm`}

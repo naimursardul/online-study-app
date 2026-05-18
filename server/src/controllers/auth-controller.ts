@@ -11,8 +11,7 @@ import { NextFunction, Request, Response } from "express";
 import User from "../models/user-model";
 import bcryptjs from "bcryptjs";
 import { createJWT } from "../utils/jwt-token";
-import jwt from "jsonwebtoken";
-import { IUser } from "../type/type";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 // Send OTP to user through phone number
 export const sendOtp = async (req: Request, res: Response) => {
@@ -143,7 +142,7 @@ export const createUser = async (req: Request, res: Response) => {
         background,
         lastLogin: new Date(),
       },
-      { new: true }
+      { new: true },
     )
       .populate("level", "name")
       .populate("background", "name");
@@ -156,11 +155,7 @@ export const createUser = async (req: Request, res: Response) => {
     }
 
     // 🔥 CREATE JWT
-    const token = createJWT({
-      _id: user?._id,
-      userCategory: user?.userCategory,
-      role: user?.role,
-    });
+    const token = createJWT(user);
 
     // 🔥 SET COOKIE
     res.cookie("token", token, {
@@ -185,7 +180,7 @@ export const createUser = async (req: Request, res: Response) => {
 };
 
 // requireAuth middleware to protect routes
-export const requireAuth = (req: any, res: any, next: any) => {
+export const requireAuth = async (req: any, res: any, next: any) => {
   const token = req.cookies.token;
 
   if (!token) {
@@ -194,8 +189,27 @@ export const requireAuth = (req: any, res: any, next: any) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-    req.user = decoded;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload & {
+      userId: string;
+    };
+    console.log("Decoded JWT:", decoded);
+
+    const data = await User.findById(String(decoded.userId))
+      .populate("level", "name")
+      .populate("background", "name");
+
+    if (!data) {
+      res.status(200).json({
+        success: false,
+        message: "Unauthorized! User not found.",
+        user: null,
+      });
+      return;
+    }
+
+    const userObj = data.toObject();
+    delete userObj.password;
+    req.user = userObj;
     next();
   } catch {
     res.status(401).json({ success: false, message: "Error in Server side." });
@@ -206,26 +220,19 @@ export const requireAuth = (req: any, res: any, next: any) => {
 // check auth
 export const checkAuth = async (req: any, res: Response) => {
   try {
-    const data = await User.findById(req.user.userId)
-      .populate("level", "name")
-      .populate("background", "name");
-
-    if (!data) {
+    if (!req.user) {
       res.status(200).json({
         success: false,
-        message: "User not found",
+        message: "Unauthorized! User not found.",
         user: null,
       });
       return;
     }
 
-    const userObj = data.toObject();
-    delete userObj.password;
-
     res.status(200).json({
       success: true,
       message: "User found",
-      user: userObj,
+      user: req.user,
     });
     return;
   } catch (error) {
