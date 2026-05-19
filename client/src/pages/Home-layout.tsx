@@ -5,7 +5,7 @@ import { Outlet } from "react-router-dom";
 function HomeLayout() {
   return (
     <div>
-      <div className="w-full flex justify-between items-center gap-1 py-4 px-10">
+      <div className="w-full flex justify-between max-sm:justify-end items-center gap-1 py-4 px-10">
         <Navbar />
         <NavbarAuth />
       </div>
