@@ -1,3 +1,4 @@
+import Loader from "@/components/loader/Loader";
 import ServiceNavbar from "@/components/service-bar/service-navbar";
 import SidebarTemplate from "@/components/sidebar-template/SidebarTemplate";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -67,7 +68,7 @@ export default function ServiceLayout() {
           <ServiceNavbar />
         </div>
         <main className="pl-6 pr-6">
-          <Outlet context={masterData} />
+          {loading ? <Loader /> : <Outlet context={masterData} />}
         </main>
       </div>
     </SidebarProvider>

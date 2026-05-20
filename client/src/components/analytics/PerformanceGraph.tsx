@@ -159,14 +159,18 @@ export default function PerformanceGraph({ userId, allSubjects }: Props) {
             </CardHeader>
 
             <CardContent>
-              <div className="h-[350px]">
+              <div className="h-87.5">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={data.graphData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" />
                     <YAxis domain={[0, 100]} />
                     <Tooltip
-                      formatter={(value: number) => [`${value}%`, "Score"]}
+                      formatter={(value) =>
+                        value != null
+                          ? [`${value}%`, "Score"]
+                          : ["N/A", "Score"]
+                      }
                       labelFormatter={(label) => `Date: ${label}`}
                     />
                     <Line
