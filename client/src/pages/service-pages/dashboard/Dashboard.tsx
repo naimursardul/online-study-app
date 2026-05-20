@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/Auth-context";
 function Dashboard() {
   const { user } = useAuth();
   return (
-    <div>
+    <div className="py-4 space-y-6">
       <h1 className="text-2xl font-semibold">Dashboard</h1>
       {user?._id ? (
         <PerformanceGraph userId={user?._id} />

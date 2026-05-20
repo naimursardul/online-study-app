@@ -8,7 +8,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { BadgeCheck, Bell, CreditCard, LogOut, Sparkles } from "lucide-react";
+import {
+  BadgeCheck,
+  Bell,
+  CreditCard,
+  LayoutDashboard,
+  LogOut,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "../ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/Auth-context";
@@ -79,12 +86,18 @@ export default function NavbarAuth() {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem className="cursor-pointer">
-                <Sparkles />
-                Upgrade to Pro
+                <Link to={"/dashboard"} className="flex items-center gap-2">
+                  <LayoutDashboard />
+                  Dashboard
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
+              <DropdownMenuItem className="cursor-pointer">
+                <Sparkles />
+                Upgrade to Pro
+              </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer">
                 <BadgeCheck />
                 Account
