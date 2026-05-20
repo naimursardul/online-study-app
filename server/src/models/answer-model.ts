@@ -5,6 +5,8 @@ const AnswerSchema = new Schema<IAnswer>(
   {
     u_id: { type: String, required: true, index: true },
 
+    subjectId: { type: String, index: true },
+
     examName: { type: String, required: true },
 
     answerScript: [

@@ -5,13 +5,19 @@ import Answer from "../models/answer-model";
 
 export const createAnswer = async (req: Request, res: Response) => {
   try {
-    const { u_id, examName, answers, timeTaken } = req.body;
+    const { u_id, examName, answers, timeTaken, subjectId } = req.body;
 
-    if (!u_id || !examName || !answers || timeTaken === undefined) {
+    if (
+      !u_id ||
+      !examName ||
+      !answers ||
+      timeTaken === undefined ||
+      !subjectId
+    ) {
       console.log("Missing field in request body:", req.body);
       res.status(200).json({
         success: false,
-        message: "Missinig Field",
+        message: "Missing Field",
         data: null,
       });
       return;
@@ -23,6 +29,7 @@ export const createAnswer = async (req: Request, res: Response) => {
     // 🔹 Step 2: Save Answer document
     const savedAnswer = await Answer.create({
       u_id,
+      subjectId,
       examName,
       answerScript: result.enrichedAnswers,
 

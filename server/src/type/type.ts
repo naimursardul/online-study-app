@@ -122,6 +122,7 @@ export interface IQuestionAnswer {
 // ANSWER
 export interface IAnswer extends Document {
   u_id: string;
+  subjectId?: string;
   examName: string;
 
   answerScript: {

@@ -192,7 +192,6 @@ export const requireAuth = async (req: any, res: any, next: any) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload & {
       userId: string;
     };
-    console.log("Decoded JWT:", decoded);
 
     const data = await User.findById(String(decoded.userId))
       .populate("level", "name")

@@ -1,7 +1,10 @@
 import ServiceNavbar from "@/components/service-bar/service-navbar";
 import SidebarTemplate from "@/components/sidebar-template/SidebarTemplate";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import type { IMasterData } from "@/types/types";
+import { client } from "@/utils/utils";
 import { Calendar, Home, Inbox } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 
 export default function ServiceLayout() {
@@ -26,6 +29,33 @@ export default function ServiceLayout() {
       subItem: [],
     },
   ];
+
+  const [masterData, setMasterData] = useState<IMasterData>({
+    levels: [],
+    backgrounds: [],
+    subjects: [],
+    chapters: [],
+    topics: [],
+    records: [],
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMasterData = async () => {
+      try {
+        const res = await client.get("/master-data");
+
+        setMasterData(res.data.data);
+      } catch (error) {
+        console.error("Master data fetch failed:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMasterData();
+  }, []);
+
   return (
     <SidebarProvider>
       <div className="max-w-50">
@@ -37,7 +67,7 @@ export default function ServiceLayout() {
           <ServiceNavbar />
         </div>
         <main className="pl-6 pr-6">
-          <Outlet />
+          <Outlet context={masterData} />
         </main>
       </div>
     </SidebarProvider>

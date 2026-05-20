@@ -16,7 +16,9 @@ import type {
   IBaseQuestion,
   IBoardQusetonDetails,
   ICQ,
+  IMasterData,
   IMCQ,
+  ISubject,
   ScriptResType,
   SingleMcqAnswerType,
   ViewModeType,
@@ -45,6 +47,10 @@ function QuestionBankSlug2() {
     ((IMCQ | ICQ) & { _id: string })[]
   >([]);
 
+  const allSubject: ({ _id: string } & ISubject)[] = useOutletContext<{
+    masterData: IMasterData;
+  }>().masterData.subjects;
+  console.log(allSubject);
   const [answerScript, setAnswerScript] = useState<SingleMcqAnswerType[]>([]);
 
   const [scriptRes, setScriptRes] = useState<ScriptResType>({
@@ -187,9 +193,11 @@ function QuestionBankSlug2() {
       clearTimer();
       console.log("Submitting:", timeRemaining);
 
-      console.log(answerScriptRef.current);
+      // console.log(answerScriptRef.current);
       const res = await client.post("/exam/create-answer", {
         u_id: user?._id,
+
+        subjectId: allSubject?.find((s) => qDetails.subject === s.name)?._id,
 
         examName: `${qDetails.level} - ${qDetails.subject} - ${qDetails.institution} - ${qDetails.year}`,
 

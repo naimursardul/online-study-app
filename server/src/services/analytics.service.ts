@@ -193,7 +193,7 @@ export const processSubmission = async (answers: IUserAnswerInput[]) => {
 export const updateUserAnalytics = async (
   u_id: string,
   topicStats: any[],
-  questionStats: any[]
+  questionStats: any[],
 ) => {
   try {
     // --------------------------------
@@ -208,7 +208,7 @@ export const updateUserAnalytics = async (
           questionStats: [],
         },
       },
-      { upsert: true }
+      { upsert: true },
     );
 
     // --------------------------------
@@ -219,15 +219,15 @@ export const updateUserAnalytics = async (
       {
         topicStats: 1,
         questionStats: 1,
-      }
+      },
     ).lean();
 
     const existingTopicIds = new Set(
-      analytics?.topicStats?.map((t: any) => t.topicId) || []
+      analytics?.topicStats?.map((t: any) => t.topicId) || [],
     );
 
     const existingQuestionIds = new Set(
-      analytics?.questionStats?.map((q: any) => q.questionId) || []
+      analytics?.questionStats?.map((q: any) => q.questionId) || [],
     );
 
     const bulkOperations: any[] = [];
@@ -341,7 +341,7 @@ export const getWeakTopics = async (u_id: string, limit: number = 5) => {
       { u_id },
       {
         topicStats: 1,
-      }
+      },
     ).lean();
 
     if (!analytics) {
@@ -475,7 +475,7 @@ export const getDashboardSummary = async (u_id: string) => {
     const questionStats = analytics.questionStats || [];
 
     const repeatedMistakes = questionStats.filter(
-      (q: any) => q.wrongAttempts >= 3
+      (q: any) => q.wrongAttempts >= 3,
     ).length;
 
     // ==========================
@@ -516,21 +516,28 @@ export const getDashboardSummary = async (u_id: string) => {
 // Get PERFORMANCE GRAPH
 // =========================================
 
-export const getPerformanceGraph = async (u_id: string, limit: number = 20) => {
+// service
+export const getPerformanceGraph = async (
+  u_id: string,
+  limit: number = 20,
+  subjectId?: string,
+) => {
   try {
-    const answers = await Answer.find(
-      { u_id },
-      {
-        examName: 1,
-        percentage: 1,
-        obtainedMarks: 1,
-        totalMarks: 1,
-        examDate: 1,
-      }
-    )
-      .sort({
-        examDate: 1,
-      })
+    const query: Record<string, any> = { u_id };
+
+    if (subjectId) {
+      query.subjectId = subjectId;
+    }
+
+    const answers = await Answer.find(query, {
+      examName: 1,
+      percentage: 1,
+      obtainedMarks: 1,
+      totalMarks: 1,
+      examDate: 1,
+      subject: 1,
+    })
+      .sort({ examDate: -1 })
       .limit(limit)
       .lean();
 
@@ -540,59 +547,42 @@ export const getPerformanceGraph = async (u_id: string, limit: number = 20) => {
 
     const graphData = answers.map((exam: any) => ({
       date: exam.examDate?.toISOString().split("T")[0],
-
       examName: exam.examName,
-
+      subject: exam.subject ?? null, // 👈 expose subject in each data point
       percentage: Number(exam.percentage.toFixed(2)),
-
       obtainedMarks: exam.obtainedMarks,
-
       totalMarks: exam.totalMarks,
     }));
 
-    // ==========================
-    // Extra analytics
-    // ==========================
     const percentages = graphData.map((g) => g.percentage);
 
     const averageScore = percentages.length
       ? Number(
           (percentages.reduce((a, b) => a + b, 0) / percentages.length).toFixed(
-            2
-          )
+            2,
+          ),
         )
       : 0;
 
     const bestScore = Math.max(...percentages);
-
     const worstScore = Math.min(...percentages);
-
-    const latestScore = percentages[percentages.length - 1] || 0;
-
-    const firstScore = percentages[0] || 0;
-
+    const latestScore = percentages[0] || 0;
+    const firstScore = percentages[percentages.length - 1] || 0;
     const improvement = Number((latestScore - firstScore).toFixed(2));
 
     return {
       graphData,
-
       summary: {
         totalExams: graphData.length,
-
         averageScore,
-
         bestScore,
-
         worstScore,
-
         latestScore,
-
         improvement,
       },
     };
   } catch (error: any) {
     console.error("getPerformanceGraph Error:", error.message);
-
     throw new Error(error.message || "Failed to fetch graph");
   }
 };

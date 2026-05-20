@@ -63,19 +63,21 @@ export const dashboardController = async (req: Request, res: Response) => {
 // PERFORMANCE GRAPH
 // =========================================
 
+// controller
 export const performanceGraphController = async (
   req: Request,
   res: Response,
 ) => {
   try {
     const { u_id } = req.params;
-
     const limit = Number(req.query.limit) || 20;
+    const subjectId = req.query.subjectId as string | undefined;
 
-    const data = await getPerformanceGraph(String(u_id), limit);
+    console.log("Subject filter:", subjectId);
+    const data = await getPerformanceGraph(String(u_id), limit, subjectId);
 
     res.status(200).json({
-      message: "Graph data retrived successfully.",
+      message: "Graph data retrieved successfully.",
       success: true,
       data,
     });
