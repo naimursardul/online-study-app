@@ -191,18 +191,14 @@ export default function FloatingUploadWidget() {
                         {/* URL */}
                         <div className="w-full flex gap-1">
                           <p className="break-all bg-muted text-xs text-muted-foreground p-2 rounded-md">
-                            {`${import.meta.env.VITE_CDN_BASE_URL}/${imgKey}`}
+                            {`CDN_BASE_URL/${imgKey}`}
                           </p>
 
                           <Button
                             size="icon"
                             variant="ghost"
                             className="cursor-pointer"
-                            onClick={() =>
-                              handleCopy(
-                                `${import.meta.env.VITE_CDN_BASE_URL}/${imgKey}`,
-                              )
-                            }
+                            onClick={() => handleCopy(`CDN_BASE_URL/${imgKey}`)}
                           >
                             <Copy className="h-4 w-4" />
                           </Button>
@@ -246,7 +242,7 @@ export default function FloatingUploadWidget() {
                             {/* URL */}
                             <div className="w-full flex gap-1">
                               <p className="break-all  bg-muted text-xs text-muted-foreground p-2 rounded-md">
-                                {`${import.meta.env.VITE_CDN_BASE_URL}/${key}`}
+                                {`CDN_BASE_URL/${key}`}
                               </p>
 
                               <Button
@@ -254,9 +250,7 @@ export default function FloatingUploadWidget() {
                                 variant="ghost"
                                 className="cursor-pointer shrink-0 self-start"
                                 onClick={() =>
-                                  handleCopy(
-                                    `${import.meta.env.VITE_CDN_BASE_URL}/${key}`,
-                                  )
+                                  handleCopy(`CDN_BASE_URL/${key}`)
                                 }
                               >
                                 <Copy className="h-4 w-4" />

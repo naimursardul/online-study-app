@@ -23,6 +23,7 @@ import Chapter from "./pages/admin/(allUploadPages)/chapter/Chapter.tsx";
 import Topic from "./pages/admin/(allUploadPages)/topic/Topic.tsx";
 import Record from "./pages/admin/(allUploadPages)/record/Record.tsx";
 import Contact from "./pages/contact/Contact.tsx";
+import Dashboard from "./pages/service-pages/dashboard/Dashboard.tsx";
 
 function App() {
   return (
@@ -64,6 +65,12 @@ function App() {
             </Route>
             <Route path="exam" element={<Exam />} />
             <Route path="doubt" element={<Doubt />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute roles={["user"]} element={<Dashboard />} />
+              }
+            />
           </Route>
 
           <Route path="*" element={<NotFound />} />

@@ -10,7 +10,6 @@ export default function TextEditor({
   onChangeFn: (val: string) => void;
 }) {
   const [text, setText] = useState("");
-
   return (
     <div className="flex max-md:flex-col-reverse gap-6 md:max-h-64">
       {/* Editor */}
