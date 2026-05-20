@@ -3,6 +3,37 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 
+/* glitch fixing */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+
+  /* Fix: prevent GPU compositing corruption on Android Chrome */
+  [data-slot="sidebar-container"] {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    will-change: auto;
+  }
+
+  [data-slot="sidebar-wrapper"] {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    isolation: isolate;
+  }
+}
+
+/* glitc */
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
