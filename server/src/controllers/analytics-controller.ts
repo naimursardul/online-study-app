@@ -4,6 +4,8 @@ import {
   getPerformanceGraph,
   getWeakTopics,
 } from "../services/analytics.service";
+import { IUser } from "../type/type";
+import mongoose from "mongoose";
 
 // =========================================
 // GET WEAK TOPICS
@@ -11,24 +13,18 @@ import {
 
 export const weakTopicsController = async (req: Request, res: Response) => {
   try {
-    const { u_id } = req.params;
-
+    const user = req?.user as IUser & { _id: mongoose.Types.ObjectId };
     const limit = Number(req.query.limit) || 5;
+    const subjectId = req.query.subjectId as string | undefined;
 
-    const data = await getWeakTopics(String(u_id), limit);
+    const data = await getWeakTopics(String(user?._id), limit, subjectId);
 
-    res.status(200).json({
-      message: "Weak topics retrieved successfully",
-      success: true,
-      data,
-    });
+    res
+      .status(200)
+      .json({ success: true, data, message: "Data retrived successfully." });
     return;
   } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-      data: [],
-    });
+    res.status(500).json({ success: false, message: error.message });
     return;
   }
 };
@@ -39,9 +35,9 @@ export const weakTopicsController = async (req: Request, res: Response) => {
 
 export const dashboardController = async (req: Request, res: Response) => {
   try {
-    const { u_id } = req.params;
+    const user = req?.user as IUser & { _id: mongoose.Types.ObjectId };
 
-    const data = await getDashboardSummary(String(u_id));
+    const data = await getDashboardSummary(String(user?._id));
 
     res.status(200).json({
       message: "Dashboard data retrived.",
@@ -69,12 +65,12 @@ export const performanceGraphController = async (
   res: Response,
 ) => {
   try {
-    const { u_id } = req.params;
+    const user = req?.user as IUser & { _id: mongoose.Types.ObjectId };
     const limit = Number(req.query.limit) || 20;
     const subjectId = req.query.subjectId as string | undefined;
 
     console.log("Subject filter:", subjectId);
-    const data = await getPerformanceGraph(String(u_id), limit, subjectId);
+    const data = await getPerformanceGraph(String(user?._id), limit, subjectId);
 
     res.status(200).json({
       message: "Graph data retrieved successfully.",

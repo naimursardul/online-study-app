@@ -4,11 +4,12 @@ import {
   performanceGraphController,
   weakTopicsController,
 } from "../controllers/analytics-controller";
+import { requireAuth } from "../controllers/auth-controller";
 
 const router = express.Router();
 
-router.get("/weak-topics/:u_id", weakTopicsController);
-router.get("/dashboard/:u_id", dashboardController);
-router.get("/performance-graph/:u_id", performanceGraphController);
+router.get("/weak-topics", requireAuth, weakTopicsController);
+router.get("/dashboard", requireAuth, dashboardController);
+router.get("/performance-graph", requireAuth, performanceGraphController);
 
 export default router;

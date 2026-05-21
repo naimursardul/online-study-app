@@ -334,14 +334,15 @@ export const updateUserAnalytics = async (
 // --------------------------------
 // GET WEAK TOPICS
 // --------------------------------
-
-export const getWeakTopics = async (u_id: string, limit: number = 5) => {
+export const getWeakTopics = async (
+  u_id: string,
+  limit: number = 5,
+  subjectId?: string, // 👈 new
+) => {
   try {
     const analytics = await UserAnalytics.findOne(
       { u_id },
-      {
-        topicStats: 1,
-      },
+      { topicStats: 1 },
     ).lean();
 
     if (!analytics) {
@@ -352,35 +353,28 @@ export const getWeakTopics = async (u_id: string, limit: number = 5) => {
       .map((topic: any) => ({
         topicId: topic.topicId,
         topicName: topic.topicName,
-
         subjectId: topic.subjectId,
         subjectName: topic.subjectName,
-
         chapterId: topic.chapterId,
         chapterName: topic.chapterName,
-
         correct: topic.correct,
-
         total: topic.total,
-
         accuracy:
           topic.total === 0
             ? 0
             : Number(((topic.correct / topic.total) * 100).toFixed(2)),
       }))
-
-      // only meaningful topics
       .filter((topic: any) => topic.total >= 3)
-
-      // weakest first
+      .filter(
+        (topic: any) =>
+          subjectId ? String(topic.subjectId) === subjectId : true, // 👈 new
+      )
       .sort((a: any, b: any) => a.accuracy - b.accuracy)
-
       .slice(0, limit);
 
     return weakTopics;
   } catch (error: any) {
     console.error("getWeakTopics Error:", error.message);
-
     throw new Error(error.message || "Failed to get weak topics");
   }
 };

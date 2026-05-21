@@ -1,4 +1,4 @@
-import mongoose, { Types } from "mongoose";
+import mongoose from "mongoose";
 
 //  USER
 export interface IUser extends mongoose.Document {

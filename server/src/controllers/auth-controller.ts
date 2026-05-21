@@ -12,6 +12,8 @@ import User from "../models/user-model";
 import bcryptjs from "bcryptjs";
 import { createJWT } from "../utils/jwt-token";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import { IUser } from "../type/type";
+import mongoose from "mongoose";
 
 // Send OTP to user through phone number
 export const sendOtp = async (req: Request, res: Response) => {
@@ -180,7 +182,11 @@ export const createUser = async (req: Request, res: Response) => {
 };
 
 // requireAuth middleware to protect routes
-export const requireAuth = async (req: any, res: any, next: any) => {
+export const requireAuth = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const token = req.cookies.token;
 
   if (!token) {
@@ -193,7 +199,12 @@ export const requireAuth = async (req: any, res: any, next: any) => {
       userId: string;
     };
 
-    const data = await User.findById(String(decoded.userId))
+    const data:
+      | (IUser & {
+          _id: mongoose.Types.ObjectId;
+        })
+      | null = await User.findById(String(decoded.userId))
+      .lean()
       .populate("level", "name")
       .populate("background", "name");
 
@@ -206,18 +217,21 @@ export const requireAuth = async (req: any, res: any, next: any) => {
       return;
     }
 
-    const userObj = data.toObject();
+    const userObj = data;
     delete userObj.password;
+    console.log(userObj);
     req.user = userObj;
     next();
-  } catch {
+  } catch (error) {
+    console.log(error);
     res.status(401).json({ success: false, message: "Error in Server side." });
     return;
   }
 };
 
 // check auth
-export const checkAuth = async (req: any, res: Response) => {
+export const checkAuth = async (req: Request, res: Response) => {
+  console.log(req.user);
   try {
     if (!req.user) {
       res.status(200).json({

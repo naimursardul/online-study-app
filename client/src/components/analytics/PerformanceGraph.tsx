@@ -42,16 +42,14 @@ interface ApiResponse {
   summary: Summary;
 }
 
-interface Props {
-  userId: string;
+export default function PerformanceGraph({
+  allSubjects,
+}: {
   allSubjects: { _id: string; name: string }[];
-}
-
-export default function PerformanceGraph({ userId, allSubjects }: Props) {
+}) {
   const [data, setData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  console.log(allSubjects);
   const [selectedSubject, setSelectedSubject] = useState<string>("all");
 
   // Re-fetch whenever the subject filter changes
@@ -60,12 +58,9 @@ export default function PerformanceGraph({ userId, allSubjects }: Props) {
       try {
         setLoading(true);
         setError("");
-        console.log(
-          `/analytics/performance-graph/${userId}${selectedSubject !== "all" ? `?subjectId=${selectedSubject}` : ""}`,
-        );
 
         const response = await client.get(
-          `/analytics/performance-graph/${userId}${selectedSubject !== "all" ? `?subjectId=${selectedSubject}` : ""}`,
+          `/analytics/performance-graph${selectedSubject !== "all" ? `?subjectId=${selectedSubject}` : ""}`,
         );
 
         setData(response.data.data);
@@ -77,7 +72,7 @@ export default function PerformanceGraph({ userId, allSubjects }: Props) {
     };
 
     fetchGraph();
-  }, [userId, selectedSubject]);
+  }, [selectedSubject]);
 
   return (
     <div className="space-y-6">
