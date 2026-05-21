@@ -113,55 +113,44 @@ export default function WeakTopics({
 
   return (
     <Card>
-      <CardHeader className="pb-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <CardTitle className="text-base font-semibold">
-              Weak Topics
-            </CardTitle>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Topics that need the most attention
-            </p>
-          </div>
+      <CardHeader>
+        {/* Filters */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+            <SelectTrigger className="w-40 h-8 text-sm">
+              <SelectValue placeholder="All subjects" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All subjects</SelectItem>
+              {allSubjects.map((s) => (
+                <SelectItem key={s._id} value={s._id}>
+                  {s.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          {/* Filters */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-              <SelectTrigger className="w-40 h-8 text-sm">
-                <SelectValue placeholder="All subjects" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All subjects</SelectItem>
-                {allSubjects.map((s) => (
-                  <SelectItem key={s._id} value={s._id}>
-                    {s.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <Select value={limit} onValueChange={setLimit}>
+            <SelectTrigger className="w-24 h-8 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {["5", "10", "15", "20"].map((n) => (
+                <SelectItem key={n} value={n}>
+                  Top {n}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-            <Select value={limit} onValueChange={setLimit}>
-              <SelectTrigger className="w-24 h-8 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {["5", "10", "15", "20"].map((n) => (
-                  <SelectItem key={n} value={n}>
-                    Top {n}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {selectedSubject !== "all" && (
-              <button
-                onClick={() => setSelectedSubject("all")}
-                className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
-              >
-                Clear
-              </button>
-            )}
-          </div>
+          {selectedSubject !== "all" && (
+            <button
+              onClick={() => setSelectedSubject("all")}
+              className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
+            >
+              Clear
+            </button>
+          )}
         </div>
 
         {/* Active filter label */}
@@ -211,51 +200,42 @@ export default function WeakTopics({
             {topics.map((topic, index) => (
               <div
                 key={topic.topicId}
-                className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"
+                className="flex justify-between max-sm:flex-col items-center max-sm:items-start gap-3 py-3"
               >
-                {/* Rank */}
-                <span className="text-xs font-mono text-muted-foreground w-5 shrink-0 text-center">
-                  {index + 1}
-                </span>
+                <div className="flex gap-3 items-center">
+                  {/* Rank */}
+                  <span className="text-xs font-mono text-muted-foreground w-5 shrink-0 text-center">
+                    {index + 1}
+                  </span>
 
-                {/* Topic info */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
-                    {topic.topicName}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {topic.subjectName}
-                    {topic.chapterName ? ` · ${topic.chapterName}` : ""}
-                  </p>
+                  {/* Topic info */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">
+                      {topic.topicName}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {topic.subjectName}
+                      {topic.chapterName ? ` · ${topic.chapterName}` : ""}
+                    </p>
+                  </div>
                 </div>
 
-                {/* Badge */}
-                <div className="shrink-0 hidden sm:block">
-                  <AccuracyBadge accuracy={topic.accuracy} />
+                <div className="flex gap-3 items-center">
+                  {/* Badge */}
+                  <div className="shrink-0 ">
+                    <AccuracyBadge accuracy={topic.accuracy} />
+                  </div>
+
+                  {/* Attempts */}
+                  <span className="text-xs text-muted-foreground shrink-0 tabular-nums">
+                    {topic.correct}/{topic.total} correct
+                  </span>
+
+                  {/* Bar */}
+                  <div className="shrink-0 w-36 ">
+                    <AccuracyBar accuracy={topic.accuracy} />
+                  </div>
                 </div>
-
-                {/* Attempts */}
-                <span className="text-xs text-muted-foreground shrink-0 hidden md:block tabular-nums">
-                  {topic.correct}/{topic.total} correct
-                </span>
-
-                {/* Bar */}
-                <div className="shrink-0 w-36 hidden sm:flex">
-                  <AccuracyBar accuracy={topic.accuracy} />
-                </div>
-
-                {/* Mobile: just percentage */}
-                <span
-                  className={`text-sm font-semibold tabular-nums sm:hidden ${
-                    topic.accuracy < 40
-                      ? "text-red-500"
-                      : topic.accuracy < 70
-                        ? "text-amber-500"
-                        : "text-emerald-600"
-                  }`}
-                >
-                  {topic.accuracy}%
-                </span>
               </div>
             ))}
           </div>

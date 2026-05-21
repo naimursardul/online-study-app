@@ -85,12 +85,12 @@ export default function NavbarAuth() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem className="cursor-pointer">
-                <Link to={"/dashboard"} className="flex items-center gap-2">
+              <Link to={"/dashboard"}>
+                <DropdownMenuItem className="cursor-pointer">
                   <LayoutDashboard />
                   Dashboard
-                </Link>
-              </DropdownMenuItem>
+                </DropdownMenuItem>
+              </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>

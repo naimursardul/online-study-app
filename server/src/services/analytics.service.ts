@@ -561,8 +561,15 @@ export const getPerformanceGraph = async (
     const bestScore = Math.max(...percentages);
     const worstScore = Math.min(...percentages);
     const latestScore = percentages[0] || 0;
-    const firstScore = percentages[percentages.length - 1] || 0;
-    const improvement = Number((latestScore - firstScore).toFixed(2));
+    const halfIndex = Math.ceil(percentages.length / 2);
+    const prevHalfPercentage =
+      percentages.slice(-halfIndex).reduce((a, b) => a + b, 0) / halfIndex;
+    const LatestHalfPercentage =
+      percentages.slice(0, halfIndex).reduce((a, b) => a + b, 0) / halfIndex;
+
+    const improvement = Number(
+      (LatestHalfPercentage - prevHalfPercentage).toFixed(2),
+    );
 
     return {
       graphData,

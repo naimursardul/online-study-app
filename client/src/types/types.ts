@@ -60,7 +60,8 @@ export interface SidebarItemType {
   title: string;
   url: string;
   icon: JSX.Element;
-  subItem: { title: string; url: string }[];
+  subItem?: { title: string; url: string }[];
+  role?: ("user" | "admin" | "super-admin")[];
 }
 
 // Record
@@ -174,10 +175,10 @@ export interface IRegistrationFormField {
 
 export interface IUser {
   name: string;
-  role: "User" | "Admin" | "SuperAdmin";
-  userCategory: "Regular" | "Premium";
+  role: "user" | "admin" | "super-admin";
+  userCategory: "regular" | "premium";
   isVerified: boolean;
-  provider: "Phone" | "Google";
+  provider: "phone" | "google";
   img?: string;
   email?: string;
   phone?: string;
