@@ -58,8 +58,6 @@ export const processSubmission = async (answers: IUserAnswerInput[]) => {
     // 5. Prepare outputs
     // --------------------------------
     const topicMap: Record<string, any> = {};
-    const questionMapAnalytics: Record<string, any> = {};
-
     const enrichedAnswers: any[] = [];
 
     let correctCount = 0;
@@ -121,44 +119,14 @@ export const processSubmission = async (answers: IUserAnswerInput[]) => {
       if (isCorrect) {
         topicMap[topicId].correct += 1;
       }
-
-      // =========================
-      // Question Analytics
-      // =========================
-      const questionId = q._id.toString();
-
-      if (!questionMapAnalytics[questionId]) {
-        questionMapAnalytics[questionId] = {
-          questionId,
-
-          attempts: 0,
-          correctAttempts: 0,
-          wrongAttempts: 0,
-
-          lastAttemptedAt: new Date(),
-        };
-      }
-
-      questionMapAnalytics[questionId].attempts += 1;
-
-      if (isCorrect) {
-        questionMapAnalytics[questionId].correctAttempts += 1;
-      } else {
-        questionMapAnalytics[questionId].wrongAttempts += 1;
-      }
     });
 
     // --------------------------------
     // 7. Final calculations
     // --------------------------------
     const topicStats = Object.values(topicMap);
-
-    const questionStats = Object.values(questionMapAnalytics);
-
     const totalQuestions = answers.length;
-
     const wrongCount = totalQuestions - correctCount;
-
     const percentage =
       totalMarks === 0 ? 0 : ((obtainedMarks / totalMarks) * 100).toFixed(2);
 
@@ -167,9 +135,7 @@ export const processSubmission = async (answers: IUserAnswerInput[]) => {
     // --------------------------------
     return {
       enrichedAnswers,
-
       topicStats,
-      questionStats,
 
       totalMarks,
       obtainedMarks,
@@ -181,7 +147,6 @@ export const processSubmission = async (answers: IUserAnswerInput[]) => {
     };
   } catch (error: any) {
     console.error("processSubmission Error:", error.message);
-
     throw new Error(error.message || "Failed to process submission");
   }
 };
@@ -190,11 +155,7 @@ export const processSubmission = async (answers: IUserAnswerInput[]) => {
 // USER ANALYTICS UPDATE
 // --------------------------------
 
-export const updateUserAnalytics = async (
-  u_id: string,
-  topicStats: any[],
-  questionStats: any[],
-) => {
+export const updateUserAnalytics = async (u_id: string, topicStats: any[]) => {
   try {
     // --------------------------------
     // 1. Ensure analytics doc exists
@@ -205,7 +166,6 @@ export const updateUserAnalytics = async (
         $setOnInsert: {
           u_id,
           topicStats: [],
-          questionStats: [],
         },
       },
       { upsert: true },
@@ -216,18 +176,11 @@ export const updateUserAnalytics = async (
     // --------------------------------
     const analytics = await UserAnalytics.findOne(
       { u_id },
-      {
-        topicStats: 1,
-        questionStats: 1,
-      },
+      { topicStats: 1 },
     ).lean();
 
     const existingTopicIds = new Set(
       analytics?.topicStats?.map((t: any) => t.topicId) || [],
-    );
-
-    const existingQuestionIds = new Set(
-      analytics?.questionStats?.map((q: any) => q.questionId) || [],
     );
 
     const bulkOperations: any[] = [];
@@ -247,7 +200,6 @@ export const updateUserAnalytics = async (
             update: {
               $inc: {
                 "topicStats.$.correct": topic.correct,
-
                 "topicStats.$.total": topic.total,
               },
             },
@@ -268,53 +220,8 @@ export const updateUserAnalytics = async (
       }
     });
 
-    // =================================
-    // 4. Question Analytics Update
-    // =================================
-    questionStats.forEach((question) => {
-      if (existingQuestionIds.has(question.questionId)) {
-        // Update existing question
-        bulkOperations.push({
-          updateOne: {
-            filter: {
-              u_id,
-              "questionStats.questionId": question.questionId,
-            },
-            update: {
-              $inc: {
-                "questionStats.$.attempts": question.attempts,
-
-                "questionStats.$.correctAttempts": question.correctAttempts,
-
-                "questionStats.$.wrongAttempts": question.wrongAttempts,
-              },
-
-              $set: {
-                "questionStats.$.lastAttemptedAt": new Date(),
-              },
-            },
-          },
-        });
-      } else {
-        // Add new question
-        bulkOperations.push({
-          updateOne: {
-            filter: { u_id },
-            update: {
-              $push: {
-                questionStats: {
-                  ...question,
-                  lastAttemptedAt: new Date(),
-                },
-              },
-            },
-          },
-        });
-      }
-    });
-
     // --------------------------------
-    // 5. Execute bulk update
+    // 4. Execute bulk update
     // --------------------------------
     if (bulkOperations.length > 0) {
       await UserAnalytics.bulkWrite(bulkOperations);
@@ -326,7 +233,6 @@ export const updateUserAnalytics = async (
     };
   } catch (error: any) {
     console.error("updateUserAnalytics Error:", error.message);
-
     throw new Error(error.message || "Failed to update analytics");
   }
 };
@@ -379,130 +285,98 @@ export const getWeakTopics = async (
   }
 };
 
-// =========================================
-// GET DASHBOARD SUMMARY
-// =========================================
-
-export const getDashboardSummary = async (u_id: string) => {
+// ==========================
+// Overall Dashboard Stats
+// ==========================
+export const getDashboardStats = async (u_id: string, subjectId?: string) => {
   try {
-    const analytics = await UserAnalytics.findOne({
-      u_id,
-    }).lean();
+    console.log(subjectId);
+    const analytics = await UserAnalytics.findOne({ u_id }).lean();
 
     if (!analytics) {
       throw new Error("Analytics not found");
     }
 
-    // ==========================
-    // Topic stats
-    // ==========================
-    const topicStats = analytics.topicStats || [];
+    let topicStats = analytics.topicStats || [];
+
+    if (subjectId) {
+      topicStats = topicStats.filter(
+        (topic: any) => String(topic.subjectId) === subjectId,
+      );
+    }
 
     let totalCorrect = 0;
     let totalQuestions = 0;
 
-    const subjectMap: Record<string, any> = {};
-
     topicStats.forEach((topic: any) => {
       totalCorrect += topic.correct;
-
       totalQuestions += topic.total;
+    });
 
-      // Subject analytics
+    const overallAccuracy =
+      totalQuestions === 0
+        ? 0
+        : Number(((totalCorrect / totalQuestions) * 100).toFixed(2));
+
+    return {
+      overallAccuracy,
+
+      totalAttempts: totalQuestions,
+      correctAttempts: totalCorrect,
+      wrongAttempts: totalQuestions - totalCorrect,
+    };
+  } catch (error: any) {
+    console.error("getDashboardStats Error:", error.message);
+    throw new Error(error.message || "Failed to get dashboard stats");
+  }
+};
+
+// ==========================
+//  Subject Performance
+// ==========================
+export const getSubjectPerformance = async (u_id: string) => {
+  try {
+    const analytics = await UserAnalytics.findOne({ u_id }).lean();
+
+    if (!analytics) {
+      throw new Error("Analytics not found");
+    }
+
+    const topicStats = analytics.topicStats || [];
+
+    const subjectMap: Record<
+      string,
+      { subjectId: string; correct: number; total: number }
+    > = {};
+
+    topicStats.forEach((topic: any) => {
       if (!subjectMap[topic.subjectName]) {
         subjectMap[topic.subjectName] = {
+          subjectId: topic.subjectId,
           correct: 0,
           total: 0,
         };
       }
 
       subjectMap[topic.subjectName].correct += topic.correct;
-
       subjectMap[topic.subjectName].total += topic.total;
     });
 
-    // ==========================
-    // Accuracy
-    // ==========================
-    const overallAccuracy =
-      totalQuestions === 0
-        ? 0
-        : Number(((totalCorrect / totalQuestions) * 100).toFixed(2));
-
-    // ==========================
-    // Subject analysis
-    // ==========================
-    const subjects = Object.entries(subjectMap).map(([name, stats]: any) => ({
+    const subjects = Object.entries(subjectMap).map(([name, stats]) => ({
+      subjectId: stats.subjectId,
       name,
-
-      accuracy: stats.total === 0 ? 0 : (stats.correct / stats.total) * 100,
+      accuracy:
+        stats.total === 0
+          ? 0
+          : Number(((stats.correct / stats.total) * 100).toFixed(2)),
+      correctAttempts: stats.correct,
+      totalAttempts: stats.total,
     }));
 
-    const sortedSubjects = subjects.sort((a, b) => b.accuracy - a.accuracy);
-
-    const strongestSubject = sortedSubjects[0]?.name || null;
-
-    const weakestSubject =
-      sortedSubjects[sortedSubjects.length - 1]?.name || null;
-
-    // ==========================
-    // Weak topics
-    // ==========================
-    const weakTopics = topicStats
-      .map((topic: any) => ({
-        topicName: topic.topicName,
-
-        accuracy:
-          topic.total === 0
-            ? 0
-            : Number(((topic.correct / topic.total) * 100).toFixed(2)),
-
-        total: topic.total,
-      }))
-      .filter((topic: any) => topic.total >= 3)
-      .sort((a, b) => a.accuracy - b.accuracy)
-      .slice(0, 5);
-
-    // ==========================
-    // Question stats
-    // ==========================
-    const questionStats = analytics.questionStats || [];
-
-    const repeatedMistakes = questionStats.filter(
-      (q: any) => q.wrongAttempts >= 3,
-    ).length;
-
-    // ==========================
-    // Mastery score
-    // ==========================
-    const masteryScore = Math.round(overallAccuracy);
-
-    return {
-      overallAccuracy,
-
-      totalAttempts: totalQuestions,
-
-      correctAttempts: totalCorrect,
-
-      wrongAttempts: totalQuestions - totalCorrect,
-
-      strongestSubject,
-      weakestSubject,
-
-      weakTopics,
-
-      masteryScore,
-
-      questionSummary: {
-        totalQuestionsPracticed: questionStats.length,
-
-        repeatedMistakes,
-      },
-    };
+    return { subjects };
   } catch (error: any) {
-    console.error("getDashboardSummary Error:", error.message);
-
-    throw new Error(error.message || "Failed to get dashboard");
+    console.error("getSubjectPerformance Error:", error.message);
+    throw new Error(error.message || "Failed to get subject performance");
   }
 };
 

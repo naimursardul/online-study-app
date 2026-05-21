@@ -158,20 +158,8 @@ interface ITopicStat {
   total: number;
 }
 
-interface IQuestionStat {
-  questionId: string;
-
-  attempts: number;
-  correctAttempts: number;
-  wrongAttempts: number;
-
-  lastAttemptedAt: Date;
-}
-
 export interface IUserAnalytics extends Document {
   u_id: string;
 
   topicStats: ITopicStat[];
-
-  questionStats: IQuestionStat[];
 }

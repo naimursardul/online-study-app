@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -155,7 +155,7 @@ export default function WeakTopics({
 
         {/* Active filter label */}
         {selectedSubjectName && (
-          <p className="text-xs text-muted-foreground -mt-1">
+          <p className="mt-1 text-xs text-muted-foreground ">
             Showing results for{" "}
             <span className="font-medium text-foreground">
               {selectedSubjectName}

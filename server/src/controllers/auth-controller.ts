@@ -219,7 +219,7 @@ export const requireAuth = async (
 
     const userObj = data;
     delete userObj.password;
-    console.log(userObj);
+    // console.log(userObj);
     req.user = userObj;
     next();
   } catch (error) {
@@ -231,7 +231,7 @@ export const requireAuth = async (
 
 // check auth
 export const checkAuth = async (req: Request, res: Response) => {
-  console.log(req.user);
+  // console.log(req.user);
   try {
     if (!req.user) {
       res.status(200).json({

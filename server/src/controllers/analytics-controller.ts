@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import {
-  getDashboardSummary,
+  getDashboardStats,
   getPerformanceGraph,
+  getSubjectPerformance,
   getWeakTopics,
 } from "../services/analytics.service";
 import { IUser } from "../type/type";
@@ -32,29 +33,57 @@ export const weakTopicsController = async (req: Request, res: Response) => {
 // =========================================
 // DASHBOARD SUMMARY
 // =========================================
-
-export const dashboardController = async (req: Request, res: Response) => {
+export const getDashboardStatsController = async (
+  req: Request,
+  res: Response,
+) => {
   try {
-    const user = req?.user as IUser & { _id: mongoose.Types.ObjectId };
+    const u_id = (req.user as IUser & { _id: string })?._id;
+    const { subjectId } = req.query;
 
-    const data = await getDashboardSummary(String(user?._id));
+    console.log(subjectId);
+    const data = await getDashboardStats(u_id, subjectId as string | undefined);
 
     res.status(200).json({
-      message: "Dashboard data retrived.",
       success: true,
       data,
     });
     return;
   } catch (error: any) {
-    res.status(500).json({
-      data: [],
-      success: false,
-      message: error.message,
-    });
+    console.error("getDashboardStatsController Error:", error.message);
+    res.status(500).json({ message: error.message });
     return;
   }
 };
 
+// ==========================
+// Subject Performance
+// ==========================
+export const getSubjectPerformanceController = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const u_id = (req.user as IUser & { _id: string })?._id;
+
+    if (!u_id) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const data = await getSubjectPerformance(u_id);
+
+    res.status(200).json({
+      success: true,
+      data,
+    });
+    return;
+  } catch (error: any) {
+    console.error("getSubjectPerformanceController Error:", error.message);
+    res.status(500).json({ message: error.message });
+    return;
+  }
+};
 // =========================================
 // PERFORMANCE GRAPH
 // =========================================
@@ -69,7 +98,6 @@ export const performanceGraphController = async (
     const limit = Number(req.query.limit) || 20;
     const subjectId = req.query.subjectId as string | undefined;
 
-    console.log("Subject filter:", subjectId);
     const data = await getPerformanceGraph(String(user?._id), limit, subjectId);
 
     res.status(200).json({

@@ -56,57 +56,19 @@ const UserAnalyticsSchema = new Schema<IUserAnalytics>(
         },
       },
     ],
-
-    // --------------------------------
-    // Question-level analytics
-    // --------------------------------
-    questionStats: [
-      {
-        questionId: {
-          type: String,
-          required: true,
-        },
-
-        attempts: {
-          type: Number,
-          default: 0,
-        },
-
-        correctAttempts: {
-          type: Number,
-          default: 0,
-        },
-
-        wrongAttempts: {
-          type: Number,
-          default: 0,
-        },
-
-        lastAttemptedAt: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-// 🔥 Important indexes
 UserAnalyticsSchema.index({
   u_id: 1,
   "topicStats.topicId": 1,
 });
 
-UserAnalyticsSchema.index({
-  u_id: 1,
-  "questionStats.questionId": 1,
-});
-
 const UserAnalytics = mongoose.model<IUserAnalytics>(
   "UserAnalytics",
-  UserAnalyticsSchema
+  UserAnalyticsSchema,
 );
 export default UserAnalytics;

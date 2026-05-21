@@ -1,3 +1,4 @@
+import DashboardSummary from "@/components/analytics/DashboardSummary";
 import PerformanceGraph from "@/components/analytics/PerformanceGraph";
 import WeakTopics from "@/components/analytics/WeakTopic";
 import { Separator } from "@/components/ui/separator";
@@ -31,6 +32,7 @@ function Dashboard() {
           Monitor your performance, track progress, and improve weaker areas.
         </p>
       </div>
+      <DashboardSummary allSubjects={filteredSubjects} />
 
       {/* Performance Analytics */}
       <section className="space-y-4">
