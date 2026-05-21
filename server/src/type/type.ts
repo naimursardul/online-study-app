@@ -73,7 +73,7 @@ export interface ICQ extends IBaseQuestion {
 
 // Populated Type
 export interface IPopulatedData {
-  _id: Types.ObjectId;
+  _id: mongoose.Types.ObjectId;
   name: string;
 }
 
