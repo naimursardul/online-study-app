@@ -73,8 +73,10 @@ function AccuracyBadge({ accuracy }: { accuracy: number }) {
 
 export default function WeakTopics({
   masterData,
+  allSubjects,
 }: {
   masterData: IMasterData;
+  allSubjects: IMasterData["subjects"];
 }) {
   const [topics, setTopics] = useState<WeakTopic[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,7 +109,7 @@ export default function WeakTopics({
   }, [selectedSubject, limit]);
 
   const selectedSubjectName =
-    masterData.subjects.find((s) => s._id === selectedSubject)?.name ?? null;
+    allSubjects.find((s) => s._id === selectedSubject)?.name ?? null;
 
   return (
     <Card>
@@ -120,7 +122,7 @@ export default function WeakTopics({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All subjects</SelectItem>
-              {masterData.subjects.map((s) => (
+              {allSubjects.map((s) => (
                 <SelectItem key={s._id} value={s._id}>
                   {s.name}
                 </SelectItem>
@@ -212,11 +214,7 @@ export default function WeakTopics({
                       {extractIdTo_(masterData.topics, topic.topicId, "name")}
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
-                      {extractIdTo_(
-                        masterData.subjects,
-                        topic.subjectId,
-                        "name",
-                      )}
+                      {extractIdTo_(allSubjects, topic.subjectId, "name")}
                       {" . "}
                       {topic.chapterId
                         ? extractIdTo_(
