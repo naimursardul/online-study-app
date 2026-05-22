@@ -146,13 +146,10 @@ export interface IAnswer extends Document {
 // ANALYTICS
 interface ITopicStat {
   topicId: string;
-  topicName: string;
 
   subjectId: string;
-  subjectName: string;
 
   chapterId: string;
-  chapterName: string;
 
   correct: number;
   total: number;

@@ -22,7 +22,7 @@ import { client } from "@/utils/utils";
 interface GraphItem {
   date: string;
   examName: string;
-  subject: string | null;
+  subjectId: string | null;
   percentage: number;
   obtainedMarks: number;
   totalMarks: number;
@@ -52,7 +52,6 @@ export default function PerformanceGraph({
   const [error, setError] = useState("");
   const [selectedSubject, setSelectedSubject] = useState<string>("all");
 
-  // Re-fetch whenever the subject filter changes
   useEffect(() => {
     const fetchGraph = async () => {
       try {
@@ -74,6 +73,10 @@ export default function PerformanceGraph({
     fetchGraph();
   }, [selectedSubject]);
 
+  const selectedSubjectName = allSubjects.find(
+    (s) => s._id === selectedSubject,
+  )?.name;
+
   return (
     <div className="space-y-6">
       {/* Filter bar */}
@@ -89,15 +92,14 @@ export default function PerformanceGraph({
 
           <SelectContent>
             <SelectItem value="all">All subjects</SelectItem>
-            {allSubjects.map((subject, i) => (
-              <SelectItem key={i} value={subject?._id}>
-                {subject?.name}
+            {allSubjects.map((subject) => (
+              <SelectItem key={subject._id} value={subject._id}>
+                {subject.name}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        {/* Active filter badge */}
         {selectedSubject !== "all" && (
           <button
             onClick={() => setSelectedSubject("all")}
@@ -108,7 +110,7 @@ export default function PerformanceGraph({
         )}
       </div>
 
-      {/* Summary Cards */}
+      {/* Content */}
       {loading ? (
         <Card>
           <CardContent className="p-6 text-muted-foreground">
@@ -121,6 +123,7 @@ export default function PerformanceGraph({
         </Card>
       ) : data ? (
         <>
+          {/* Summary Cards */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <StatCard title="Total Exams" value={data.summary.totalExams} />
             <StatCard title="Average" value={`${data.summary.averageScore}%`} />
@@ -147,7 +150,7 @@ export default function PerformanceGraph({
                 Performance Trend
                 {selectedSubject !== "all" && (
                   <span className="ml-2 text-base font-normal text-muted-foreground">
-                    — {selectedSubject}
+                    — {selectedSubjectName}
                   </span>
                 )}
               </CardTitle>

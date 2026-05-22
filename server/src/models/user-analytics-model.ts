@@ -20,27 +20,12 @@ const UserAnalyticsSchema = new Schema<IUserAnalytics>(
           required: true,
         },
 
-        topicName: {
-          type: String,
-          required: true,
-        },
-
         subjectId: {
           type: String,
           required: true,
         },
 
-        subjectName: {
-          type: String,
-          required: true,
-        },
-
         chapterId: {
-          type: String,
-          required: true,
-        },
-
-        chapterName: {
           type: String,
           required: true,
         },

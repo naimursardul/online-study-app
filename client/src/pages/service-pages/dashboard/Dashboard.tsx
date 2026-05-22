@@ -9,6 +9,8 @@ import { useOutletContext } from "react-router-dom";
 function Dashboard() {
   const { user } = useAuth();
   const allSubjects = useOutletContext<IMasterData>()?.subjects || [];
+  const allChapters = useOutletContext<IMasterData>()?.chapters || [];
+  const masterData = useOutletContext<IMasterData>();
 
   const filteredSubjects = allSubjects.filter(
     (s) =>
@@ -57,7 +59,11 @@ function Dashboard() {
           </p>
         </div>
 
-        <WeakTopics allSubjects={filteredSubjects} />
+        <WeakTopics
+          allSubjects={filteredSubjects}
+          allChapters={allChapters}
+          masterData={masterData}
+        />
       </section>
     </div>
   );

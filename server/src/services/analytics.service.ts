@@ -22,21 +22,12 @@ interface IUserAnswerInput {
 
 export const processSubmission = async (answers: IUserAnswerInput[]) => {
   try {
-    // --------------------------------
-    // 1. Validate input
-    // --------------------------------
     if (!answers?.length) {
       throw new Error("No answers submitted");
     }
 
-    // --------------------------------
-    // 2. Convert IDs
-    // --------------------------------
     const questionIds = answers.map((a) => new Types.ObjectId(a.questionId));
 
-    // --------------------------------
-    // 3. Fetch questions
-    // --------------------------------
     const questions = await MCQ.find({
       _id: { $in: questionIds },
     }).lean();
@@ -45,18 +36,11 @@ export const processSubmission = async (answers: IUserAnswerInput[]) => {
       throw new Error("Questions not found");
     }
 
-    // --------------------------------
-    // 4. Build lookup map
-    // --------------------------------
     const questionMap: Record<string, any> = {};
-
     questions.forEach((q) => {
       questionMap[q._id.toString()] = q;
     });
 
-    // --------------------------------
-    // 5. Prepare outputs
-    // --------------------------------
     const topicMap: Record<string, any> = {};
     const enrichedAnswers: any[] = [];
 
@@ -64,83 +48,57 @@ export const processSubmission = async (answers: IUserAnswerInput[]) => {
     let totalMarks = 0;
     let obtainedMarks = 0;
 
-    // --------------------------------
-    // 6. Process answers
-    // --------------------------------
     answers.forEach((ans) => {
       const q = questionMap[ans.questionId];
-
       if (!q) return;
 
       const isCorrect = ans.givenAns === q.correctAnswer;
 
-      // -------------------------
-      // Marks
-      // -------------------------
       totalMarks += q.marks;
-
       if (isCorrect) {
         correctCount++;
         obtainedMarks += q.marks;
       }
 
-      // -------------------------
-      // Answer Script
-      // -------------------------
       enrichedAnswers.push({
         questionId: q._id,
         givenAns: ans.givenAns,
         isCorrect,
       });
 
-      // =========================
-      // Topic Analytics
-      // =========================
+      // -------------------------
+      // Topic Analytics (IDs only)
+      // -------------------------
       const topicId = q.topicId;
 
       if (!topicMap[topicId]) {
         topicMap[topicId] = {
           topicId: q.topicId,
-          topicName: q.topic,
-
           subjectId: q.subjectId,
-          subjectName: q.subject,
-
           chapterId: q.chapterId,
-          chapterName: q.chapter,
-
           correct: 0,
           total: 0,
         };
       }
 
       topicMap[topicId].total += 1;
-
       if (isCorrect) {
         topicMap[topicId].correct += 1;
       }
     });
 
-    // --------------------------------
-    // 7. Final calculations
-    // --------------------------------
     const topicStats = Object.values(topicMap);
     const totalQuestions = answers.length;
     const wrongCount = totalQuestions - correctCount;
     const percentage =
       totalMarks === 0 ? 0 : ((obtainedMarks / totalMarks) * 100).toFixed(2);
 
-    // --------------------------------
-    // 8. Return result
-    // --------------------------------
     return {
       enrichedAnswers,
       topicStats,
-
       totalMarks,
       obtainedMarks,
       percentage: Number(percentage),
-
       totalQuestions,
       correctCount,
       wrongCount,
@@ -157,23 +115,12 @@ export const processSubmission = async (answers: IUserAnswerInput[]) => {
 
 export const updateUserAnalytics = async (u_id: string, topicStats: any[]) => {
   try {
-    // --------------------------------
-    // 1. Ensure analytics doc exists
-    // --------------------------------
     await UserAnalytics.updateOne(
       { u_id },
-      {
-        $setOnInsert: {
-          u_id,
-          topicStats: [],
-        },
-      },
+      { $setOnInsert: { u_id, topicStats: [] } },
       { upsert: true },
     );
 
-    // --------------------------------
-    // 2. Get existing analytics
-    // --------------------------------
     const analytics = await UserAnalytics.findOne(
       { u_id },
       { topicStats: 1 },
@@ -185,18 +132,11 @@ export const updateUserAnalytics = async (u_id: string, topicStats: any[]) => {
 
     const bulkOperations: any[] = [];
 
-    // =================================
-    // 3. Topic Analytics Update
-    // =================================
     topicStats.forEach((topic) => {
       if (existingTopicIds.has(topic.topicId)) {
-        // Update existing topic
         bulkOperations.push({
           updateOne: {
-            filter: {
-              u_id,
-              "topicStats.topicId": topic.topicId,
-            },
+            filter: { u_id, "topicStats.topicId": topic.topicId },
             update: {
               $inc: {
                 "topicStats.$.correct": topic.correct,
@@ -206,13 +146,18 @@ export const updateUserAnalytics = async (u_id: string, topicStats: any[]) => {
           },
         });
       } else {
-        // Add new topic
         bulkOperations.push({
           updateOne: {
             filter: { u_id },
             update: {
               $push: {
-                topicStats: topic,
+                topicStats: {
+                  topicId: topic.topicId,
+                  subjectId: topic.subjectId,
+                  chapterId: topic.chapterId,
+                  correct: topic.correct,
+                  total: topic.total,
+                },
               },
             },
           },
@@ -220,17 +165,11 @@ export const updateUserAnalytics = async (u_id: string, topicStats: any[]) => {
       }
     });
 
-    // --------------------------------
-    // 4. Execute bulk update
-    // --------------------------------
     if (bulkOperations.length > 0) {
       await UserAnalytics.bulkWrite(bulkOperations);
     }
 
-    return {
-      success: true,
-      message: "User analytics updated successfully",
-    };
+    return { success: true, message: "User analytics updated successfully" };
   } catch (error: any) {
     console.error("updateUserAnalytics Error:", error.message);
     throw new Error(error.message || "Failed to update analytics");
@@ -243,7 +182,7 @@ export const updateUserAnalytics = async (u_id: string, topicStats: any[]) => {
 export const getWeakTopics = async (
   u_id: string,
   limit: number = 5,
-  subjectId?: string, // 👈 new
+  subjectId?: string,
 ) => {
   try {
     const analytics = await UserAnalytics.findOne(
@@ -258,11 +197,8 @@ export const getWeakTopics = async (
     const weakTopics = analytics.topicStats
       .map((topic: any) => ({
         topicId: topic.topicId,
-        topicName: topic.topicName,
         subjectId: topic.subjectId,
-        subjectName: topic.subjectName,
         chapterId: topic.chapterId,
-        chapterName: topic.chapterName,
         correct: topic.correct,
         total: topic.total,
         accuracy:
@@ -271,9 +207,8 @@ export const getWeakTopics = async (
             : Number(((topic.correct / topic.total) * 100).toFixed(2)),
       }))
       .filter((topic: any) => topic.total >= 3)
-      .filter(
-        (topic: any) =>
-          subjectId ? String(topic.subjectId) === subjectId : true, // 👈 new
+      .filter((topic: any) =>
+        subjectId ? String(topic.subjectId) === subjectId : true,
       )
       .sort((a: any, b: any) => a.accuracy - b.accuracy)
       .slice(0, limit);
@@ -290,7 +225,6 @@ export const getWeakTopics = async (
 // ==========================
 export const getDashboardStats = async (u_id: string, subjectId?: string) => {
   try {
-    console.log(subjectId);
     const analytics = await UserAnalytics.findOne({ u_id }).lean();
 
     if (!analytics) {
@@ -320,7 +254,6 @@ export const getDashboardStats = async (u_id: string, subjectId?: string) => {
 
     return {
       overallAccuracy,
-
       totalAttempts: totalQuestions,
       correctAttempts: totalCorrect,
       wrongAttempts: totalQuestions - totalCorrect,
@@ -344,27 +277,21 @@ export const getSubjectPerformance = async (u_id: string) => {
 
     const topicStats = analytics.topicStats || [];
 
-    const subjectMap: Record<
-      string,
-      { subjectId: string; correct: number; total: number }
-    > = {};
+    const subjectMap: Record<string, { correct: number; total: number }> = {};
 
     topicStats.forEach((topic: any) => {
-      if (!subjectMap[topic.subjectName]) {
-        subjectMap[topic.subjectName] = {
-          subjectId: topic.subjectId,
-          correct: 0,
-          total: 0,
-        };
+      const key = String(topic.subjectId);
+
+      if (!subjectMap[key]) {
+        subjectMap[key] = { correct: 0, total: 0 };
       }
 
-      subjectMap[topic.subjectName].correct += topic.correct;
-      subjectMap[topic.subjectName].total += topic.total;
+      subjectMap[key].correct += topic.correct;
+      subjectMap[key].total += topic.total;
     });
 
-    const subjects = Object.entries(subjectMap).map(([name, stats]) => ({
-      subjectId: stats.subjectId,
-      name,
+    const subjects = Object.entries(subjectMap).map(([subjectId, stats]) => ({
+      subjectId,
       accuracy:
         stats.total === 0
           ? 0
@@ -383,8 +310,6 @@ export const getSubjectPerformance = async (u_id: string) => {
 // =========================================
 // Get PERFORMANCE GRAPH
 // =========================================
-
-// service
 export const getPerformanceGraph = async (
   u_id: string,
   limit: number = 20,
@@ -403,7 +328,7 @@ export const getPerformanceGraph = async (
       obtainedMarks: 1,
       totalMarks: 1,
       examDate: 1,
-      subject: 1,
+      subjectId: 1,
     })
       .sort({ examDate: -1 })
       .limit(limit)
@@ -416,7 +341,7 @@ export const getPerformanceGraph = async (
     const graphData = answers.map((exam: any) => ({
       date: exam.examDate?.toISOString().split("T")[0],
       examName: exam.examName,
-      subject: exam.subject ?? null, // 👈 expose subject in each data point
+      subjectId: exam.subjectId ?? null, // 👈 id instead of name
       percentage: Number(exam.percentage.toFixed(2)),
       obtainedMarks: exam.obtainedMarks,
       totalMarks: exam.totalMarks,
@@ -436,13 +361,14 @@ export const getPerformanceGraph = async (
     const worstScore = Math.min(...percentages);
     const latestScore = percentages[0] || 0;
     const halfIndex = Math.ceil(percentages.length / 2);
+
     const prevHalfPercentage =
       percentages.slice(-halfIndex).reduce((a, b) => a + b, 0) / halfIndex;
-    const LatestHalfPercentage =
+    const latestHalfPercentage =
       percentages.slice(0, halfIndex).reduce((a, b) => a + b, 0) / halfIndex;
 
     const improvement = Number(
-      (LatestHalfPercentage - prevHalfPercentage).toFixed(2),
+      (latestHalfPercentage - prevHalfPercentage).toFixed(2),
     );
 
     return {

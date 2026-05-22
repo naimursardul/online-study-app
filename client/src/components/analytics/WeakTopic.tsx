@@ -8,15 +8,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { client } from "@/utils/utils";
+import { client, extractIdTo_ } from "@/utils/utils";
+import type { IMasterData } from "@/types/types";
 
 interface WeakTopic {
   topicId: string;
-  topicName: string;
   subjectId: string;
-  subjectName: string;
   chapterId: string;
-  chapterName: string;
   correct: number;
   total: number;
   accuracy: number;
@@ -74,9 +72,9 @@ function AccuracyBadge({ accuracy }: { accuracy: number }) {
 }
 
 export default function WeakTopics({
-  allSubjects,
+  masterData,
 }: {
-  allSubjects: { _id: string; name: string }[];
+  masterData: IMasterData;
 }) {
   const [topics, setTopics] = useState<WeakTopic[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,7 +107,7 @@ export default function WeakTopics({
   }, [selectedSubject, limit]);
 
   const selectedSubjectName =
-    allSubjects.find((s) => s._id === selectedSubject)?.name ?? null;
+    masterData.subjects.find((s) => s._id === selectedSubject)?.name ?? null;
 
   return (
     <Card>
@@ -122,7 +120,7 @@ export default function WeakTopics({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All subjects</SelectItem>
-              {allSubjects.map((s) => (
+              {masterData.subjects.map((s) => (
                 <SelectItem key={s._id} value={s._id}>
                   {s.name}
                 </SelectItem>
@@ -211,11 +209,22 @@ export default function WeakTopics({
                   {/* Topic info */}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">
-                      {topic.topicName}
+                      {extractIdTo_(masterData.topics, topic.topicId, "name")}
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
-                      {topic.subjectName}
-                      {topic.chapterName ? ` · ${topic.chapterName}` : ""}
+                      {extractIdTo_(
+                        masterData.subjects,
+                        topic.subjectId,
+                        "name",
+                      )}
+                      {" . "}
+                      {topic.chapterId
+                        ? extractIdTo_(
+                            masterData.chapters,
+                            topic.chapterId,
+                            "name",
+                          )
+                        : ""}
                     </p>
                   </div>
                 </div>

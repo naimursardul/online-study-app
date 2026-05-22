@@ -26,7 +26,7 @@ export function createFormInfo(
   method: string,
   route: string,
   fields: IField[],
-  data?: Record<string, string>
+  data?: Record<string, string>,
 ): IFormInfo {
   function getRoute(route: string, data?: Record<string, string>) {
     if (method === "PUT" && data) {
@@ -111,7 +111,7 @@ export function getQuestionDataOption(
     chapterId?: string;
   },
   masterData: IMasterData,
-  fields: IField[]
+  fields: IField[],
 ): IField[] {
   {
     console.log(masterData);
@@ -131,7 +131,7 @@ export function getQuestionDataOption(
           return {
             ...field,
             optionData: masterData.backgrounds?.filter(
-              (bg: any) => bg.levelId === formData.levelId
+              (bg: any) => bg.levelId === formData.levelId,
             ),
           };
 
@@ -142,8 +142,8 @@ export function getQuestionDataOption(
               (sub: any) =>
                 String(sub.levelId) === String(formData.levelId) &&
                 sub.backgroundId?.some((bgId: string) =>
-                  formData.backgroundId?.includes(bgId)
-                )
+                  formData.backgroundId?.includes(bgId),
+                ),
             ),
           };
 
@@ -151,7 +151,7 @@ export function getQuestionDataOption(
           return {
             ...field,
             optionData: masterData.chapters?.filter(
-              (ch: any) => ch.subjectId === formData.subjectId
+              (ch: any) => ch.subjectId === formData.subjectId,
             ),
           };
 
@@ -159,7 +159,7 @@ export function getQuestionDataOption(
           return {
             ...field,
             optionData: masterData.topics?.filter(
-              (topic: any) => topic.chapterId === formData.chapterId
+              (topic: any) => topic.chapterId === formData.chapterId,
             ),
           };
 
@@ -175,3 +175,16 @@ export function getQuestionDataOption(
     });
   }
 }
+
+// =========================================
+// EXTRACT
+// =========================================
+export const extractIdTo_ = (
+  data: Record<string, any>[],
+  dataId: string,
+  to: string,
+) => {
+  const item = data.find((item) => item._id === dataId);
+  if (item && item[to]) return item[to];
+  return dataId;
+};
