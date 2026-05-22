@@ -59,11 +59,7 @@ function Dashboard() {
           </p>
         </div>
 
-        <WeakTopics
-          allSubjects={filteredSubjects}
-          allChapters={allChapters}
-          masterData={masterData}
-        />
+        <WeakTopics masterData={masterData} />
       </section>
     </div>
   );
