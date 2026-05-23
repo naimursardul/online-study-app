@@ -16,6 +16,12 @@
     @apply font-sans;
   }
 
+  /* Suppress all transitions during theme switch — prevents Android Chrome GPU tile corruption */
+  .theme-transitioning * {
+    transition: none !important;
+    animation: none !important;
+  }
+
   /* Fix: prevent GPU compositing corruption on Android Chrome */
   [data-slot="sidebar-container"] {
     -webkit-backface-visibility: hidden;
