@@ -17,18 +17,6 @@
   }
 }
 
-.dark [class*="bg-input"] {
-  background-color: #3d3d3d; /* opaque equivalent of rgba(255,255,255,0.15) on #252525 */
-}
-
-.dark [class*="bg-popover"] {
-  background-color: #2e2e2e;
-}
-
-.dark [class*="bg-sidebar"] {
-  background-color: #2e2e2e;
-}
-
 @custom-variant dark (&:is(.dark *));
 
 /* ─── theme tokens ───────────────────────────────────────────────────────── */
