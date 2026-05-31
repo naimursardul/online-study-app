@@ -2,7 +2,11 @@ import { Card } from "@/components/ui/card";
 import ReactMarkdownRender from "../text-editor/ReactMarkdownRender";
 import type { IExtractedCQQuestion } from "@/types/types";
 
-export function CQCard({ question }: { question: IExtractedCQQuestion }) {
+export default function CQCard({
+  question,
+}: {
+  question: IExtractedCQQuestion;
+}) {
   return (
     <Card className="p-6 space-y-6">
       <div>

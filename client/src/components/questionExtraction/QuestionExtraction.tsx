@@ -12,8 +12,8 @@ import { Loader2, FileQuestion } from "lucide-react";
 import { FileUploader } from "./FileUploader";
 import { client } from "@/utils/utils";
 import { toast } from "sonner";
-import { MCQCard } from "./McqCard";
-import { CQCard } from "./CQCard";
+import MCQCard from "./McqCard";
+import CQCard from "./CQCard";
 import type {
   IExtractedCQQuestion,
   IExtractedMcqQuestion,

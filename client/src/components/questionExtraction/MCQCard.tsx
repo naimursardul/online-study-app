@@ -2,7 +2,11 @@ import { Card } from "@/components/ui/card";
 import type { IExtractedMcqQuestion } from "@/types/types";
 import { CheckCircle2 } from "lucide-react";
 
-export function MCQCard({ question }: { question: IExtractedMcqQuestion }) {
+export default function MCQCard({
+  question,
+}: {
+  question: IExtractedMcqQuestion;
+}) {
   return (
     <Card className="p-6 space-y-5">
       <h3 className="font-semibold">{question.question}</h3>
