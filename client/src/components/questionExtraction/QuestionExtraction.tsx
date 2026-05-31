@@ -126,7 +126,7 @@ export default function QuestionExtractor() {
         {questions &&
           questions.length > 0 &&
           questions.map((q, i) =>
-            q.questionType === "MCQ" ? (
+            questionType === "MCQ" ? (
               <MCQCard key={i} question={q as IExtractedMcqQuestion} />
             ) : (
               <CQCard key={i} question={q as IExtractedCQQuestion} />

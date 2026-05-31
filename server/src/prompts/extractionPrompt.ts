@@ -8,10 +8,12 @@ Your job is to extract ONLY the question content — nothing else.
 Return ONLY valid JSON. No markdown fences, no preamble, no explanation, no trailing text.
 
 ## What to extract
+- add necessary line breaks to preserve the original formatting of the question text
+- question language as it is
 - The question text
 - Exactly 4 answer options
-- The correct answer
-- A brief explanation
+- The correct answer (for first option 0, second option 1, etc.)
+- explanation from the 
 
 ## What to IGNORE
 - Subject, chapter, topic, background group
@@ -29,16 +31,15 @@ Return ONLY valid JSON. No markdown fences, no preamble, no explanation, no trai
 
 ## Output structure
 {
-  "questionType": "MCQ",
   "question": "Question text in markdown/LaTeX",
-  "options": ["option 1", "option 2", "option 3", "option 4"],
-  "correctAnswer": "exact text of the correct option",
-  "explanation": "brief explanation of why this answer is correct"
+  "options": ["option 1", "option 2", "option 3", "option 4"],  (markdown/LaTeX)
+  "correctAnswer": "array index of the correct option as string, starting from 0",
+  "explanation": "if available take explanation from content but paraphrase so that it's not identical, otherwise infer a brief explanation based on the question and options"
 }
 
 ## Hard rules
 - options must have EXACTLY 4 items — no more, no less
-- correctAnswer must be the EXACT text of one of the options, not an index like "A" or "3"
+- correctAnswer must be the index of the options (0, 1, 2, or 3) as string,
 - If you cannot confidently identify the correct answer, set correctAnswer to ""
 - If you cannot find a question in the file, return: { "error": "No question found" }
 `;
@@ -53,6 +54,7 @@ Your job is to extract ALL MCQ questions found in the document — nothing else.
 Return ONLY valid JSON. No markdown fences, no preamble, no explanation, no trailing text.
 
 ## What to extract
+- add necessary line breaks to preserve the original formatting of the question text
 - Every MCQ question present in the document
 - Exactly 4 answer options per question
 - The correct answer for each
@@ -77,18 +79,17 @@ Return ONLY valid JSON. No markdown fences, no preamble, no explanation, no trai
 {
   "questions": [
     {
-      "questionType": "MCQ",
       "question": "Question text in markdown/LaTeX",
-      "options": ["option 1", "option 2", "option 3", "option 4"],
-      "correctAnswer": "exact text of the correct option",
-      "explanation": "brief explanation"
+      "options": ["option 1", "option 2", "option 3", "option 4"],  (markdown/LaTeX)
+      "correctAnswer": "array index of the correct option as string, starting from 0",
+      "explanation": "if available take explanation from content but paraphrase so that it's not identical, otherwise infer a brief explanation based on the question and options"
     }
   ]
 }
 
 ## Hard rules
 - Each question's options must have EXACTLY 4 items
-- correctAnswer must be the EXACT text of one of the options, not an index
+- correctAnswer must be the index of the options (0, 1, 2, or 3) as string
 - Maintain the original order questions appear in the document
 - If no MCQ questions are found, return: { "questions": [] }
 `;
@@ -112,6 +113,7 @@ A Creative Question (CQ) has two parts:
    - ঘ (gha) — Higher ability level (উচ্চতর দক্ষতা) — 4 marks
 
 ## What to extract
+- add necessary line breaks to preserve the original formatting of the question text
 - The full stem/stimulus text (উদ্দীপক)
 - All 4 sub-questions with their answers
 
@@ -126,50 +128,41 @@ A Creative Question (CQ) has two parts:
 - Use LaTeX for ALL math: inline as $...$ and block as $$...$$
 - Preserve Bengali (বাংলা) text exactly as it appears — do NOT translate
 - Use markdown for bold (**text**) and italic (*text*) where present
-- If the stem contains a table, render it as a markdown table
-- If the stem contains a diagram/figure, write: "[Figure: brief description]"
-- Include ক., খ., গ., ঘ. labels at the start of each sub-question text
+- If the statement contains a table, render it as a markdown table
+- If the statement contains a diagram/figure, write: "[Figure: brief description]"
 
 ## Output structure
 {
-  "questionType": "CQ",
-  "statement": "Full stem/উদ্দীপক text in markdown/LaTeX",
+  "statement": "Full text in markdown/LaTeX",
   "subQuestions": [
     {
-      "questionNo": "ka",
-      "question": "ক. sub-question text",
-      "answer": "expected answer or key points",
-      "topic": "",
-      "topicId": ""
+      "questionNo": "0",
+      "question": "sub-question text in markdown/LaTeX", 
+      "answer": "if available take answer from content but paraphrase so that it's not identical, otherwise infer a brief answer based on the question and options",
     },
     {
-      "questionNo": "kha",
-      "question": "খ. sub-question text",
-      "answer": "expected answer or key points",
-      "topic": "",
-      "topicId": ""
+      "questionNo": "1",    
+      "question": "sub-question text in markdown/LaTeX",
+      "answer": "if available take answer from content but paraphrase so that it's not identical, otherwise infer a brief answer based on the question and options",
+      
     },
     {
-      "questionNo": "ga",
-      "question": "গ. sub-question text",
-      "answer": "expected answer or key points",
-      "topic": "",
-      "topicId": ""
+      "questionNo": "2",
+      "question": "sub-question text in markdown/LaTeX",
+      "answer": "if available take answer from content but paraphrase so that it's not identical, otherwise infer a brief answer based on the question and options",
+      
     },
     {
-      "questionNo": "gha",
-      "question": "ঘ. sub-question text",
-      "answer": "expected answer or key points",
-      "topic": "",
-      "topicId": ""
+      "questionNo": "3",
+      "question": "sub-question text in markdown/LaTeX",
+      "answer": "if available take answer from content but paraphrase so that it's not identical, otherwise infer a brief answer based on the question and options",
+      
     }
   ]
 }
 
 ## Hard rules
-- subQuestions must have EXACTLY 4 items in order: ka, kha, ga, gha
-- topic and topicId are always empty strings — the user fills these manually
-- If the answer is not explicitly written in the document, infer a concise expected answer from the question context
+- subQuestions must have EXACTLY 4 items in order. Any question not having 4 sub-questions, insert only available ones but ensure the questionNo is correct (0 for ক, 1 for খ, etc.)
 - If you cannot find a CQ in the file, return: { "error": "No CQ found" }
 `;
 
@@ -192,6 +185,7 @@ Each Creative Question (CQ) has two parts:
    - ঘ (gha) — Higher ability level
 
 ## What to extract
+- add necessary line breaks to preserve the original formatting of the question text
 - Every CQ present in the document
 - The full stem for each CQ
 - All 4 sub-questions per CQ with their answers
@@ -214,24 +208,36 @@ Each Creative Question (CQ) has two parts:
 
 ## Output structure
 {
-  "questions": [
+  "statement": "Full text in markdown/LaTeX",
+  "subQuestions": [
     {
-      "questionType": "CQ",
-      "statement": "Full stem/উদ্দীপক text in markdown/LaTeX",
-      "subQuestions": [
-        { "questionNo": "ka",  "question": "ক. ...", "answer": "...", "topic": "", "topicId": "" },
-        { "questionNo": "kha", "question": "খ. ...", "answer": "...", "topic": "", "topicId": "" },
-        { "questionNo": "ga",  "question": "গ. ...", "answer": "...", "topic": "", "topicId": "" },
-        { "questionNo": "gha", "question": "ঘ. ...", "answer": "...", "topic": "", "topicId": "" }
-      ]
+      "questionNo": "0",
+      "question": "sub-question text in markdown/LaTeX", 
+      "answer": "if available take answer from content but paraphrase so that it's not identical, otherwise infer a brief answer based on the question and options",
+    },
+    {
+      "questionNo": "1",    
+      "question": "sub-question text in markdown/LaTeX",
+      "answer": "if available take answer from content but paraphrase so that it's not identical, otherwise infer a brief answer based on the question and options",
+      
+    },
+    {
+      "questionNo": "2",
+      "question": "sub-question text in markdown/LaTeX",
+      "answer": "if available take answer from content but paraphrase so that it's not identical, otherwise infer a brief answer based on the question and options",
+      
+    },
+    {
+      "questionNo": "3",
+      "question": "sub-question text in markdown/LaTeX",
+      "answer": "if available take answer from content but paraphrase so that it's not identical, otherwise infer a brief answer based on the question and options",
+      
     }
   ]
 }
 
 ## Hard rules
-- Each CQ's subQuestions must have EXACTLY 4 items in order: ka, kha, ga, gha
-- topic and topicId are always empty strings
+- subQuestions must have EXACTLY 4 items in order. Any question not having 4 sub-questions, insert only available ones but ensure the questionNo is correct (0 for ক, 1 for খ, etc.)
 - Maintain the original order CQs appear in the document
-- If the answer is not explicitly written, infer a concise expected answer from context
 - If no CQ questions are found, return: { "questions": [] }
 `;

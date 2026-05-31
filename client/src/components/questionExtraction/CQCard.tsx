@@ -15,14 +15,16 @@ export default function CQCard({
         <ReactMarkdownRender text={question.statement} />
       </div>
 
-      {question.subQuestions.map(
-        (q: IExtractedCQQuestion["subQuestions"][0]) => (
-          <Card key={q.questionNo} className="p-4">
-            <ReactMarkdownRender text={q.question} />
-            <ReactMarkdownRender text={q.answer} />
-          </Card>
-        ),
-      )}
+      {question.subQuestions &&
+        question.subQuestions.length > 0 &&
+        question.subQuestions.map(
+          (q: IExtractedCQQuestion["subQuestions"][0]) => (
+            <Card key={q.questionNo} className="p-4">
+              <ReactMarkdownRender text={q.question} />
+              <ReactMarkdownRender text={q.answer} />
+            </Card>
+          ),
+        )}
     </Card>
   );
 }
