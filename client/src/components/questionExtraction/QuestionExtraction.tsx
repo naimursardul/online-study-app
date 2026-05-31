@@ -23,6 +23,7 @@ export default function QuestionExtractor() {
   const [file, setFile] = useState<File | null>(null);
 
   const [questionType, setQuestionType] = useState("MCQ");
+  const [extractedQuestionType, setExtractedQuestionType] = useState("MCQ");
 
   const [extractAll, setExtractAll] = useState(false);
 
@@ -53,6 +54,7 @@ export default function QuestionExtractor() {
         return;
       }
       setQuestions(res.data.questions);
+      setExtractedQuestionType(res.data.questionType);
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to extract questions");
     } finally {
@@ -126,7 +128,7 @@ export default function QuestionExtractor() {
         {questions &&
           questions.length > 0 &&
           questions.map((q, i) =>
-            questionType === "MCQ" ? (
+            extractedQuestionType === "MCQ" ? (
               <MCQCard key={i} question={q as IExtractedMcqQuestion} />
             ) : (
               <CQCard key={i} question={q as IExtractedCQQuestion} />
