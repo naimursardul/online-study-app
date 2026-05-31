@@ -13,6 +13,7 @@ import AuthRouter from "./routes/auth-routes";
 import MasterDataRouter from "./routes/master-question-data-routes";
 import ExamRouter from "./routes/exam-routes";
 import AnalyticsRouter from "./routes/analytics-routes";
+import ExtractionRouter from "./routes/extraction-routes";
 import { errorHandler } from "./middlewares/errorHandler";
 import ConnectDB from "./db/db";
 import ImgUploadRoutes from "./routes/img-upload-routes";
@@ -49,6 +50,7 @@ app.use("/api/auth", AuthRouter);
 app.use("/api/exam", ExamRouter);
 app.use("/api/analytics", AnalyticsRouter);
 app.use("/api/img-upload", ImgUploadRoutes);
+app.use("/api/extraction", ExtractionRouter);
 
 // Global error handler (should be after routes)
 app.use(errorHandler);

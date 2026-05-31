@@ -1,6 +1,6 @@
 import express from "express";
 import { createAnswer } from "../controllers/exam-controller";
-import { checkAuth, requireAuth } from "../controllers/auth-controller";
+import { requireAuth } from "../controllers/auth-controller";
 
 const router = express.Router();
 
