@@ -24,7 +24,7 @@ export default function QuestionExtractor() {
 
   const [loading, setLoading] = useState(false);
 
-  const [questions, setQuestions] = useState<any[]>([]);
+  const [questions, setQuestions] = useState<Record<string, string>[]>([]);
 
   async function handleExtract() {
     if (!file) return;

@@ -3,12 +3,7 @@ import QuestionExtractor from "@/components/questionExtraction/QuestionExtractio
 function Exam() {
   return (
     <div>
-      <QuestionExtractor
-        onSave={(questions) => {
-          // questions is the final edited array — save to your DB here
-          console.log(questions);
-        }}
-      />
+      <QuestionExtractor />
     </div>
   );
 }
