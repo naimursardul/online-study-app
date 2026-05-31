@@ -10,10 +10,14 @@ import {
 } from "@/components/ui/select";
 import { Loader2, FileQuestion } from "lucide-react";
 import { FileUploader } from "./FileUploader";
-import { MCQCard } from "./McqCard";
-import { CQCard } from "./CQCard";
 import { client } from "@/utils/utils";
 import { toast } from "sonner";
+import { MCQCard } from "./McqCard";
+import { CQCard } from "./CQCard";
+import type {
+  IExtractedCQQuestion,
+  IExtractedMcqQuestion,
+} from "@/types/types";
 
 export default function QuestionExtractor() {
   const [file, setFile] = useState<File | null>(null);
@@ -24,7 +28,9 @@ export default function QuestionExtractor() {
 
   const [loading, setLoading] = useState(false);
 
-  const [questions, setQuestions] = useState<Record<string, string>[]>([]);
+  const [questions, setQuestions] = useState<
+    (IExtractedMcqQuestion | IExtractedCQQuestion)[]
+  >([]);
 
   async function handleExtract() {
     if (!file) return;
@@ -121,9 +127,9 @@ export default function QuestionExtractor() {
           questions.length > 0 &&
           questions.map((q, i) =>
             q.questionType === "MCQ" ? (
-              <MCQCard key={i} question={q} />
+              <MCQCard key={i} question={q as IExtractedMcqQuestion} />
             ) : (
-              <CQCard key={i} question={q} />
+              <CQCard key={i} question={q as IExtractedCQQuestion} />
             ),
           )}
       </div>

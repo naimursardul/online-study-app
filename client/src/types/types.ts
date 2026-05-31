@@ -226,3 +226,21 @@ export interface IQueryFormData {
   chapterId?: string;
   search?: string;
 }
+
+export interface IExtractedMcqQuestion {
+  questionType: "MCQ";
+  question: string;
+  options: string[];
+  correctAnswer: string;
+  explanation: string;
+}
+
+export interface IExtractedCQQuestion {
+  questionType: "CQ";
+  statement: string;
+  subQuestions: {
+    questionNo: string;
+    question: string;
+    answer: string;
+  }[];
+}
