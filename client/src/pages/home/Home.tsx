@@ -1,11 +1,19 @@
-import HeroSection from "@/components/home/HeroSection";
-import ServiceSection from "@/components/home/ServiceSection";
+import { HeroSection } from "@/components/home/HeroSection";
+import { ServiceSection } from "@/components/home/ServiceSection";
+import { FeaturesSection } from "@/components/home/FeaturesSection";
+import { TestimonialsSection } from "@/components/home/TestimonialsSection";
+import { FAQSection } from "@/components/home/FAQSection";
+import { CTASection } from "@/components/home/CTASection";
 
 export default function Home() {
   return (
-    <div className="m-16 max-sm:my-10 max-sm:mx-8">
+    <div className="min-h-screen bg-background text-foreground">
       <HeroSection />
       <ServiceSection />
+      <FeaturesSection />
+      <TestimonialsSection />
+      <FAQSection />
+      <CTASection />
     </div>
   );
 }

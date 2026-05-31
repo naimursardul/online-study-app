@@ -33,7 +33,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.get("/", (req: Request, res: Response) => {
-  res.json("Hello world!");
+  res.json("Hello world! bro");
 });
 
 // ROUTES

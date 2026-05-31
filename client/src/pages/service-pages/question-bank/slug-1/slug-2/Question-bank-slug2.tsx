@@ -64,6 +64,8 @@ function QuestionBankSlug2() {
 
   // ✅ latest answerScript ref
   const answerScriptRef = useRef<SingleMcqAnswerType[]>([]);
+  // prevent duplicate submissions
+  const isSubmittingRef = useRef(false);
 
   const {
     timeRemaining,
@@ -189,11 +191,18 @@ function QuestionBankSlug2() {
   // MCQ SUBMIT
   // =========================
   async function handleMcqSubmit() {
+    // guard against duplicate calls (e.g. timer + manual click)
+    if (isSubmittingRef.current) {
+      console.log("Submission already in progress - ignoring duplicate call");
+      return;
+    }
+
+    isSubmittingRef.current = true;
+
     try {
       clearTimer();
       console.log("Submitting:", timeRemaining);
 
-      // console.log(answerScriptRef.current);
       const res = await client.post("/exam/create-answer", {
         u_id: user?._id,
 
@@ -230,6 +239,8 @@ function QuestionBankSlug2() {
 
       toast.error("An error occurred while submitting the exam.");
       return;
+    } finally {
+      isSubmittingRef.current = false;
     }
   }
 

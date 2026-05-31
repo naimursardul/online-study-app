@@ -1,60 +1,70 @@
-import { Video, FileText, CircleHelp, BadgeCheck } from "lucide-react";
-
+import { Video, FileText, BadgeCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import FadeIn from "./FadeIn";
 
-const services = [
+const SERVICES = [
   {
-    title: "Recorded Class",
     icon: Video,
+    title: "Recorded Classes",
+    desc: "Access high-quality video lessons at your own pace, reviewed and updated every semester.",
+    tag: "On-demand",
   },
   {
-    title: "Board Question Solve",
     icon: FileText,
+    title: "Board Questions",
+    desc: "Curated question banks from every major board exam, organized by year and topic.",
+    tag: "10K+ Questions",
   },
   {
-    title: "QNA",
-    icon: CircleHelp,
-  },
-  {
-    title: "Online MCQ Exam",
     icon: BadgeCheck,
+    title: "Online MCQ Exams",
+    desc: "Timed mock exams with instant feedback, detailed explanations, and performance tracking.",
+    tag: "Live scoring",
   },
 ];
 
-export default function ServiceSection() {
+export function ServiceSection() {
   return (
-    <section className="globPad flex flex-col gap-10 items-center mt-12.5 bg-secondary rounded-3xl p-10">
-      <div className="flex flex-col gap-3 justify-center text-center max-w-3xl">
-        <h2 className="text-4xl font-bold text-primary">Our Services</h2>
-        <p className="text-muted-foreground">
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Doloribus
-          voluptas reiciendis inventore laborum qui aliquam enim, tenetur fuga
-          maxime neque dolores illo nesciunt consequuntur. Lorem ipsum dolor sit
-          amet, consectetur adipisicing elit. Recusandae, dicta?
-        </p>
-      </div>
+    <section className="py-20 px-6 bg-secondary/50">
+      <div className="max-w-6xl mx-auto">
+        <FadeIn className="text-center mb-14">
+          <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-3">
+            What we offer
+          </p>
+          <h2 className="text-3xl max-md:text-2xl font-bold text-foreground tracking-tight">
+            Our Services
+          </h2>
+        </FadeIn>
 
-      <div className="w-full grid grid-cols-4 max-lg:grid-cols-2 max-sm:grid-cols-1 gap-5">
-        {services.map((service, index) => {
-          const Icon = service.icon;
-
-          return (
-            <Card
-              key={index}
-              className="cursor-pointer group bg-card border-border transition-all duration-300 hover:shadow-xl hover:bg-secondary"
-            >
-              <CardContent className="h-45 flex flex-col gap-4 items-center justify-center text-center px-4">
-                <div className="p-4 rounded-full bg-primary/10">
-                  <Icon className="text-primary size-6" />
-                </div>
-
-                <span className="text-foreground text-md max-md:text-sm font-medium">
-                  {service.title}
-                </span>
-              </CardContent>
-            </Card>
-          );
-        })}
+        <div className="grid md:grid-cols-3 max-lg:grid-cols-2 max-sm:grid-cols-1 gap-5">
+          {SERVICES.map((s, i) => {
+            const Icon = s.icon;
+            return (
+              <FadeIn key={s.title} delay={i * 80}>
+                <Card className="group h-full border-border hover:border-foreground/20 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                  <CardContent className="p-7">
+                    <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center text-foreground mb-5 group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <Badge
+                      variant="secondary"
+                      className="mb-4 text-xs font-medium"
+                    >
+                      {s.tag}
+                    </Badge>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                      {s.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {s.desc}
+                    </p>
+                  </CardContent>
+                </Card>
+              </FadeIn>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
