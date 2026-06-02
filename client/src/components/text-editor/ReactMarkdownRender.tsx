@@ -1,15 +1,18 @@
 import Markdown from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
+
 import remarkMath from "remark-math";
+
 import "katex/dist/katex.min.css";
 
 export default function ReactMarkdownRender({ text }: { text: string }) {
   text = text?.replace("CDN_BASE_URL", import.meta.env.VITE_CDN_BASE_URL);
-
+  console.log(JSON.stringify(text));
   return (
     <Markdown
-      remarkPlugins={[remarkGfm, remarkMath]}
+      remarkPlugins={[remarkGfm, remarkMath, remarkBreaks]}
       rehypePlugins={[rehypeKatex]}
       components={{
         h1: ({ children }) => (
