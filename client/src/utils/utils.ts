@@ -180,11 +180,14 @@ export function getQuestionDataOption(
 // EXTRACT
 // =========================================
 export const extractIdTo_ = (
-  data: Record<string, any>[],
+  data: IMasterData[keyof IMasterData],
   dataId: string,
   to: string,
 ) => {
-  const item = data.find((item) => item._id === dataId);
+  const item = data.find((item) => item._id === dataId) as Record<
+    string,
+    string
+  >;
   if (item && item[to]) return item[to];
   return dataId;
 };

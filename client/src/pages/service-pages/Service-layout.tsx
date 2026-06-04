@@ -33,7 +33,7 @@ export default function ServiceLayout() {
     },
   ];
 
-  const { masterData, masterDataLoading } = useMasterData();
+  const { masterDataLoading } = useMasterData();
 
   return (
     <SidebarProvider>
@@ -46,7 +46,7 @@ export default function ServiceLayout() {
           <ServiceNavbar items={items} />
         </div>
         <main className="pl-6 pr-6">
-          {masterDataLoading ? <Loader /> : <Outlet context={masterData} />}
+          {masterDataLoading ? <Loader /> : <Outlet />}
         </main>
       </div>
     </SidebarProvider>

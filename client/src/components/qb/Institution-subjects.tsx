@@ -1,41 +1,38 @@
-import type {
-  IBackground,
-  ILevel,
-  IPopulatedData,
-  ISubject,
-} from "@/types/types";
+import type { IMasterData } from "@/types/types";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card } from "../ui/card";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 import { BookOpen, Layers } from "lucide-react";
-
-type Props = {
-  level: ILevel & { _id: string };
-  allBackground: (IBackground & { _id: string })[];
-  allSubject: (ISubject & { _id: string })[];
-};
+import { useMasterData } from "@/lib/MasterData-context";
+import { extractIdTo_ } from "@/utils/utils";
 
 export default function InstitutionSubject({
   level,
-  allBackground,
-  allSubject,
-}: Props) {
+}: {
+  level: IMasterData["levels"][number];
+}) {
   const [filter, setFilter] = useState<string[]>([]);
 
-  // ✅ Filter backgrounds belonging to this level
+  const { masterData } = useMasterData();
+
+  // =========================================
+  // Filter backgrounds belonging to this level
+  // =========================================
   const backgrounds = useMemo(() => {
-    return allBackground.filter((b) => {
-      const levelId = b.levelId?._id;
+    return masterData.backgrounds?.filter((b) => {
+      const levelId = b.levelId;
       return levelId === level._id;
     });
-  }, [allBackground, level._id]);
+  }, [masterData.backgrounds, level._id]);
 
-  // ✅ Filter subjects by level + selected backgrounds
+  // =========================================
+  // Filter subjects by level + selected backgrounds
+  // =========================================
   const subjects = useMemo(() => {
-    return allSubject.filter((s) => {
-      const subjectLevelId = s.levelId?._id;
-      const subjectBackgrounds = s.backgroundId || [];
+    return masterData.subjects?.filter((s) => {
+      const subjectLevelId = s.levelId;
+      const subjectBackgroundId = s.backgroundId || [];
 
       // must match level
       if (subjectLevelId !== level._id) return false;
@@ -44,11 +41,11 @@ export default function InstitutionSubject({
       if (filter.length === 0) return true;
 
       // check if every selected background id exists in subject backgrounds
-      const bgIds = new Set(subjectBackgrounds.map((bg) => bg._id));
+      const bgIds = new Set(subjectBackgroundId);
 
       return filter.every((id) => bgIds.has(id));
     });
-  }, [allSubject, filter, level._id]);
+  }, [masterData.subjects, filter, level._id]);
 
   return (
     <div className="space-y-3 bg-input rounded-2xl px-4 py-5">
@@ -65,7 +62,7 @@ export default function InstitutionSubject({
             value={b._id}
             className="px-4 py-3 max-md:text-xs font-medium border bg-popover text-chart-2 cursor-pointer"
           >
-            {b.name}
+            {extractIdTo_(masterData.backgrounds, b._id, "name")}
           </ToggleGroupItem>
         ))}
       </ToggleGroup>
@@ -75,10 +72,10 @@ export default function InstitutionSubject({
         {subjects.map((s) => (
           <Link
             key={s._id}
-            to={`${(s.levelId as IPopulatedData).name}_${s.name}`}
+            to={`${extractIdTo_(masterData.levels, s.levelId, "name")}_${s.name}`}
           >
-            <Card className="bg-sidebar flex justify-center items-center text-sm font-semibold p-1 w-30 h-30 border cursor-pointer hover:opacity-70">
-              <BookOpen /> {s.name}
+            <Card className="bg-sidebar flex flex-col gap-1.5 justify-center items-center text-xs font-semibold p-1 w-40 h-25 border cursor-pointer hover:opacity-70 transition-opacity">
+              <BookOpen size="20" /> {s.name}
             </Card>
           </Link>
         ))}

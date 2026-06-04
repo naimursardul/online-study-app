@@ -1,93 +1,34 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { client } from "@/utils/utils";
-import type {
-  IBackground,
-  ILevel,
-  IPopulatedData,
-  ISubject,
-} from "@/types/types";
+import { extractIdTo_ } from "@/utils/utils";
 import { useAuth } from "@/lib/Auth-context";
 import { BookOpen, Layers } from "lucide-react";
 import InstitutionSubject from "@/components/qb/Institution-subjects";
-
-type LoadingState = {
-  level: boolean;
-  bg: boolean;
-  subject: boolean;
-};
+import { useMasterData } from "@/lib/MasterData-context";
 
 export default function QuestionBank() {
   const { user, userExisted } = useAuth();
 
-  const [loading, setLoading] = useState<LoadingState>({
-    level: true,
-    bg: true,
-    subject: true,
-  });
+  const { masterData, masterDataLoading } = useMasterData();
 
-  const [allLevel, setAllLevel] = useState<(ILevel & { _id: string })[]>([]);
-  const [allSubject, setAllSubject] = useState<(ISubject & { _id: string })[]>(
-    []
-  );
-  const [allBackground, setAllBackground] = useState<
-    (IBackground & { _id: string })[]
-  >([]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [bgRes, subjectRes, levelRes] = await Promise.all([
-          client.get("/background?level"),
-          client.get("/subject"),
-          client.get("/level"),
-        ]);
-
-        if (bgRes.data?.success) {
-          setAllBackground(bgRes.data.data);
-        }
-
-        if (subjectRes.data?.success) {
-          setAllSubject(subjectRes.data.data);
-        }
-
-        if (levelRes.data?.success) {
-          setAllLevel(levelRes.data.data);
-        }
-      } catch (error) {
-        console.error("Failed to load question bank data:", error);
-      } finally {
-        setLoading({
-          level: false,
-          bg: false,
-          subject: false,
-        });
-      }
-    };
-
-    fetchData();
-  }, []);
-
+  // =========================================
+  // Filtered Subjects
+  // =========================================
   const userFilteredSubjects = useMemo(() => {
-    return allSubject.filter((subject) => {
-      const levelId = (subject.levelId as IPopulatedData)?._id;
-      const backgrounds = (subject.backgroundId as IPopulatedData[]) || [];
+    return masterData.subjects?.filter((subject) => {
+      const levelId = subject.levelId;
+      const backgroundId = subject.backgroundId || [];
 
-      // console.log(levelId, backgrounds);
       return (
         levelId === user?.level._id &&
-        backgrounds.some((bg) => bg._id === user?.background?._id)
+        backgroundId.some((bgId) => bgId === user?.background?._id)
       );
     });
-  }, [allSubject, user]);
+  }, [masterData.subjects, user]);
 
-  const isLoading = loading.level || loading.bg || loading.subject;
-
-  // console.log(allSubject);
-  // console.log(userFilteredSubjects);
   return (
     <div className="flex flex-col gap-9 mt-5 mb-16">
       <div className="space-y-10">
@@ -98,22 +39,23 @@ export default function QuestionBank() {
               <h2 className="font-bold text-xl pl-4">My Level</h2>
 
               {user?.level?.name && userFilteredSubjects?.length ? (
-                <div className="space-y-3 bg-input rounded-2xl px-4 py-5">
+                <div className="space-y-6 bg-input rounded-2xl px-4 py-5">
                   <h2 className="flex gap-2 font-semibold pl-2">
                     <Layers size={"22px"} />
-                    {user?.level.name} ({user?.background?.name})
+                    {user?.level.name}{" "}
+                    <span className="bg-foreground text-background text-xs py-1 px-2 rounded-2xl">
+                      {user?.background?.name}
+                    </span>
                   </h2>
 
                   <div className="flex flex-wrap gap-4">
                     {userFilteredSubjects.map((subject) => (
                       <Link
                         key={subject._id}
-                        to={`${(subject.levelId as IPopulatedData).name}_${
-                          subject.name
-                        }`}
+                        to={`${extractIdTo_(masterData?.levels, subject.levelId, "name")}_${subject.name}`}
                       >
-                        <Card className="bg-sidebar flex justify-center items-center text-sm font-semibold p-1 w-30 h-30 border cursor-pointer hover:opacity-70 transition-opacity">
-                          <BookOpen /> {subject.name}
+                        <Card className="bg-sidebar flex flex-col gap-1.5 justify-center items-center text-xs font-semibold p-1 w-40 h-25 border cursor-pointer hover:opacity-70 transition-opacity">
+                          <BookOpen size={20} /> {subject.name}
                         </Card>
                       </Link>
                     ))}
@@ -131,15 +73,10 @@ export default function QuestionBank() {
         <section className="flex flex-col gap-4">
           <h2 className="font-bold text-xl pl-4">All Levels</h2>
 
-          {isLoading
+          {masterDataLoading
             ? Array.from({ length: 4 }).map((_, i) => <QbSecSkeleton key={i} />)
-            : allLevel.map((level) => (
-                <InstitutionSubject
-                  key={level._id}
-                  level={level}
-                  allBackground={allBackground}
-                  allSubject={allSubject}
-                />
+            : masterData.levels?.map((level) => (
+                <InstitutionSubject key={level._id} level={level} />
               ))}
         </section>
       </div>
