@@ -13,15 +13,10 @@ async function createQuestion(req: Request, res: Response) {
   try {
     const {
       questionType,
-      background,
       backgroundId,
-      level,
       levelId,
-      subject,
       subjectId,
-      chapter,
       chapterId,
-      topic,
       topicId,
       record,
       recordId,
@@ -44,7 +39,7 @@ async function createQuestion(req: Request, res: Response) {
       res.status(200).json({
         success: false,
         message: `Invalid question type. Supported types are: ${supportedQuestionTypes.join(
-          ", "
+          ", ",
         )}.`,
         data: null,
       });
@@ -53,17 +48,11 @@ async function createQuestion(req: Request, res: Response) {
 
     // Check for missing required fields for both MCQ and CQ
     if (
-      !level ||
       !levelId ||
-      !Array.isArray(background) ||
-      background.length <= 0 ||
       !Array.isArray(backgroundId) ||
       backgroundId.length <= 0 ||
-      !subject ||
       !subjectId ||
-      !chapter ||
       !chapterId ||
-      !topic ||
       !topicId ||
       !Array.isArray(record) ||
       record.length <= 0 ||
@@ -76,7 +65,7 @@ async function createQuestion(req: Request, res: Response) {
       res.status(200).json({
         success: false,
         message:
-          "Missing required fields: level, background, subject, chapter, topic, record, timeRequired, and difficulty.",
+          "Missing required fields: levelId, backgroundId, subjectId, chapterId, topicId, record, recordId, timeRequired, marks, and difficulty.",
         data: null,
       });
       return;
@@ -135,13 +124,14 @@ async function createQuestion(req: Request, res: Response) {
             !sq?.questionNo ||
             !sq?.question ||
             !sq.answer ||
-            !sq?.topic ||
+            !sq?.chapterId ||
+            !sq?.subjectId ||
             !sq?.topicId
           ) {
             res.status(200).json({
               success: false,
               message:
-                "Sub-Questions must have information of question, answer, topic.",
+                "Sub-Questions must have questionNo, question, answer, chapterId, subjectId, and topicId.",
               data: null,
             });
             return;

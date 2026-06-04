@@ -70,7 +70,7 @@ export const getAllBackgrounds = async (req: Request, res: Response) => {
 
     const backgrounds = await Background.find(filter).populate(
       "levelId",
-      "name"
+      "name",
     );
 
     res.status(200).json({
@@ -97,7 +97,7 @@ export const getSingleBackground = async (req: Request, res: Response) => {
 
     const background = await Background.findById(id).populate(
       "levelId",
-      "name"
+      "name",
     );
 
     if (!background) {
@@ -126,7 +126,7 @@ export const getSingleBackground = async (req: Request, res: Response) => {
   }
 };
 
-// Update Background + sync questions
+// Update Background
 export const updateBackground = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -146,33 +146,9 @@ export const updateBackground = async (req: Request, res: Response) => {
       return;
     }
 
-    const questions = await BaseQuestion.find({
-      backgroundId: id,
-    });
-
-    for (const question of questions) {
-      const index = question.backgroundId.findIndex(
-        (bgId) => bgId.toString() === id
-      );
-
-      if (index !== -1) {
-        question.background[index] = background.name;
-      }
-
-      // sync level
-      if (background.levelId && typeof background.levelId === "object") {
-        const level = background.levelId as unknown as IPopulatedData;
-
-        question.level = level.name;
-        question.levelId = level._id.toString();
-      }
-
-      await question.save();
-    }
-
     res.status(200).json({
       success: true,
-      message: "Background updated successfully and questions synced.",
+      message: "Background updated successfully.",
       data: background,
     });
     return;

@@ -2,10 +2,9 @@ import Loader from "@/components/loader/Loader";
 import ServiceNavbar from "@/components/service-bar/service-navbar";
 import SidebarTemplate from "@/components/sidebar-template/SidebarTemplate";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import type { IMasterData, SidebarItemType } from "@/types/types";
-import { client } from "@/utils/utils";
+import type { SidebarItemType } from "@/types/types";
+import { useMasterData } from "@/lib/MasterData-context";
 import { Calendar, Home, Inbox, LayoutDashboard } from "lucide-react";
-import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 
 export default function ServiceLayout() {
@@ -34,31 +33,7 @@ export default function ServiceLayout() {
     },
   ];
 
-  const [masterData, setMasterData] = useState<IMasterData>({
-    levels: [],
-    backgrounds: [],
-    subjects: [],
-    chapters: [],
-    topics: [],
-    records: [],
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchMasterData = async () => {
-      try {
-        const res = await client.get("/master-data");
-
-        setMasterData(res.data.data);
-      } catch (error) {
-        console.error("Master data fetch failed:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMasterData();
-  }, []);
+  const { masterData, masterDataLoading } = useMasterData();
 
   return (
     <SidebarProvider>
@@ -71,7 +46,7 @@ export default function ServiceLayout() {
           <ServiceNavbar items={items} />
         </div>
         <main className="pl-6 pr-6">
-          {loading ? <Loader /> : <Outlet context={masterData} />}
+          {masterDataLoading ? <Loader /> : <Outlet context={masterData} />}
         </main>
       </div>
     </SidebarProvider>

@@ -131,7 +131,7 @@ export const getSingleSubject = async (req: Request, res: Response) => {
   }
 };
 
-// Update Subject + sync questions
+// Update Subject
 export const updateSubject = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -153,44 +153,9 @@ export const updateSubject = async (req: Request, res: Response) => {
       return;
     }
 
-    const questions = await BaseQuestion.find({
-      subjectId: id,
-    });
-
-    for (const question of questions) {
-      question.subject = subject.name;
-      question.subjectId = subject._id.toString();
-
-      // level
-      if (subject.levelId && typeof subject.levelId === "object") {
-        const level = subject.levelId as unknown as IPopulatedData;
-        question.level = level.name;
-        question.levelId = level._id.toString();
-      }
-
-      // background
-      if (Array.isArray(subject.backgroundId)) {
-        const bgNames: string[] = [];
-        const bgIds: string[] = [];
-
-        for (const bg of subject.backgroundId) {
-          if (typeof bg === "object") {
-            const background = bg as unknown as IPopulatedData;
-            bgNames.push(background.name);
-            bgIds.push(background._id.toString());
-          }
-        }
-
-        question.background = bgNames;
-        question.backgroundId = bgIds;
-      }
-
-      await question.save();
-    }
-
     res.status(200).json({
       success: true,
-      message: "Subject updated successfully and questions synced.",
+      message: "Subject updated successfully.",
       data: subject,
     });
     return;

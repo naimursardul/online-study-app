@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useState, useEffect, useRef, useMemo } from "react";
-import type { IField, IMasterData, IQueryFormData } from "@/types/types";
+import type { IField, IQueryFormData } from "@/types/types";
 import {
   Dialog,
   DialogDescription,
@@ -29,8 +29,8 @@ import {
 import { toast } from "sonner";
 import UploadForm from "./upload-form";
 import { client, createFormInfo, getQuestionDataOption } from "@/utils/utils";
+import { useMasterData } from "@/lib/MasterData-context";
 import DataField from "./data-field";
-import { useOutletContext } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 
@@ -50,7 +50,7 @@ export default function AllData({
   const [currentPage, setCurrentPage] = useState(1);
   const closeRef = useRef<HTMLButtonElement | null>(null);
   const [queryFormData, setQueryFormData] = useState<IQueryFormData>({});
-  const masterData = useOutletContext<IMasterData>();
+  const { masterData } = useMasterData();
 
   const updatedFields = useMemo(
     () => getQuestionDataOption(queryFormData, masterData, fields),
@@ -194,7 +194,7 @@ export default function AllData({
             {filterFields.map((field: IField, i: number) => (
               <div
                 key={i}
-                className="w-full sm:w-auto sm:min-w-[180px] flex-1 relative"
+                className="w-full sm:w-auto sm:min-w-45 flex-1 relative"
               >
                 <DataField
                   formData={queryFormData}
@@ -284,7 +284,7 @@ export default function AllData({
                       return (
                         <TableCell
                           key={i}
-                          className="whitespace-pre-wrap max-w-[220px] truncate text-sm"
+                          className="whitespace-pre-wrap max-w-55 truncate text-sm"
                           title={display}
                         >
                           {isBadge && display !== "—" ? (

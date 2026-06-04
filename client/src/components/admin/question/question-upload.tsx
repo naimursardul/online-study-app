@@ -110,7 +110,7 @@ export default function QuestionUpload({ masterData }: QuestionUploadProps) {
 
   const filteredFields: IField[] = useMemo(
     () => getQuestionDataOption(formData, masterData, fields),
-    [masterData, formData]
+    [masterData, formData],
   );
 
   useEffect(() => {
@@ -273,7 +273,6 @@ export default function QuestionUpload({ masterData }: QuestionUploadProps) {
                     setFormData={
                       setFormData as React.Dispatch<React.SetStateAction<ICQ>>
                     }
-                    defaultTopicId={formData.topicId}
                   />
                 )}
               </div>

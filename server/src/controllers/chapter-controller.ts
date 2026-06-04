@@ -162,49 +162,9 @@ export const updateChapter = async (req: Request, res: Response) => {
       return;
     }
 
-    const questions = await BaseQuestion.find({ chapterId: id });
-
-    for (const question of questions) {
-      question.chapter = chapter.name;
-      question.chapterId = chapter._id.toString();
-
-      // level
-      if (chapter.levelId && typeof chapter.levelId === "object") {
-        const level = chapter.levelId as unknown as IPopulatedData;
-        question.level = level.name;
-        question.levelId = level._id.toString();
-      }
-
-      // background
-      if (Array.isArray(chapter.backgroundId)) {
-        const bgNames: string[] = [];
-        const bgIds: string[] = [];
-
-        for (const bg of chapter.backgroundId) {
-          if (typeof bg === "object") {
-            const background = bg as IPopulatedData;
-            bgNames.push(background.name);
-            bgIds.push(background._id.toString());
-          }
-        }
-
-        question.background = bgNames;
-        question.backgroundId = bgIds;
-      }
-
-      // subject
-      if (chapter.subjectId && typeof chapter.subjectId === "object") {
-        const subject = chapter.subjectId as unknown as IPopulatedData;
-        question.subject = subject.name;
-        question.subjectId = subject._id.toString();
-      }
-
-      await question.save();
-    }
-
     res.status(200).json({
       success: true,
-      message: "Chapter updated successfully and questions synced.",
+      message: "Chapter updated successfully.",
       data: chapter,
     });
     return;

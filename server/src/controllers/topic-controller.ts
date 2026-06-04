@@ -141,7 +141,7 @@ export const getSingleTopic = async (req: Request, res: Response) => {
   }
 };
 
-// Update Topic and related BaseQuestions
+// Update Topic
 export const updateTopic = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -165,56 +165,9 @@ export const updateTopic = async (req: Request, res: Response) => {
       return;
     }
 
-    const questions = await BaseQuestion.find({ topicId: id });
-
-    for (const question of questions) {
-      question.topic = topic.name;
-      question.topicId = topic._id.toString();
-
-      // level
-      if (topic.levelId && typeof topic.levelId === "object") {
-        const level = topic.levelId as unknown as IPopulatedData;
-        question.level = level.name;
-        question.levelId = level._id.toString();
-      }
-
-      // background (array)
-      if (Array.isArray(topic.backgroundId)) {
-        const bgNames: string[] = [];
-        const bgIds: string[] = [];
-
-        for (const bg of topic.backgroundId) {
-          if (typeof bg === "object") {
-            const background = bg as unknown as IPopulatedData;
-            bgNames.push(background.name);
-            bgIds.push(background._id.toString());
-          }
-        }
-
-        question.background = bgNames;
-        question.backgroundId = bgIds;
-      }
-
-      // subject
-      if (topic.subjectId && typeof topic.subjectId === "object") {
-        const subject = topic.subjectId as unknown as IPopulatedData;
-        question.subject = subject.name;
-        question.subjectId = subject._id.toString();
-      }
-
-      // chapter
-      if (topic.chapterId && typeof topic.chapterId === "object") {
-        const chapter = topic.chapterId as unknown as IPopulatedData;
-        question.chapter = chapter.name;
-        question.chapterId = chapter._id.toString();
-      }
-
-      await question.save();
-    }
-
     res.status(200).json({
       success: true,
-      message: "Topic updated successfully and questions synced.",
+      message: "Topic updated successfully.",
       data: topic,
     });
     return;

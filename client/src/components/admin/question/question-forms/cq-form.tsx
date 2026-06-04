@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -8,69 +8,72 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { ICQ, ITopic } from "@/types/types";
+import type { ICQ, IMasterData } from "@/types/types";
+import { useMasterData } from "@/lib/MasterData-context";
 import TextEditor from "@/components/text-editor/TextEditor";
-import { client } from "@/utils/utils";
+
 export default function CqForm({
   formData,
   setFormData,
-  defaultTopicId,
 }: {
   formData: ICQ;
   setFormData: React.Dispatch<React.SetStateAction<ICQ>>;
-  defaultTopicId: string;
 }) {
-  const [topics, setTopics] = useState<{ _id: string; name: string }[]>([]);
+  const { masterData } = useMasterData();
+  console.log(masterData);
 
+  // Initialize subquestions with parent chapter/topic
   useEffect(() => {
-    async function getOptions() {
-      if (formData?.chapter) {
-        const query = [
-          formData?.levelId,
-          [...formData?.backgroundId],
-          formData?.subjectId,
-          formData?.chapterId,
-        ];
-        try {
-          const res = await client.get(
-            `/topic${query?.length > 0 ? "?" + query.join("&") : ""}`
-          );
-          const { data } = res;
+    if (!formData.chapterId) return;
 
-          if (data.success) {
-            setTopics(
-              data?.data?.map((t: ITopic & { _id: string }) => {
-                return { _id: t?._id, name: t?.name };
-              })
-            );
-          }
-        } catch (error) {
-          console.log(error);
-        }
-      }
-    }
-
-    getOptions();
-  }, [formData]);
-
-  useEffect(() => {
-    if (!defaultTopicId) return;
-
-    setFormData((prev) => {
-      if (!Array.isArray(prev.subQuestions) || prev.subQuestions.length !== 4) {
-        return prev;
-      }
-
-      const newSubQuestions = prev.subQuestions.map((sq) => ({
+    setFormData((prev) => ({
+      ...prev,
+      subQuestions: prev.subQuestions?.map((sq) => ({
         ...sq,
+        chapterId: prev.chapterId,
         topicId: prev.topicId,
-        topic: prev.topic,
-      }));
+      })),
+    }));
+  }, [formData.chapterId, formData.topicId]);
 
-      return { ...prev, subQuestions: newSubQuestions };
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [defaultTopicId]);
+  // Available chapters from parent subject
+  const chapterOptions = useMemo(() => {
+    if (!formData.subjectId) return [];
+    return masterData.chapters.filter(
+      (chapter) => chapter?.subjectId === formData.subjectId,
+    );
+  }, [masterData.chapters, formData.subjectId]);
+
+  // Topic options from parent chapter
+  const topicOptionsMap = useMemo(() => {
+    return (formData.subQuestions ?? []).map((sq) =>
+      masterData.topics.filter((topic) => topic.chapterId === sq.chapterId),
+    );
+  }, [masterData.topics, formData.subQuestions]);
+
+  const handleChapterChange = (index: number, chapterId: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      subQuestions: prev.subQuestions.map((sq, idx) =>
+        idx === index
+          ? {
+              ...sq,
+              chapterId,
+              topicId: "",
+            }
+          : sq,
+      ),
+    }));
+  };
+
+  const handleTopicChange = (index: number, topicId: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      subQuestions: prev.subQuestions.map((sq, idx) =>
+        idx === index ? { ...sq, topicId } : sq,
+      ),
+    }));
+  };
 
   return (
     <>
@@ -78,96 +81,144 @@ export default function CqForm({
         <Label>Statement</Label>
         <TextEditor
           onChangeFn={(val) =>
-            setFormData((prev) => ({ ...prev, statement: val }))
+            setFormData((prev) => ({
+              ...prev,
+              statement: val,
+            }))
           }
         />
       </div>
 
       <div className="space-y-4">
         <Label>Sub Questions</Label>
+
         <div className="space-y-8">
-          {["A", "B", "C", "D"].map((_sq, i) => (
-            <div className="space-y-4  pl-3" key={i}>
-              <Label>
-                Question No:{" "}
-                <span className="font-bold bg-accent-foreground text-accent p-1 rounded">
-                  {_sq}
-                </span>
-              </Label>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="font-light">Topic</Label>
-                  <Select
-                    value={
-                      defaultTopicId && formData?.subQuestions
-                        ? formData?.subQuestions[i].topicId +
-                          "," +
-                          formData?.subQuestions[i].topic
-                        : undefined
-                    }
-                    onValueChange={(value) => {
-                      const [topicId, topic] = value.split(",");
-                      setFormData((prev) => {
-                        const newSub = prev.subQuestions.map((sq, idx) =>
-                          idx === i ? { ...sq, topicId, topic } : sq
-                        );
-                        return { ...prev, subQuestions: newSub };
-                      });
-                    }}
-                  >
-                    <SelectTrigger className="w-full cursor-pointer">
-                      <SelectValue placeholder={`Select topic`} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {topics?.length > 0 ? (
-                          topics.map((_o, i) => (
-                            <SelectItem
-                              className="cursor-pointer"
-                              key={i}
-                              value={_o?._id + "," + _o?.name}
-                            >
-                              {_o?.name}
+          {(formData?.subQuestions || []).map((_, i) => {
+            const label = ["A", "B", "C", "D"][i];
+
+            return (
+              <div key={i} className="space-y-4 pl-3">
+                <Label>
+                  Question No:{" "}
+                  <span className="font-bold bg-accent-foreground text-accent p-1 rounded">
+                    {label}
+                  </span>
+                </Label>
+
+                <div className="space-y-4">
+                  {/* Chapter */}
+                  <div className="space-y-2">
+                    <Label className="font-light">Chapter</Label>
+
+                    <Select
+                      value={formData.subQuestions?.[i]?.chapterId || ""}
+                      onValueChange={(value) => handleChapterChange(i, value)}
+                      disabled={!formData.subjectId}
+                    >
+                      <SelectTrigger className="w-full cursor-pointer">
+                        <SelectValue placeholder="Select chapter" />
+                      </SelectTrigger>
+
+                      <SelectContent>
+                        <SelectGroup>
+                          {chapterOptions.length > 0 ? (
+                            chapterOptions.map((chapter) => (
+                              <SelectItem key={chapter._id} value={chapter._id}>
+                                {chapter.name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="no-chapter" disabled>
+                              No chapter found.
                             </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="No-val" disabled>
-                            No topic found.
-                          </SelectItem>
-                        )}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="font-light">Question</Label>
-                  <TextEditor
-                    onChangeFn={(val) => {
-                      setFormData((prev) => {
-                        const newSub = prev.subQuestions.map((sq, idx) =>
-                          idx === i ? { ...sq, question: val } : sq
-                        );
-                        return { ...prev, subQuestions: newSub };
-                      });
-                    }}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="font-light">Answer</Label>
-                  <TextEditor
-                    onChangeFn={(val) => {
-                      setFormData((prev) => {
-                        const newSub = prev.subQuestions.map((sq, idx) =>
-                          idx === i ? { ...sq, answer: val } : sq
-                        );
-                        return { ...prev, subQuestions: newSub };
-                      });
-                    }}
-                  />
+                          )}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Topic */}
+                  <div className="space-y-2">
+                    <Label className="font-light">Topic</Label>
+
+                    <Select
+                      value={formData.subQuestions?.[i]?.topicId || ""}
+                      onValueChange={(value) => handleTopicChange(i, value)}
+                      disabled={!formData.subQuestions?.[i]?.chapterId}
+                    >
+                      <SelectTrigger className="w-full cursor-pointer">
+                        <SelectValue
+                          placeholder={
+                            formData.subQuestions?.[i]?.chapterId
+                              ? "Select topic"
+                              : "Select chapter first"
+                          }
+                        />
+                      </SelectTrigger>
+
+                      <SelectContent>
+                        <SelectGroup>
+                          {topicOptionsMap[i]?.length > 0 ? (
+                            topicOptionsMap[i].map((topic) => (
+                              <SelectItem key={topic._id} value={topic._id}>
+                                {topic.name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="no-topic" disabled>
+                              No topic found.
+                            </SelectItem>
+                          )}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Question */}
+                  <div className="space-y-2">
+                    <Label className="font-light">Question</Label>
+
+                    <TextEditor
+                      onChangeFn={(val) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          subQuestions: prev.subQuestions.map((sq, idx) =>
+                            idx === i
+                              ? {
+                                  ...sq,
+                                  question: val,
+                                }
+                              : sq,
+                          ),
+                        }));
+                      }}
+                    />
+                  </div>
+
+                  {/* Answer */}
+                  <div className="space-y-2">
+                    <Label className="font-light">Answer</Label>
+
+                    <TextEditor
+                      onChangeFn={(val) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          subQuestions: prev.subQuestions.map((sq, idx) =>
+                            idx === i
+                              ? {
+                                  ...sq,
+                                  answer: val,
+                                }
+                              : sq,
+                          ),
+                        }));
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </>

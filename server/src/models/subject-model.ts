@@ -1,6 +1,7 @@
 // ===== models/subject-model.ts =====
 import mongoose, { Schema } from "mongoose";
 import { ISubject } from "../type/type";
+import { BaseQuestion } from "./question-model";
 
 const subjectSchema = new Schema<ISubject>(
   {
@@ -24,8 +25,15 @@ const subjectSchema = new Schema<ISubject>(
   },
   {
     timestamps: true,
-  }
+  },
 );
+
+// Cascade delete: Delete all questions when subject is deleted
+(subjectSchema as any).post("deleteOne", async function (doc: any) {
+  if (doc?._id) {
+    await BaseQuestion.deleteMany({ subjectId: doc._id });
+  }
+});
 
 const Subject = mongoose.model<ISubject>("Subject", subjectSchema);
 export default Subject;

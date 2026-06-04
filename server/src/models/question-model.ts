@@ -19,27 +19,13 @@ const baseQuestionSchema = new Schema<IBaseQuestion>(
       enum: ["MCQ", "CQ"],
       required: true,
     },
-    background: [
-      {
-        type: String,
-        required: true,
-      },
-    ],
     backgroundId: [
       {
         type: String,
         required: true,
       },
     ],
-    level: {
-      type: String,
-      required: true,
-    },
     levelId: {
-      type: String,
-      required: true,
-    },
-    subject: {
       type: String,
       required: true,
     },
@@ -47,15 +33,7 @@ const baseQuestionSchema = new Schema<IBaseQuestion>(
       type: String,
       required: true,
     },
-    chapter: {
-      type: String,
-      required: true,
-    },
     chapterId: {
-      type: String,
-      required: true,
-    },
-    topic: {
       type: String,
       required: true,
     },
@@ -174,7 +152,11 @@ const cqSchema = new Schema<ICQ>({
           type: String,
           required: true,
         },
-        topic: {
+        chapterId: {
+          type: String,
+          required: true,
+        },
+        subjectId: {
           type: String,
           required: true,
         },

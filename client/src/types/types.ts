@@ -74,15 +74,10 @@ export interface IRecord {
 // Base Question
 export interface IBaseQuestion {
   questionType: string;
-  level: string;
   levelId: string;
-  background: string[];
   backgroundId: string[];
-  subject: string;
   subjectId: string;
-  chapter: string;
   chapterId: string;
-  topic: string;
   topicId: string;
   record: IRecord[];
   recordId: string[];
@@ -104,7 +99,8 @@ export interface ISubQuestions {
   questionNo: string;
   question: string;
   answer: string;
-  topic: string;
+  chapterId: string;
+  subjectId: string;
   topicId: string;
 }
 
@@ -210,11 +206,32 @@ export type ExamStatusType = "ready" | "started" | "finished";
 export type ViewModeType = "viewOnly" | "showAns" | "practice";
 
 export interface IMasterData {
-  levels: (ILevel & { _id: string })[];
-  backgrounds: (IBackground & { _id: string })[];
-  subjects: (ISubject & { _id: string })[];
-  chapters: (IChapter & { _id: string })[];
-  topics: (ITopic & { _id: string })[];
+  levels: { _id: string; name: string }[];
+  backgrounds: {
+    _id: string;
+    levelId: string;
+  }[];
+  subjects: {
+    _id: string;
+    name: string;
+    backgroundId: string[];
+    levelId: string;
+  }[];
+  chapters: {
+    _id: string;
+    name: string;
+    subjectId: string;
+    backgroundId: string[];
+    levelId: string;
+  }[];
+  topics: {
+    _id: string;
+    name: string;
+    chapterId: string;
+    subjectId: string;
+    backgroundId: string[];
+    levelId: string;
+  }[];
   records: (IRecord & { _id: string })[];
 }
 

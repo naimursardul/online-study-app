@@ -124,13 +124,6 @@ export const updateLevel = async (req: Request, res: Response) => {
       return;
     }
 
-    const questions = await BaseQuestion.find({ levelId: id });
-    for (const question of questions) {
-      //  Level update in Question
-      question.level = updated.name;
-      await question.save();
-    }
-
     res.status(200).json({
       success: true,
       message: "Level updated successfully.",

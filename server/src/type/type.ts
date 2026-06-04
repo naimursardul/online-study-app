@@ -31,15 +31,10 @@ export interface IRecord {
 // Base Question
 export interface IBaseQuestion extends Document {
   questionType: "MCQ" | "CQ";
-  level: string;
   levelId: string;
-  background: string[];
   backgroundId: string[];
-  subject: string;
   subjectId: string;
-  chapter: string;
   chapterId: string;
-  topic: string;
   topicId: string;
   record: IRecord[];
   recordId: string[];
@@ -61,7 +56,8 @@ export interface ISubQuestions {
   questionNo: string;
   question: string;
   answer: string;
-  topic: string;
+  chapterId: string;
+  subjectId: string;
   topicId: string;
 }
 

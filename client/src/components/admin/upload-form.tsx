@@ -1,9 +1,9 @@
 import { useMemo, useState, type RefObject } from "react";
 import { toast } from "sonner";
-import type { IField, IFormInfo, IMasterData } from "@/types/types";
+import type { IField, IFormInfo } from "@/types/types";
 import { client, getQuestionDataOption } from "@/utils/utils";
+import { useMasterData } from "@/lib/MasterData-context";
 import SubmitBtn from "../submit-btn/submit-btn";
-import { useOutletContext } from "react-router-dom";
 import DataField from "./data-field";
 
 export default function UploadForm({
@@ -17,8 +17,7 @@ export default function UploadForm({
     formInfo?.initData
   );
 
-  console.log(formInfo.fields);
-  const masterData = useOutletContext<IMasterData>();
+  const { masterData } = useMasterData();
 
   //   Show toast on Responses
   function showToastOnRes(data: { success: boolean; message: string }) {
@@ -66,7 +65,7 @@ export default function UploadForm({
 
   const updatedFields = useMemo(
     () => getQuestionDataOption(formData, masterData, formInfo.fields),
-    [formData, masterData]
+    [formData, masterData, formInfo.fields]
   );
 
   // console.log(formData);
