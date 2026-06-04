@@ -35,15 +35,10 @@ interface QuestionUploadProps {
 export default function QuestionUpload({ masterData }: QuestionUploadProps) {
   const [formData, setFormData] = useState<IBaseQuestion | IMCQ | ICQ>({
     questionType: "MCQ",
-    level: "",
     levelId: "",
-    background: [],
     backgroundId: [],
-    subject: "",
     subjectId: "",
-    chapter: "",
     chapterId: "",
-    topic: "",
     topicId: "",
     record: [],
     recordId: [],
@@ -117,15 +112,10 @@ export default function QuestionUpload({ masterData }: QuestionUploadProps) {
     setFormData((prev) => {
       const baseInit: IBaseQuestion = {
         questionType: "MCQ",
-        level: "",
         levelId: "",
-        background: [],
         backgroundId: [],
-        subject: "",
         subjectId: "",
-        chapter: "",
         chapterId: "",
-        topic: "",
         topicId: "",
         record: [],
         recordId: [],

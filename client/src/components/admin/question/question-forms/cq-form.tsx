@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { ICQ, IMasterData } from "@/types/types";
+import type { ICQ } from "@/types/types";
 import { useMasterData } from "@/lib/MasterData-context";
 import TextEditor from "@/components/text-editor/TextEditor";
 

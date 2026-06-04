@@ -27,6 +27,7 @@ import { McqQuestionSkeleton } from "@/components/skeleton/McqQuestionSkeleton";
 import { CqQuestionSkeleton } from "@/components/skeleton/CqQuestionSkeleton";
 import { useAuth } from "@/lib/Auth-context";
 import { toast } from "sonner";
+import { useMasterData } from "@/lib/MasterData-context";
 
 type OutletContextType = {
   timeRemaining: number;
@@ -47,9 +48,7 @@ function QuestionBankSlug2() {
     ((IMCQ | ICQ) & { _id: string })[]
   >([]);
 
-  const allSubject: ({ _id: string } & ISubject)[] = useOutletContext<{
-    masterData: IMasterData;
-  }>().masterData.subjects;
+  const allSubject = useMasterData().masterData.subjects;
   console.log(allSubject);
   const [answerScript, setAnswerScript] = useState<SingleMcqAnswerType[]>([]);
 

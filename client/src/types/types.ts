@@ -22,15 +22,7 @@ export interface IField {
   type?: string;
   req?: boolean;
   manualOptionData?: boolean;
-  optionData?: (
-    | (ILevel & { _id: string })
-    | (IBackground & { _id: string })
-    | (ISubject & { _id: string })
-    | (IChapter & { _id: string })
-    | (ITopic & { _id: string })
-    | (IRecord & { _id: string })
-    | IOptionData
-  )[];
+  optionData?: IMasterData[keyof IMasterData];
   description?: string;
 }
 
@@ -133,31 +125,31 @@ export interface ILevel {
 // Background
 export interface IBackground {
   name: string;
-  levelId: IPopulatedData;
+  levelId: string | IPopulatedData;
 }
 
 // Subject
 export interface ISubject {
   name: string;
-  levelId: IPopulatedData;
-  backgroundId: IPopulatedData[];
+  levelId: string | IPopulatedData;
+  backgroundId: string[] | IPopulatedData[];
 }
 
 // Chapter
 export interface IChapter {
   name: string;
-  levelId: IPopulatedData;
-  backgroundId: IPopulatedData;
-  subjectId: IPopulatedData;
+  levelId: string | IPopulatedData;
+  backgroundId: string[] | IPopulatedData[];
+  subjectId: string | IPopulatedData;
 }
 
 // Topic
 export interface ITopic {
   name: string;
-  levelId: IPopulatedData;
-  backgroundId: IPopulatedData[]; // Array of background IDs
-  subjectId: IPopulatedData;
-  chapterId: IPopulatedData;
+  levelId: string | IPopulatedData;
+  backgroundId: string[] | IPopulatedData[]; // Array of background IDs
+  subjectId: string | IPopulatedData;
+  chapterId: string | IPopulatedData;
 }
 
 // IRegistrationFormField
