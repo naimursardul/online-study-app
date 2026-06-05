@@ -125,7 +125,6 @@ async function createQuestion(req: Request, res: Response) {
             !sq?.question ||
             !sq.answer ||
             !sq?.chapterId ||
-            !sq?.subjectId ||
             !sq?.topicId
           ) {
             res.status(200).json({

@@ -19,20 +19,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import type {
-  IMCQ,
-  IBaseQuestion,
-  ICQ,
-  IField,
-  IMasterData,
-} from "@/types/types";
+import type { IMCQ, IBaseQuestion, ICQ, IField } from "@/types/types";
 import SubmitBtn from "@/components/submit-btn/submit-btn";
+import { useMasterData } from "@/lib/MasterData-context";
 
-interface QuestionUploadProps {
-  masterData: IMasterData;
-}
-
-export default function QuestionUpload({ masterData }: QuestionUploadProps) {
+export default function QuestionUpload() {
   const [formData, setFormData] = useState<IBaseQuestion | IMCQ | ICQ>({
     questionType: "MCQ",
     levelId: "",
@@ -49,32 +40,33 @@ export default function QuestionUpload({ masterData }: QuestionUploadProps) {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [qType, setQType] = useState<"MCQ" | "CQ">("MCQ");
+  const { masterData } = useMasterData();
 
   const fields: IField[] = [
     {
       label: "Level",
       inputType: "select",
-      name: "level",
+      name: "levelId",
     },
     {
       label: "Background",
       inputType: "checkbox",
-      name: "background",
+      name: "backgroundId",
     },
     {
       label: "Subject",
       inputType: "select",
-      name: "subject",
+      name: "subjectId",
     },
     {
       label: "Chapter",
       inputType: "select",
-      name: "chapter",
+      name: "chapterId",
     },
     {
       label: "Topic",
       inputType: "select",
-      name: "topic",
+      name: "topicId",
     },
     {
       label: "Record",
@@ -152,28 +144,28 @@ export default function QuestionUpload({ masterData }: QuestionUploadProps) {
             questionNo: "A",
             question: "",
             answer: "",
-            topic: "",
+            chapterId: "",
             topicId: "",
           },
           {
             questionNo: "B",
             question: "",
             answer: "",
-            topic: "",
+            chapterId: "",
             topicId: "",
           },
           {
             questionNo: "C",
             question: "",
             answer: "",
-            topic: "",
+            chapterId: "",
             topicId: "",
           },
           {
             questionNo: "D",
             question: "",
             answer: "",
-            topic: "",
+            chapterId: "",
             topicId: "",
           },
         ],

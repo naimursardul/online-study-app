@@ -114,20 +114,24 @@ export function getQuestionDataOption(
   fields: IField[],
 ): IField[] {
   {
-    console.log(masterData);
     return fields.map((field) => {
-      const fieldName = field.name.endsWith("Id")
-        ? field.name.replace("Id", "")
-        : field.name;
+      const fieldName = field.name;
+      console.log(formData.levelId);
+      console.log(
+        masterData.backgrounds.filter(
+          (bg: any) => bg.levelId === formData.levelId,
+        ),
+      );
+      console.log(fieldName);
 
       switch (fieldName) {
-        case "level":
+        case "levelId":
           return {
             ...field,
             optionData: masterData.levels,
           };
 
-        case "background":
+        case "backgroundId":
           return {
             ...field,
             optionData: masterData.backgrounds?.filter(
@@ -135,7 +139,7 @@ export function getQuestionDataOption(
             ),
           };
 
-        case "subject":
+        case "subjectId":
           return {
             ...field,
             optionData: masterData.subjects?.filter(
@@ -147,7 +151,7 @@ export function getQuestionDataOption(
             ),
           };
 
-        case "chapter":
+        case "chapterId":
           return {
             ...field,
             optionData: masterData.chapters?.filter(
@@ -155,7 +159,7 @@ export function getQuestionDataOption(
             ),
           };
 
-        case "topic":
+        case "topicId":
           return {
             ...field,
             optionData: masterData.topics?.filter(

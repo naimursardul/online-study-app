@@ -20,7 +20,6 @@ export default function CqForm({
   setFormData: React.Dispatch<React.SetStateAction<ICQ>>;
 }) {
   const { masterData } = useMasterData();
-  console.log(masterData);
 
   // Initialize subquestions with parent chapter/topic
   useEffect(() => {
@@ -75,6 +74,7 @@ export default function CqForm({
     }));
   };
 
+  console.log(formData);
   return (
     <>
       <div className="space-y-2">
@@ -121,17 +121,12 @@ export default function CqForm({
 
                       <SelectContent>
                         <SelectGroup>
-                          {chapterOptions.length > 0 ? (
+                          {chapterOptions.length > 0 &&
                             chapterOptions.map((chapter) => (
                               <SelectItem key={chapter._id} value={chapter._id}>
                                 {chapter.name}
                               </SelectItem>
-                            ))
-                          ) : (
-                            <SelectItem value="no-chapter" disabled>
-                              No chapter found.
-                            </SelectItem>
-                          )}
+                            ))}
                         </SelectGroup>
                       </SelectContent>
                     </Select>
@@ -144,31 +139,20 @@ export default function CqForm({
                     <Select
                       value={formData.subQuestions?.[i]?.topicId || ""}
                       onValueChange={(value) => handleTopicChange(i, value)}
-                      disabled={!formData.subQuestions?.[i]?.chapterId}
+                      disabled={topicOptionsMap[i]?.length === 0}
                     >
                       <SelectTrigger className="w-full cursor-pointer">
-                        <SelectValue
-                          placeholder={
-                            formData.subQuestions?.[i]?.chapterId
-                              ? "Select topic"
-                              : "Select chapter first"
-                          }
-                        />
+                        <SelectValue placeholder={"Select topic"} />
                       </SelectTrigger>
 
                       <SelectContent>
                         <SelectGroup>
-                          {topicOptionsMap[i]?.length > 0 ? (
+                          {topicOptionsMap[i]?.length > 0 &&
                             topicOptionsMap[i].map((topic) => (
                               <SelectItem key={topic._id} value={topic._id}>
                                 {topic.name}
                               </SelectItem>
-                            ))
-                          ) : (
-                            <SelectItem value="no-topic" disabled>
-                              No topic found.
-                            </SelectItem>
-                          )}
+                            ))}
                         </SelectGroup>
                       </SelectContent>
                     </Select>

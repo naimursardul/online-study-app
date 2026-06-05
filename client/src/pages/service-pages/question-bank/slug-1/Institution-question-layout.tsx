@@ -4,8 +4,6 @@ import { getBoardQusetonDetails } from "@/utils/utils";
 import type { ExamStatusType, ViewModeType } from "@/types/types";
 import { useEffect, useMemo, useState } from "react";
 import { Outlet, useParams } from "react-router-dom";
-import Loader from "@/components/loader/Loader";
-import { useMasterData } from "@/lib/MasterData-context";
 
 function InstitutionQuestionLayout() {
   const { slug1, slug2 } = useParams();
@@ -20,8 +18,6 @@ function InstitutionQuestionLayout() {
   const [examStatus, setExamStatus] = useState<ExamStatusType>("ready");
 
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
-
-  const { masterDataLoading } = useMasterData();
 
   useEffect(() => {
     function defautState() {
@@ -45,20 +41,16 @@ function InstitutionQuestionLayout() {
         />
 
         <main>
-          {masterDataLoading ? (
-            <Loader />
-          ) : (
-            <Outlet
-              context={{
-                timeRemaining,
-                setTimeRemaining,
-                setExamStatus,
-                viewMode,
-                qDetails,
-                examStatus,
-              }}
-            />
-          )}
+          <Outlet
+            context={{
+              timeRemaining,
+              setTimeRemaining,
+              setExamStatus,
+              viewMode,
+              qDetails,
+              examStatus,
+            }}
+          />
         </main>
       </div>
     </div>

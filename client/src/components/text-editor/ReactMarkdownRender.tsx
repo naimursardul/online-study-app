@@ -9,7 +9,6 @@ import "katex/dist/katex.min.css";
 
 export default function ReactMarkdownRender({ text }: { text: string }) {
   text = text?.replace("CDN_BASE_URL", import.meta.env.VITE_CDN_BASE_URL);
-  console.log(JSON.stringify(text));
   return (
     <Markdown
       remarkPlugins={[remarkGfm, remarkMath, remarkBreaks]}

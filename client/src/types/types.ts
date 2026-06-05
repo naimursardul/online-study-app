@@ -92,7 +92,6 @@ export interface ISubQuestions {
   question: string;
   answer: string;
   chapterId: string;
-  subjectId: string;
   topicId: string;
 }
 

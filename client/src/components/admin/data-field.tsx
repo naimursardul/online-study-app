@@ -133,7 +133,7 @@ function ComboboxMulti<T>({
       </PopoverTrigger>
 
       <PopoverContent
-        className="w-[var(--radix-popover-trigger-width)] p-0"
+        className="w-(--radix-popover-trigger-width) p-0"
         align="start"
       >
         <Command shouldFilter={false}>
@@ -229,7 +229,7 @@ export default function DataField<T>({
             setFormData({ ...formData, [field.name]: e.target.value })
           }
           placeholder={`Enter ${field?.placeholder ?? field?.label}`}
-          className="text-sm resize-none min-h-[80px]"
+          className="text-sm resize-none min-h-20"
         />
       )}
 
@@ -252,7 +252,7 @@ export default function DataField<T>({
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              {field?.optionData?.length ? (
+              {field?.optionData && field?.optionData.length > 0 ? (
                 field.optionData.map((option) =>
                   "name" in option ? (
                     <SelectItem
@@ -278,7 +278,7 @@ export default function DataField<T>({
       {field?.inputType === "checkbox" &&
         (forAllDataPage ? (
           // On the filter page: searchable multi-select combobox
-          field?.optionData?.length ? (
+          field?.optionData && field?.optionData.length > 0 ? (
             <ComboboxMulti
               field={field}
               formData={formData}

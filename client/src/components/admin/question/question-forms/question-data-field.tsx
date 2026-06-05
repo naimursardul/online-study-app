@@ -30,7 +30,7 @@ export default function QuestionDataField<T>({
   const [open, setOpen] = useState<boolean>(false);
 
   const fieldValue = (formData as any)[field.name];
-
+  console.log(formData);
   return (
     <div className="space-y-2">
       {field?.label && <Label>{field.label}</Label>}
@@ -78,31 +78,24 @@ export default function QuestionDataField<T>({
             field.manualOptionData
               ? fieldValue || ""
               : fieldValue
-              ? `${(formData as any)[field.name + "Id"]},${fieldValue}`
-              : ""
+                ? fieldValue
+                : ""
           }
           onValueChange={(value) => {
             const obj: Record<string, any> = {};
 
-            if (field.manualOptionData) {
-              obj[field.name] = value;
-            } else {
-              const [id, name] = value.split(",");
-              obj[field.name] = name;
-              obj[field.name + "Id"] = id;
-            }
+            obj[field.name] = value;
 
             const dependentMap: Record<string, string[]> = {
-              level: ["background", "subject", "chapter", "topic"],
-              background: ["subject", "chapter", "topic"],
-              subject: ["chapter", "topic"],
-              chapter: ["topic"],
+              levelId: ["backgroundId", "subjectId", "chapterId", "topicId"],
+              backgroundId: ["subjectId", "chapterId", "topicId"],
+              subjectId: ["chapterId", "topicId"],
+              chapterId: ["topicId"],
             };
 
             if (dependentMap[field.name]) {
               dependentMap[field.name].forEach((dep) => {
-                obj[dep] = dep === "background" ? [] : "";
-                obj[dep + "Id"] = dep === "background" ? [] : "";
+                obj[dep] = dep === "backgroundId" ? [] : "";
               });
             }
 
@@ -111,16 +104,18 @@ export default function QuestionDataField<T>({
               ...obj,
             });
           }}
+          disabled={field?.optionData?.length === 0}
         >
           <SelectTrigger className="w-full cursor-pointer">
             <SelectValue
-              placeholder={`Select ${field?.placeholder || field?.name}`}
+              placeholder={`Select ${field?.placeholder || field?.label?.toLocaleLowerCase()}`}
             />
           </SelectTrigger>
 
           <SelectContent>
             <SelectGroup>
-              {field?.optionData?.length ? (
+              {field?.optionData &&
+                field?.optionData.length > 0 &&
                 field.optionData.map((option) => {
                   if ("name" in option)
                     return (
@@ -128,20 +123,13 @@ export default function QuestionDataField<T>({
                         className="cursor-pointer"
                         key={option._id}
                         value={
-                          field.manualOptionData
-                            ? option.name
-                            : `${option._id},${option.name}`
+                          field.manualOptionData ? option.name : option._id
                         }
                       >
                         {option.name}
                       </SelectItem>
                     );
-                })
-              ) : (
-                <SelectItem value="empty" disabled>
-                  No {field.name} available
-                </SelectItem>
-              )}
+                })}
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -157,41 +145,28 @@ export default function QuestionDataField<T>({
                   <div key={option._id} className="flex gap-2">
                     <Checkbox
                       className="cursor-pointer"
-                      checked={((formData as any)[field.name] || []).includes(
-                        option.name
-                      )}
+                      checked={(fieldValue || []).includes(option._id)}
                       onCheckedChange={(checked: boolean) => {
                         setFormData((prev) => {
-                          const names = [...((prev as any)[field.name] || [])];
-                          const ids = [
-                            ...((prev as any)[field.name + "Id"] || []),
-                          ];
+                          const ids = [...((prev as any)[field.name] || [])];
 
                           if (checked) {
                             if (!ids.includes(option._id)) {
                               ids.push(option._id);
-                              names.push(option.name);
                             }
                           } else {
                             const idIndex = ids.indexOf(option._id);
-                            const nameIndex = names.indexOf(option.name);
-
                             if (idIndex > -1) ids.splice(idIndex, 1);
-                            if (nameIndex > -1) names.splice(nameIndex, 1);
                           }
 
                           const updated: Record<string, any> = {
                             ...prev,
-                            [field.name]: names,
-                            [field.name + "Id"]: ids,
+                            [field.name]: ids,
                           };
 
-                          if (field.name === "background") {
-                            updated.subject = "";
+                          if (field.name === "backgroundId") {
                             updated.subjectId = "";
-                            updated.chapter = "";
                             updated.chapterId = "";
-                            updated.topic = "";
                             updated.topicId = "";
                           }
 
@@ -246,7 +221,7 @@ export default function QuestionDataField<T>({
                             <div className="flex gap-2">
                               <Checkbox
                                 checked={(formData as any).record?.some(
-                                  (r: any) => r._id === _r._id
+                                  (r: any) => r._id === _r._id,
                                 )}
                                 onCheckedChange={(checked) => {
                                   const record = [
@@ -257,7 +232,7 @@ export default function QuestionDataField<T>({
                                     record.push(_r);
                                   } else {
                                     const filtered = record.filter(
-                                      (r) => r._id !== _r._id
+                                      (r) => r._id !== _r._id,
                                     );
 
                                     return setFormData({

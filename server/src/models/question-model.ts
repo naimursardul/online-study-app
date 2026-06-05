@@ -156,10 +156,6 @@ const cqSchema = new Schema<ICQ>({
           type: String,
           required: true,
         },
-        subjectId: {
-          type: String,
-          required: true,
-        },
         topicId: {
           type: String,
           required: true,
