@@ -20,13 +20,20 @@ import {
 import { Button } from "../../../ui/button";
 import { X } from "lucide-react";
 import { useState } from "react";
-import type { DataFieldProps } from "@/types/types";
+import type { IBaseQuestion, ICQ, IField } from "@/types/types";
 
-export default function QuestionDataField<T>({
+// DATA FIELD PROPS TYPE
+export interface DataFieldProps {
+  formData: IBaseQuestion;
+  setFormData: React.Dispatch<React.SetStateAction<IBaseQuestion>>;
+  field: IField;
+  forAllDataPage?: boolean;
+}
+export default function QuestionDataField({
   formData,
   setFormData,
   field,
-}: DataFieldProps<T>) {
+}: DataFieldProps) {
   const [open, setOpen] = useState<boolean>(false);
 
   const fieldValue = (formData as any)[field.name];
@@ -88,7 +95,7 @@ export default function QuestionDataField<T>({
 
             const dependentMap: Record<string, string[]> = {
               levelId: ["backgroundId", "subjectId", "chapterId", "topicId"],
-              backgroundId: ["subjectId", "chapterId", "topicId"],
+              // backgroundId: ["subjectId", "chapterId", "topicId"],
               subjectId: ["chapterId", "topicId"],
               chapterId: ["topicId"],
             };
@@ -97,6 +104,14 @@ export default function QuestionDataField<T>({
               dependentMap[field.name].forEach((dep) => {
                 obj[dep] = dep === "backgroundId" ? [] : "";
               });
+              if (formData.questionType === "CQ") {
+                obj.subQuestions = (formData as ICQ)?.subQuestions?.map(
+                  (sq) => {
+                    if (sq?.chapterId) sq.chapterId = "";
+                    if (sq?.topicId) sq.topicId = "";
+                  },
+                );
+              }
             }
 
             setFormData({
@@ -168,9 +183,18 @@ export default function QuestionDataField<T>({
                             updated.subjectId = "";
                             updated.chapterId = "";
                             updated.topicId = "";
-                          }
 
-                          return updated as T;
+                            if (prev.questionType === "CQ") {
+                              updated.subQuestions = (
+                                prev as ICQ
+                              )?.subQuestions?.map((sq) => {
+                                if (sq?.chapterId) sq.chapterId = "";
+                                if (sq?.topicId) sq.topicId = "";
+                                return sq;
+                              });
+                            }
+                          }
+                          return updated as IBaseQuestion;
                         });
                       }}
                     />

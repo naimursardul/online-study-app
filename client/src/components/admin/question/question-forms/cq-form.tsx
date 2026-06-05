@@ -46,7 +46,7 @@ export default function CqForm({
   // Topic options from parent chapter
   const topicOptionsMap = useMemo(() => {
     return (formData.subQuestions ?? []).map((sq) =>
-      masterData.topics.filter((topic) => topic.chapterId === sq.chapterId),
+      masterData.topics.filter((topic) => topic?.chapterId === sq?.chapterId),
     );
   }, [masterData.topics, formData.subQuestions]);
 

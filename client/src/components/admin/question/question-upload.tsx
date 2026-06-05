@@ -232,7 +232,7 @@ export default function QuestionUpload() {
                 {filteredFields.map((field, i) => (
                   <QuestionDataField
                     key={i}
-                    formData={formData}
+                    formData={formData as IBaseQuestion}
                     setFormData={setFormData}
                     field={field}
                   />

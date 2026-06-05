@@ -26,14 +26,6 @@ export interface IField {
   description?: string;
 }
 
-// DATA FIELD PROPS TYPE
-export interface DataFieldProps<T> {
-  formData: T;
-  setFormData: React.Dispatch<React.SetStateAction<T>>;
-  field: IField;
-  forAllDataPage?: boolean;
-}
-
 // FORM ARRAY
 export interface IFormInfo {
   method: string;
