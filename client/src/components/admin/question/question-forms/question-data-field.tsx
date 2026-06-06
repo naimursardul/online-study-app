@@ -20,15 +20,8 @@ import {
 import { Button } from "../../../ui/button";
 import { X } from "lucide-react";
 import { useState } from "react";
-import type { IBaseQuestion, ICQ, IField } from "@/types/types";
+import type { DataFieldProps, IBaseQuestion, ICQ, IField } from "@/types/types";
 
-// DATA FIELD PROPS TYPE
-export interface DataFieldProps {
-  formData: IBaseQuestion;
-  setFormData: React.Dispatch<React.SetStateAction<IBaseQuestion>>;
-  field: IField;
-  forAllDataPage?: boolean;
-}
 export default function QuestionDataField({
   formData,
   setFormData,

@@ -1,4 +1,4 @@
-import type { DataFieldProps } from "@/types/types";
+import type { DataFieldProps, IBaseQuestion } from "@/types/types";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
@@ -31,7 +31,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 // ── Shared dependent-reset map ───────────────────────────────────
-const DEPENDENT_RESETS: Record<string, string[]> = {
+type DependencyKey = "levelId" | "backgroundId" | "subjectId" | "chapterId";
+type ResetKey = "backgroundId" | "subjectId" | "chapterId" | "topicId";
+const DEPENDENT_RESETS: Record<DependencyKey, ResetKey[]> = {
   levelId: ["backgroundId", "subjectId", "chapterId", "topicId"],
   backgroundId: ["subjectId", "chapterId", "topicId"],
   subjectId: ["chapterId", "topicId"],
@@ -39,22 +41,18 @@ const DEPENDENT_RESETS: Record<string, string[]> = {
 };
 
 // ── Multi-select Combobox (replaces checkbox on filter page) ─────
-interface ComboboxMultiProps<T> {
-  field: DataFieldProps<T>["field"];
-  formData: T;
-  setFormData: DataFieldProps<T>["setFormData"];
+interface ComboboxMultiProps {
+  field: DataFieldProps["field"];
+  formData: DataFieldProps["formData"];
+  setFormData: DataFieldProps["setFormData"];
 }
 
-function ComboboxMulti<T>({
-  field,
-  formData,
-  setFormData,
-}: ComboboxMultiProps<T>) {
+function ComboboxMulti({ field, formData, setFormData }: ComboboxMultiProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
   const selectedIds: string[] =
-    ((formData as Record<string, unknown>)[field.name] as string[]) || [];
+    (formData[field.name as keyof IBaseQuestion] as string[]) || [];
 
   const options =
     field.optionData?.filter(
@@ -67,22 +65,24 @@ function ComboboxMulti<T>({
 
   function toggle(id: string) {
     setFormData((prev) => {
-      const ids = [
-        ...(((prev as Record<string, unknown>)[field.name] as string[]) || []),
-      ];
+      const ids = [...(prev[field.name as DependencyKey] || [])];
       const idx = ids.indexOf(id);
       if (idx > -1) ids.splice(idx, 1);
       else ids.push(id);
 
-      const updated: Record<string, unknown> = {
-        ...(prev as Record<string, unknown>),
+      const updated: IBaseQuestion = {
+        ...prev,
         [field.name]: ids,
       };
       // cascade reset dependents
-      DEPENDENT_RESETS[field.name]?.forEach((dep) => {
-        updated[dep] = dep === "backgroundId" ? [] : "";
+      DEPENDENT_RESETS[field.name as DependencyKey]?.forEach((dep) => {
+        if (dep === "backgroundId") {
+          updated.backgroundId = [];
+        } else {
+          updated[dep] = "";
+        }
       });
-      return updated as T;
+      return updated as IBaseQuestion;
     });
   }
 
@@ -180,13 +180,13 @@ function ComboboxMulti<T>({
 }
 
 // ── Main DataField ───────────────────────────────────────────────
-export default function DataField<T>({
+export default function DataField({
   formData,
   setFormData,
   field,
   forAllDataPage,
-}: DataFieldProps<T>) {
-  const fieldValue = (formData as Record<string, unknown>)[field.name];
+}: DataFieldProps) {
+  const fieldValue = formData[field.name as keyof IBaseQuestion];
 
   return (
     <div className="space-y-1.5">
@@ -204,7 +204,7 @@ export default function DataField<T>({
           onChange={(e) =>
             setFormData({
               ...formData,
-              [field.name]:
+              [field.name as keyof IBaseQuestion]:
                 field.type === "number"
                   ? Number(e.target.value)
                   : e.target.value,
@@ -226,7 +226,10 @@ export default function DataField<T>({
           name={field?.name}
           value={(fieldValue as string) || ""}
           onChange={(e) =>
-            setFormData({ ...formData, [field.name]: e.target.value })
+            setFormData({
+              ...formData,
+              [field.name as keyof IBaseQuestion]: e.target.value,
+            })
           }
           placeholder={`Enter ${field?.placeholder ?? field?.label}`}
           className="text-sm resize-none min-h-20"
@@ -238,8 +241,10 @@ export default function DataField<T>({
         <Select
           value={fieldValue ? String(fieldValue) : ""}
           onValueChange={(value) => {
-            const updates: Record<string, unknown> = { [field.name]: value };
-            DEPENDENT_RESETS[field.name]?.forEach((dep) => {
+            const updates: Record<string, unknown> = {
+              [field.name as keyof IBaseQuestion]: value,
+            };
+            DEPENDENT_RESETS[field.name as DependencyKey]?.forEach((dep) => {
               updates[dep] = dep === "backgroundId" ? [] : "";
             });
             setFormData({ ...formData, ...updates });
@@ -304,8 +309,8 @@ export default function DataField<T>({
                     onCheckedChange={(checked: boolean) => {
                       setFormData((prev) => {
                         const ids = [
-                          ...(((prev as Record<string, unknown>)[
-                            field.name
+                          ...((prev[
+                            field.name as keyof IBaseQuestion
                           ] as string[]) || []),
                         ];
                         if (checked) {
@@ -314,14 +319,20 @@ export default function DataField<T>({
                           const idx = ids.indexOf(option._id);
                           if (idx > -1) ids.splice(idx, 1);
                         }
-                        const updated: Record<string, unknown> = {
-                          ...(prev as Record<string, unknown>),
-                          [field.name]: ids,
+                        const updated: IBaseQuestion = {
+                          ...prev,
+                          [field.name as keyof IBaseQuestion]: ids,
                         };
-                        DEPENDENT_RESETS[field.name]?.forEach((dep) => {
-                          updated[dep] = dep === "backgroundId" ? [] : "";
-                        });
-                        return updated as T;
+                        DEPENDENT_RESETS[field.name as DependencyKey]?.forEach(
+                          (dep) => {
+                            if (dep === "backgroundId") {
+                              updated.backgroundId = [];
+                            } else {
+                              updated[dep] = "";
+                            }
+                          },
+                        );
+                        return updated;
                       });
                     }}
                   />

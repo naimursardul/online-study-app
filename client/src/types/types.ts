@@ -26,6 +26,14 @@ export interface IField {
   description?: string;
 }
 
+// DATA FIELD PROPS TYPE
+export interface DataFieldProps {
+  formData: IBaseQuestion;
+  setFormData: React.Dispatch<React.SetStateAction<IBaseQuestion>>;
+  field: IField;
+  forAllDataPage?: boolean;
+}
+
 // FORM ARRAY
 export interface IFormInfo {
   method: string;
