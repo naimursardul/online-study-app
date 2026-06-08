@@ -17,7 +17,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useState, useEffect, useRef, useMemo } from "react";
-import type { IField, IQueryFormData } from "@/types/types";
+import type {
+  IBackground,
+  IChapter,
+  IField,
+  ILevel,
+  IQueryFormData,
+  IRecord,
+  ISubject,
+  ITopic,
+} from "@/types/types";
 import {
   Dialog,
   DialogDescription,
@@ -35,7 +44,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 
 const PAGE_SIZE = 10;
-
+type DataType = (
+  | ILevel
+  | IBackground
+  | ISubject
+  | IChapter
+  | ITopic
+  | IRecord
+) & {
+  _id: string;
+};
 export default function AllData({
   heading,
   route,
@@ -45,7 +63,7 @@ export default function AllData({
   route: string;
   fields: IField[];
 }) {
-  const [allData, setAllData] = useState<Record<string, string>[]>([]);
+  const [allData, setAllData] = useState<DataType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState(1);
   const closeRef = useRef<HTMLButtonElement | null>(null);
@@ -276,7 +294,7 @@ export default function AllData({
                     </TableCell>
 
                     {fields.map((field, i) => {
-                      const raw = data[field.name];
+                      const raw = data[field.name as keyof DataType];
                       const display = resolveCellValue(raw);
                       const isBadge =
                         field.inputType === "select" ||
@@ -353,8 +371,10 @@ export default function AllData({
                               <DialogTitle>Delete {heading}</DialogTitle>
                               <DialogDescription>
                                 Are you sure you want to delete{" "}
-                                <strong>"{data?.name}"</strong>? This action
-                                cannot be undone.
+                                <strong>
+                                  "{data["name" as keyof DataType]}"
+                                </strong>
+                                ? This action cannot be undone.
                               </DialogDescription>
                             </DialogHeader>
                             <div className="flex gap-2 justify-end pt-2">
