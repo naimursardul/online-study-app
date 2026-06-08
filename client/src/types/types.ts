@@ -27,18 +27,24 @@ export interface IField {
 }
 
 // DATA FIELD PROPS TYPE
-export interface DataFieldProps {
+export interface IQuestionDataFieldProps {
   formData: IBaseQuestion;
   setFormData: React.Dispatch<React.SetStateAction<IBaseQuestion>>;
   field: IField;
   forAllDataPage?: boolean;
 }
+export interface DataFieldProps<T> {
+  formData: T;
+  setFormData: React.Dispatch<React.SetStateAction<T>>;
+  field: IField;
+  forAllDataPage?: boolean;
+}
 
 // FORM ARRAY
-export interface IFormInfo {
+export interface IFormInfo<T> {
   method: string;
   route: string;
-  initData: Record<string, string>;
+  initData: T;
   fields: IField[];
 }
 

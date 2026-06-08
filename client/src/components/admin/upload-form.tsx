@@ -6,20 +6,20 @@ import { useMasterData } from "@/lib/MasterData-context";
 import SubmitBtn from "../submit-btn/submit-btn";
 import DataField from "./data-field";
 
-export default function UploadForm({
+export default function UploadForm<T>({
   formInfo,
   closeRef,
 }: {
-  formInfo: IFormInfo;
+  formInfo: IFormInfo<T>;
   closeRef?: RefObject<HTMLButtonElement | null>;
 }) {
-  const [formData, setFormData] = useState<Record<string, string>>(
-    formInfo?.initData
-  );
+  const [formData, setFormData] = useState<T>(formInfo?.initData);
 
   const { masterData } = useMasterData();
 
-  //   Show toast on Responses
+  // =========================================
+  // Show toast on Responses
+  // =========================================
   function showToastOnRes(data: { success: boolean; message: string }) {
     console.log(data);
     if (!data.success) {
@@ -33,8 +33,9 @@ export default function UploadForm({
     toast.success(data.message);
   }
 
-  console.log(formData);
-  //   HANDLE SUBMIT
+  // =========================================
+  // HANDLE SUBMIT
+  // =========================================
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log("data", formData);
@@ -42,7 +43,7 @@ export default function UploadForm({
     for (const field of updatedFields) {
       if (!field?.req) field.req = true;
 
-      if (field?.req && !formData[field?.name]) {
+      if (field?.req && !formData[field?.name as keyof T]) {
         return toast.warning(`${field?.name.toUpperCase()} must be filled in.`);
       }
     }
@@ -63,9 +64,13 @@ export default function UploadForm({
     }
   };
 
+  // =========================================
+  // UPDATED FIELDS
+  // =========================================
+
   const updatedFields = useMemo(
     () => getQuestionDataOption(formData, masterData, formInfo.fields),
-    [formData, masterData, formInfo.fields]
+    [formData, masterData, formInfo.fields],
   );
 
   // console.log(formData);

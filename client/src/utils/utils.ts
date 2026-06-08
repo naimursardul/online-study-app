@@ -22,31 +22,34 @@ const client = axios.create({
 });
 export { client };
 
-export function createFormInfo(
+export function createFormInfo<T extends { _id: string }>(
   method: string,
   route: string,
   fields: IField[],
-  data?: Record<string, string>,
-): IFormInfo {
-  function getRoute(route: string, data?: Record<string, string>) {
-    if (method === "PUT" && data) {
-      return `${route}/${data?._id}`;
+  data?: T,
+): IFormInfo<T> {
+  function getRoute() {
+    if (method === "PUT" && data?._id) {
+      return `${route}/${data._id}`;
     } else return `${route}/create`;
   }
-  function getInitData(data?: Record<string, string>) {
-    const obj = {};
+  function getInitData() {
+    const obj = {} as T;
     for (const field of fields) {
+      const fieldName = field.name as keyof T;
       if (method === "PUT" && data) {
         if (field?.name === "name") {
-          (obj as unknown as Record<string, string>)[field.name] = data?.name;
-        } else if (field?.inputType === "checkbox") {
-          (obj as unknown as Record<string, string[]>)[field.name] = (
-            data[field.name] as unknown as { _id: string }[]
-          )?.map((d) => d?._id);
-        } else
-          (obj as unknown as Record<string, string>)[field.name] = (
-            data[field.name] as unknown as { _id: string }
-          )?._id;
+          obj["name" as keyof T] = data["name" as keyof T];
+        } else if (
+          field?.inputType === "checkbox" &&
+          Array.isArray(data[fieldName])
+        ) {
+          obj[fieldName] = data[fieldName]?.map((d) => d?._id) as T[keyof T];
+        } else {
+          obj[fieldName] = (data[fieldName]
+            ? (data[fieldName] as { _id?: string })?._id
+            : undefined) as unknown as T[keyof T];
+        }
       } else {
         if (field?.inputType === "checkbox") {
           (obj as unknown as Record<string, string[]>)[field.name] = [];
@@ -58,9 +61,9 @@ export function createFormInfo(
 
   return {
     method,
-    route: getRoute(route, data),
+    route: getRoute(),
     fields,
-    initData: getInitData(data),
+    initData: getInitData() as T,
   };
 }
 
@@ -103,26 +106,14 @@ export function createManualOptions(arr: string[]): IOptionData[] {
 }
 
 // GET QUESTION DATA
-export function getQuestionDataOption(
-  formData: {
-    levelId?: string;
-    backgroundId?: string[];
-    subjectId?: string;
-    chapterId?: string;
-  },
+export function getQuestionDataOption<T>(
+  formData: T,
   masterData: IMasterData,
   fields: IField[],
 ): IField[] {
   {
     return fields.map((field) => {
       const fieldName = field.name;
-      console.log(formData.levelId);
-      console.log(
-        masterData.backgrounds.filter(
-          (bg: any) => bg.levelId === formData.levelId,
-        ),
-      );
-      console.log(fieldName);
 
       switch (fieldName) {
         case "levelId":
@@ -135,7 +126,7 @@ export function getQuestionDataOption(
           return {
             ...field,
             optionData: masterData.backgrounds?.filter(
-              (bg: any) => bg.levelId === formData.levelId,
+              (bg) => bg.levelId === formData["levelId" as keyof T],
             ),
           };
 
@@ -143,10 +134,13 @@ export function getQuestionDataOption(
           return {
             ...field,
             optionData: masterData.subjects?.filter(
-              (sub: any) =>
-                String(sub.levelId) === String(formData.levelId) &&
+              (sub) =>
+                String(sub.levelId) ===
+                  String(formData["levelId" as keyof T]) &&
                 sub.backgroundId?.some((bgId: string) =>
-                  formData.backgroundId?.includes(bgId),
+                  (formData["backgroundId" as keyof T] as string[])?.includes(
+                    bgId,
+                  ),
                 ),
             ),
           };
@@ -155,7 +149,7 @@ export function getQuestionDataOption(
           return {
             ...field,
             optionData: masterData.chapters?.filter(
-              (ch: any) => ch.subjectId === formData.subjectId,
+              (ch) => ch.subjectId === formData["subjectId" as keyof T],
             ),
           };
 
@@ -163,7 +157,7 @@ export function getQuestionDataOption(
           return {
             ...field,
             optionData: masterData.topics?.filter(
-              (topic: any) => topic.chapterId === formData.chapterId,
+              (topic) => topic.chapterId === formData["chapterId" as keyof T],
             ),
           };
 
@@ -188,7 +182,8 @@ export const extractIdTo_ = (
   dataId: string,
   to: string,
 ) => {
-  const item = data.find((item) => item._id === dataId) as Record<
+  if (!data || !dataId) return dataId;
+  const item = data?.find((item) => item._id === dataId) as Record<
     string,
     string
   >;

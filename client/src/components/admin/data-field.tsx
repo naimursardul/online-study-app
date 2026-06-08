@@ -30,29 +30,30 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
+// ── Multi-select Combobox (replaces checkbox on filter page) ─────
+interface ComboboxMultiProps<T> {
+  field: DataFieldProps<T>["field"];
+  formData: DataFieldProps<T>["formData"];
+  setFormData: DataFieldProps<T>["setFormData"];
+}
 // ── Shared dependent-reset map ───────────────────────────────────
-type DependencyKey = "levelId" | "backgroundId" | "subjectId" | "chapterId";
-type ResetKey = "backgroundId" | "subjectId" | "chapterId" | "topicId";
-const DEPENDENT_RESETS: Record<DependencyKey, ResetKey[]> = {
+const DEPENDENT_RESETS: Record<string, string[]> = {
   levelId: ["backgroundId", "subjectId", "chapterId", "topicId"],
   backgroundId: ["subjectId", "chapterId", "topicId"],
   subjectId: ["chapterId", "topicId"],
   chapterId: ["topicId"],
 };
 
-// ── Multi-select Combobox (replaces checkbox on filter page) ─────
-interface ComboboxMultiProps {
-  field: DataFieldProps["field"];
-  formData: DataFieldProps["formData"];
-  setFormData: DataFieldProps["setFormData"];
-}
-
-function ComboboxMulti({ field, formData, setFormData }: ComboboxMultiProps) {
+function ComboboxMulti<T>({
+  field,
+  formData,
+  setFormData,
+}: ComboboxMultiProps<T>) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const fieldName: keyof T = field.name as keyof T;
 
-  const selectedIds: string[] =
-    (formData[field.name as keyof IBaseQuestion] as string[]) || [];
+  const selectedIds: string[] = (formData[fieldName] as string[]) || [];
 
   const options =
     field.optionData?.filter(
@@ -65,24 +66,24 @@ function ComboboxMulti({ field, formData, setFormData }: ComboboxMultiProps) {
 
   function toggle(id: string) {
     setFormData((prev) => {
-      const ids = [...(prev[field.name as DependencyKey] || [])];
+      const ids = [...(prev[fieldName] as string[])];
       const idx = ids.indexOf(id);
       if (idx > -1) ids.splice(idx, 1);
       else ids.push(id);
 
-      const updated: IBaseQuestion = {
+      const updated: T = {
         ...prev,
-        [field.name]: ids,
+        [fieldName]: ids,
       };
       // cascade reset dependents
-      DEPENDENT_RESETS[field.name as DependencyKey]?.forEach((dep) => {
+      (DEPENDENT_RESETS[String(fieldName)] as string[])?.forEach((dep) => {
         if (dep === "backgroundId") {
-          updated.backgroundId = [];
+          updated["backgroundId" as keyof T] = [] as T[keyof T];
         } else {
-          updated[dep] = "";
+          updated[dep as keyof T] = "" as T[keyof T];
         }
       });
-      return updated as IBaseQuestion;
+      return updated as T;
     });
   }
 
@@ -180,13 +181,13 @@ function ComboboxMulti({ field, formData, setFormData }: ComboboxMultiProps) {
 }
 
 // ── Main DataField ───────────────────────────────────────────────
-export default function DataField({
+export default function DataField<T>({
   formData,
   setFormData,
   field,
   forAllDataPage,
-}: DataFieldProps) {
-  const fieldValue = formData[field.name as keyof IBaseQuestion];
+}: DataFieldProps<T>) {
+  const fieldName = formData[field.name as keyof T];
 
   return (
     <div className="space-y-1.5">
@@ -200,7 +201,7 @@ export default function DataField({
           type={field?.type || "text"}
           id={field?.name}
           name={field?.name}
-          value={(fieldValue as string) || ""}
+          value={(fieldName as string) || ""}
           onChange={(e) =>
             setFormData({
               ...formData,
@@ -224,7 +225,7 @@ export default function DataField({
         <Textarea
           id={field?.name}
           name={field?.name}
-          value={(fieldValue as string) || ""}
+          value={(fieldName as string) || ""}
           onChange={(e) =>
             setFormData({
               ...formData,
@@ -239,15 +240,19 @@ export default function DataField({
       {/* ── Select ─────────────────────────────────────────────── */}
       {field?.inputType === "select" && (
         <Select
-          value={fieldValue ? String(fieldValue) : ""}
+          value={fieldName ? String(fieldName) : ""}
           onValueChange={(value) => {
-            const updates: Record<string, unknown> = {
-              [field.name as keyof IBaseQuestion]: value,
-            };
-            DEPENDENT_RESETS[field.name as DependencyKey]?.forEach((dep) => {
-              updates[dep] = dep === "backgroundId" ? [] : "";
+            setFormData((prev) => {
+              const obj: T = { ...prev, [fieldName as keyof T]: value } as T;
+              DEPENDENT_RESETS[fieldName as string]?.forEach((dep) => {
+                if (dep === "backgroundId") {
+                  obj["backgroundId" as keyof T] = [] as T[keyof T];
+                } else {
+                  obj[dep as keyof T] = "" as T[keyof T];
+                }
+              });
+              return { ...obj };
             });
-            setFormData({ ...formData, ...updates });
           }}
         >
           <SelectTrigger className="w-full h-9 text-sm cursor-pointer">
@@ -303,15 +308,13 @@ export default function DataField({
                   <Checkbox
                     id={`${field.name}-${option._id}`}
                     className="cursor-pointer"
-                    checked={((fieldValue as string[]) || []).includes(
+                    checked={((fieldName as string[]) || []).includes(
                       option._id,
                     )}
                     onCheckedChange={(checked: boolean) => {
                       setFormData((prev) => {
                         const ids = [
-                          ...((prev[
-                            field.name as keyof IBaseQuestion
-                          ] as string[]) || []),
+                          ...((prev[field.name as keyof T] as string[]) || []),
                         ];
                         if (checked) {
                           if (!ids.includes(option._id)) ids.push(option._id);
@@ -319,20 +322,21 @@ export default function DataField({
                           const idx = ids.indexOf(option._id);
                           if (idx > -1) ids.splice(idx, 1);
                         }
-                        const updated: IBaseQuestion = {
+                        const updated: T = {
                           ...prev,
-                          [field.name as keyof IBaseQuestion]: ids,
+                          [field.name as keyof T]: ids,
                         };
-                        DEPENDENT_RESETS[field.name as DependencyKey]?.forEach(
+                        DEPENDENT_RESETS[field.name as string]?.forEach(
                           (dep) => {
                             if (dep === "backgroundId") {
-                              updated.backgroundId = [];
+                              updated["backgroundId" as keyof T] =
+                                [] as T[keyof T];
                             } else {
-                              updated[dep] = "";
+                              updated[dep as keyof T] = "" as T[keyof T];
                             }
                           },
                         );
-                        return updated;
+                        return updated as T;
                       });
                     }}
                   />

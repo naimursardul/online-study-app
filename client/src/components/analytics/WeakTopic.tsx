@@ -23,10 +23,10 @@ interface WeakTopic {
 function AccuracyBar({ accuracy }: { accuracy: number }) {
   const color =
     accuracy < 40
-      ? "bg-red-500"
+      ? "bg-destructive"
       : accuracy < 70
-        ? "bg-amber-500"
-        : "bg-emerald-500";
+        ? "bg-warning"
+        : "bg-success";
 
   return (
     <div className="flex items-center gap-3 min-w-35">
@@ -39,10 +39,10 @@ function AccuracyBar({ accuracy }: { accuracy: number }) {
       <span
         className={`text-sm font-semibold tabular-nums w-12 text-right ${
           accuracy < 40
-            ? "text-red-500"
+            ? "text-destructive"
             : accuracy < 70
-              ? "text-amber-500"
-              : "text-emerald-600"
+              ? "text-warning"
+              : "text-success"
         }`}
       >
         {accuracy}%
@@ -60,12 +60,12 @@ function AccuracyBadge({ accuracy }: { accuracy: number }) {
     );
   if (accuracy < 70)
     return (
-      <Badge className="text-xs bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100">
+      <Badge className="text-xs bg-warning/10 text-warning border-warning/20 hover:bg-warning/10">
         Needs work
       </Badge>
     );
   return (
-    <Badge className="text-xs bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100">
+    <Badge className="text-xs bg-success/10 text-success border-success/20 hover:bg-success/10">
       Fair
     </Badge>
   );
@@ -197,7 +197,7 @@ export default function WeakTopics({
           </div>
         ) : (
           <div className="divide-y divide-border">
-            {topics.map((topic, index) => (
+            {topics?.map((topic, index) => (
               <div
                 key={topic.topicId}
                 className="flex justify-between max-sm:flex-col items-center max-sm:items-start gap-3 py-3"
@@ -211,15 +211,15 @@ export default function WeakTopics({
                   {/* Topic info */}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">
-                      {extractIdTo_(masterData.topics, topic.topicId, "name")}
+                      {extractIdTo_(masterData?.topics, topic?.topicId, "name")}
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
-                      {extractIdTo_(allSubjects, topic.subjectId, "name")}
+                      {extractIdTo_(allSubjects, topic?.subjectId, "name")}
                       {" . "}
-                      {topic.chapterId
+                      {topic?.chapterId
                         ? extractIdTo_(
-                            masterData.chapters,
-                            topic.chapterId,
+                            masterData?.chapters,
+                            topic?.chapterId,
                             "name",
                           )
                         : ""}
