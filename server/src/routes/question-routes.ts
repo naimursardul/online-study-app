@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  bulkCreateQuestions,
   createQuestion,
   deleteSingleQuestion,
   getAllQuestions,
@@ -23,5 +24,7 @@ router.put("/:id", updateSingleQuestion);
 
 // // Delete single question
 router.delete("/:id", deleteSingleQuestion);
+
+router.post("/bulk-create", bulkCreateQuestions);
 
 export default router;

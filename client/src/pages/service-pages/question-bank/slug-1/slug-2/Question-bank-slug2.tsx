@@ -190,7 +190,6 @@ function QuestionBankSlug2() {
   async function handleMcqSubmit() {
     // guard against duplicate calls (e.g. timer + manual click)
     if (isSubmittingRef.current) {
-      console.log("Submission already in progress - ignoring duplicate call");
       return;
     }
 
@@ -198,7 +197,6 @@ function QuestionBankSlug2() {
 
     try {
       clearTimer();
-      console.log("Submitting:", timeRemaining);
 
       const res = await client.post("/exam/create-answer", {
         u_id: user?._id,
@@ -272,6 +270,7 @@ function QuestionBankSlug2() {
     }, 1000);
   }
 
+  console.log(allQuestion);
   // =========================
   // LOADING
   // =========================

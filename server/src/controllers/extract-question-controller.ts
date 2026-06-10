@@ -166,7 +166,7 @@ export const extractQuestionsHandler = [
       // ====================================================
 
       //   const model = extractAll ? "gemini-2.5-pro" : "gemini-2.5-flash";
-      const model = "gemini-3.5-flash";
+      const model = "gemini-2.5-flash";
 
       let response;
       let uploadedFile: any = null;

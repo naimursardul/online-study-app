@@ -7,6 +7,7 @@
 
 import { Request, Response } from "express";
 import { MCQ, CQ, BaseQuestion } from "../models/question-model";
+import { ICQ, IMCQ } from "../type/type";
 
 // CREATE QUESTION
 async function createQuestion(req: Request, res: Response) {
@@ -366,10 +367,108 @@ const deleteSingleQuestion = async (req: Request, res: Response) => {
   }
 };
 
+// =========================================
+// CREATE BULK QUESTION
+// =========================================
+async function bulkCreateQuestions(req: Request, res: Response) {
+  const { questions } = req.body;
+
+  if (!Array.isArray(questions) || questions.length === 0) {
+    res.status(400).json({
+      success: false,
+      message: "No questions provided.",
+    });
+    return;
+  }
+
+  // Split by type
+  const mcqs = questions.filter((q) => q.questionType === "MCQ") as IMCQ[];
+  const cqs = questions.filter((q) => q.questionType === "CQ") as ICQ[];
+
+  let inserted = 0;
+  let failed = 0;
+  const errors: { index: number; message: string }[] = [];
+
+  // -------------------------
+  // Insert MCQs
+  // -------------------------
+  if (mcqs.length > 0) {
+    try {
+      const result = await MCQ.insertMany(mcqs, { ordered: false });
+      inserted += result.length;
+    } catch (err: any) {
+      // ordered: false means valid docs still insert even if some fail
+      if (err.insertedDocs) {
+        inserted += err.insertedDocs.length;
+      }
+
+      const writeErrors = err.writeErrors || [];
+      failed += writeErrors.length;
+
+      writeErrors.forEach((e: any) => {
+        errors.push({
+          index: e.index,
+          message: e.errmsg || "MCQ insert failed.",
+        });
+      });
+    }
+  }
+
+  // -------------------------
+  // Insert CQs
+  // -------------------------
+  if (cqs.length > 0) {
+    try {
+      const result = await CQ.insertMany(cqs, { ordered: false });
+      inserted += result.length;
+    } catch (err: any) {
+      if (err.insertedDocs) {
+        inserted += err.insertedDocs.length;
+      }
+
+      const writeErrors = err.writeErrors || [];
+      failed += writeErrors.length;
+
+      writeErrors.forEach((e: any) => {
+        errors.push({
+          index: e.index,
+          message: e.errmsg || "CQ insert failed.",
+        });
+      });
+    }
+  }
+
+  // -------------------------
+  // Response
+  // -------------------------
+  const allFailed = inserted === 0 && failed > 0;
+
+  if (allFailed) {
+    res.status(500).json({
+      success: false,
+      message: "All questions failed to upload.",
+      inserted,
+      failed,
+      errors,
+    });
+    return;
+  }
+
+  res.status(200).json({
+    success: true,
+    message: `${inserted} uploaded, ${failed} failed.`,
+    inserted,
+    failed,
+    errors,
+  });
+  return;
+}
+
 export {
   createQuestion,
   getAllQuestions,
   getSingleQuestion,
   updateSingleQuestion,
   deleteSingleQuestion,
+  bulkCreateQuestions,
 };

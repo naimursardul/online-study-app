@@ -107,14 +107,6 @@ export interface ICQ extends IBaseQuestion {
   subQuestions: ISubQuestions[];
 }
 
-// MCQ
-export interface IMCQ extends IBaseQuestion {
-  question: string;
-  options: string[];
-  correctAnswer: string;
-  explanation: string;
-}
-
 // Populated Type
 export interface IPopulatedData {
   _id: string;
@@ -258,3 +250,51 @@ export interface IExtractedCQQuestion {
     answer: string;
   }[];
 }
+// -------------------------
+// Extracted (raw API response shapes)
+// -------------------------
+
+export interface IExtractedMcqQuestion {
+  question: string;
+  options: string[];
+  correctAnswer: string;
+  explanation: string;
+}
+
+export interface IExtractedCQQuestion {
+  statement: string;
+  subQuestions: ISubQuestionWithMeta[];
+}
+
+export interface IExtractionResponse {
+  questionType: "MCQ" | "CQ";
+  questions: IExtractedMcqQuestion[] | IExtractedCQQuestion[];
+}
+
+// -------------------------
+// With Meta (state shape in QuestionExtractor)
+// -------------------------
+
+export interface ISubQuestionWithMeta {
+  questionNo: string;
+  question: string;
+  answer: string;
+  chapterId: string;
+  topicId: string;
+}
+
+export interface IMCQWithMeta extends IBaseQuestion {
+  questionType: "MCQ";
+  question: string;
+  options: string[];
+  correctAnswer: string;
+  explanation: string;
+}
+
+export interface ICQWithMeta extends IBaseQuestion {
+  questionType: "CQ";
+  statement: string;
+  subQuestions: ISubQuestionWithMeta[];
+}
+
+export type IQuestionWithMeta = IMCQWithMeta | ICQWithMeta;
