@@ -6,6 +6,7 @@ import { useMasterData } from "@/lib/MasterData-context";
 import type { IBaseQuestion, IField } from "@/types/types";
 import QuestionDataField from "../question/question-forms/question-data-field";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 interface GlobalMetadataPanelProps {
   meta: IBaseQuestion;
@@ -56,8 +57,8 @@ export default function GlobalMetadataPanel({
 
   return (
     <Card className="w-full shadow-md">
-      <CardContent className="pt-6">
-        <div className="flex items-center justify-between mb-10">
+      <CardContent className="pt-6 space-y-5">
+        <div className="flex items-center justify-between ">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <Settings2 size={20} />
             <span>Global Metadata</span>
@@ -76,6 +77,7 @@ export default function GlobalMetadataPanel({
             Clear
           </Button>
         </div>
+        <Separator />
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filteredFields.map((field, i) => (
             <QuestionDataField

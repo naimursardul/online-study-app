@@ -199,6 +199,7 @@ export default function QuestionExtractor() {
         setMeta={(updated) => handleMetaChange(updated as IBaseQuestion)}
         onClear={handleClearMeta}
       />
+
       {/* File + options */}
       <Card className="p-6 space-y-6">
         <FileUploader file={file} onFileChange={setFile} />
