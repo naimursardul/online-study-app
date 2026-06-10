@@ -217,7 +217,7 @@ export default function QuestionDataField({
                 );
             })
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2 ">
               <div className="flex gap-2 flex-wrap">
                 {formData.record?.map((r, i) => (
                   <div

@@ -158,7 +158,29 @@ export default function QuestionExtractor() {
   // inside QuestionExtractor, above return:
   const validationResults = useMemo(() => validateAll(questions), [questions]);
 
-  const allValid = validationResults.every((r) => r.valid);
+  function handleClearMeta() {
+    setMeta(defaultMeta);
+    setQuestions((prev) =>
+      prev.map(
+        (q) =>
+          ({
+            ...q,
+            ...defaultMeta,
+            questionType: q.questionType,
+            ...(q.questionType === "CQ" && {
+              statement: (q as ICQWithMeta).statement,
+              subQuestions: (q as ICQWithMeta).subQuestions.map((sq) => ({
+                ...sq,
+                chapterId: "",
+                topicId: "",
+              })),
+            }),
+          }) as IQuestionWithMeta,
+      ),
+    );
+  }
+
+  // const allValid = validationResults.every((r) => r.valid);
   return (
     <div className="container mx-auto py-10 max-w-6xl space-y-8">
       {/* Header */}
@@ -172,6 +194,11 @@ export default function QuestionExtractor() {
         </div>
       </div>
 
+      <GlobalMetadataPanel
+        meta={meta}
+        setMeta={(updated) => handleMetaChange(updated as IBaseQuestion)}
+        onClear={handleClearMeta}
+      />
       {/* File + options */}
       <Card className="p-6 space-y-6">
         <FileUploader file={file} onFileChange={setFile} />
@@ -220,11 +247,6 @@ export default function QuestionExtractor() {
       {/* Global metadata — only shown after extraction */}
       {questions.length > 0 && (
         <>
-          <GlobalMetadataPanel
-            meta={meta}
-            setMeta={(updated) => handleMetaChange(updated as IBaseQuestion)}
-          />
-
           {/* Edit All toggle */}
           <div className="flex justify-end">
             <Button

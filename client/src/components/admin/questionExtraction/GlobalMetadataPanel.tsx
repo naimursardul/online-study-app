@@ -1,14 +1,16 @@
 import { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Settings2 } from "lucide-react";
+import { Settings2, X } from "lucide-react";
 import { createManualOptions, getQuestionDataOption } from "@/utils/utils";
 import { useMasterData } from "@/lib/MasterData-context";
 import type { IBaseQuestion, IField } from "@/types/types";
 import QuestionDataField from "../question/question-forms/question-data-field";
+import { Button } from "@/components/ui/button";
 
 interface GlobalMetadataPanelProps {
   meta: IBaseQuestion;
   setMeta: React.Dispatch<React.SetStateAction<IBaseQuestion>>;
+  onClear: () => void;
 }
 
 const fields: IField[] = [
@@ -43,6 +45,7 @@ const fields: IField[] = [
 export default function GlobalMetadataPanel({
   meta,
   setMeta,
+  onClear,
 }: GlobalMetadataPanelProps) {
   const { masterData } = useMasterData();
 
@@ -54,14 +57,25 @@ export default function GlobalMetadataPanel({
   return (
     <Card className="w-full shadow-md">
       <CardContent className="pt-6">
-        <h2 className="text-lg font-semibold mb-6 flex items-center gap-2">
-          <Settings2 size={20} />
-          <span>Global Metadata</span>
-          <span className="text-sm font-normal text-muted-foreground ml-1">
-            — applied to all extracted questions by default
-          </span>
-        </h2>
+        <div className="flex items-center justify-between mb-10">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Settings2 size={20} />
+            <span>Global Metadata</span>
+            <span className="text-sm font-normal text-muted-foreground ml-1">
+              — applied to all extracted questions by default
+            </span>
+          </h2>
 
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClear}
+            className="gap-2 text-destructive hover:text-destructive"
+          >
+            <X size={16} />
+            Clear
+          </Button>
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filteredFields.map((field, i) => (
             <QuestionDataField
