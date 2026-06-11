@@ -261,11 +261,6 @@ export interface IExtractedMcqQuestion {
   explanation: string;
 }
 
-export interface IExtractedCQQuestion {
-  statement: string;
-  subQuestions: ISubQuestionWithMeta[];
-}
-
 export interface IExtractionResponse {
   questionType: "MCQ" | "CQ";
   questions: IExtractedMcqQuestion[] | IExtractedCQQuestion[];

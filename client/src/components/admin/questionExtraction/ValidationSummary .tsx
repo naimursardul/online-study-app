@@ -1,6 +1,6 @@
 import { AlertCircle, CheckCircle2 } from "lucide-react";
-import type { IQuestionValidationResult } from "@/utils/validateQuestion";
 import { Alert, AlertDescription } from "../../ui/alert";
+import type { IQuestionValidationResult } from "@/utils/validateQuestion";
 
 interface ValidationSummaryProps {
   result: IQuestionValidationResult;
