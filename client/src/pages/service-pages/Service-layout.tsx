@@ -1,6 +1,8 @@
+import Loader from "@/components/loader/Loader";
 import ServiceNavbar from "@/components/service-bar/service-navbar";
 import SidebarTemplate from "@/components/sidebar-template/SidebarTemplate";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { useMasterData } from "@/lib/MasterData-context";
 import type { SidebarItemType } from "@/types/types";
 import { Calendar, Home, Inbox, LayoutDashboard } from "lucide-react";
 import { Outlet } from "react-router-dom";
@@ -31,6 +33,7 @@ export default function ServiceLayout() {
     },
   ];
 
+  const { masterDataLoading } = useMasterData();
   return (
     <SidebarProvider>
       <div className="max-w-50">
@@ -42,7 +45,7 @@ export default function ServiceLayout() {
           <ServiceNavbar items={items} />
         </div>
         <main className="pl-6 pr-6">
-          <Outlet />
+          {masterDataLoading ? <Loader /> : <Outlet />}
         </main>
       </div>
     </SidebarProvider>
