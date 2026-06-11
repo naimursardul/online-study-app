@@ -63,7 +63,7 @@ export default function GlobalMetadataPanel({
             <Settings2 size={20} />
             <span>Global Metadata</span>
             <span className="text-sm font-normal text-muted-foreground ml-1">
-              — applied to all extracted questions by default
+              — applied to all extracted questions by default...
             </span>
           </h2>
 
