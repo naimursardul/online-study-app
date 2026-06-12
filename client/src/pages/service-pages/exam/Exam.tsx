@@ -1,12 +1,5 @@
-import QuestionExtractor from "@/components/admin/questionExtraction/QuestionExtractor";
-
 function Exam() {
-  return (
-    <div>
-      {/* <QuestionExtractor /> */}
-      <QuestionExtractor />
-    </div>
-  );
+  return <div>Exam</div>;
 }
 
 export default Exam;

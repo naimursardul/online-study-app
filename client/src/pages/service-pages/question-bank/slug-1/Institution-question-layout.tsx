@@ -4,13 +4,17 @@ import { getBoardQusetonDetails } from "@/utils/utils";
 import type { ExamStatusType, ViewModeType } from "@/types/types";
 import { useEffect, useMemo, useState } from "react";
 import { Outlet, useParams } from "react-router-dom";
+import { useMasterData } from "@/lib/MasterData-context";
 
 function InstitutionQuestionLayout() {
   const { slug1, slug2 } = useParams();
+  const { masterData } = useMasterData();
 
   const qDetails = useMemo(
-    () => getBoardQusetonDetails(slug1 + (slug2 ? `_${slug2}` : "")),
-    [slug1, slug2],
+    () =>
+      getBoardQusetonDetails(masterData, slug1 + (slug2 ? `_${slug2}` : "")),
+
+    [masterData, slug1, slug2],
   );
 
   const [viewMode, setViewMode] = useState<ViewModeType>("viewOnly");

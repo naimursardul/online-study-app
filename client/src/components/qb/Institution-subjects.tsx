@@ -1,11 +1,12 @@
 import type { IMasterData } from "@/types/types";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Card } from "../ui/card";
+import { Card, CardContent, CardTitle } from "../ui/card";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 import { BookOpen, Layers } from "lucide-react";
 import { useMasterData } from "@/lib/MasterData-context";
 import { extractIdTo_ } from "@/utils/utils";
+import { Badge } from "../ui/badge";
 
 export default function InstitutionSubject({
   level,
@@ -48,11 +49,14 @@ export default function InstitutionSubject({
   }, [masterData.subjects, filter, level._id]);
 
   return (
-    <div className="space-y-3 bg-input rounded-2xl px-4 py-5">
-      <div className="flex gap-2">
-        <Layers size={"22px"} />
-        <h2 className="font-semibold">{level.name}</h2>
-      </div>
+    <Card className="px-5 py-6">
+      <CardTitle className="flex justify-between gap-5">
+        <div className="flex gap-2">
+          <Layers size={"22px"} />
+          <h2 className="font-bold ">{level.name}</h2>
+        </div>
+        <Badge>Subjects: {(subjects || []).length}</Badge>
+      </CardTitle>
 
       {/* BACKGROUND FILTERS */}
       <ToggleGroup type="multiple" onValueChange={(value) => setFilter(value)}>
@@ -67,19 +71,21 @@ export default function InstitutionSubject({
         ))}
       </ToggleGroup>
 
-      {/* SUBJECTS */}
-      <div className="flex flex-wrap gap-4">
-        {subjects.map((s) => (
-          <Link
-            key={s._id}
-            to={`${extractIdTo_(masterData.levels, s.levelId, "name")}_${s.name}`}
-          >
-            <Card className="bg-sidebar flex flex-col gap-1.5 justify-center items-center text-xs font-semibold p-1 w-40 h-25 border cursor-pointer hover:opacity-70 transition-opacity">
-              <BookOpen size="20" /> {s.name}
-            </Card>
-          </Link>
-        ))}
-      </div>
-    </div>
+      <CardContent>
+        {/* SUBJECTS */}
+        <div className="flex flex-wrap gap-4">
+          {subjects.map((s) => (
+            <Link
+              key={s._id}
+              to={`${extractIdTo_(masterData.levels, s.levelId, "name")}_${s.name}`}
+            >
+              <Card className="bg-input flex flex-col gap-1.5 justify-center items-center text-xs font-semibold p-1 w-40 h-25 border cursor-pointer hover:scale-105 transition-transform">
+                <BookOpen size="20" /> {s.name}
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

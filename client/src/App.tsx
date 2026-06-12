@@ -24,6 +24,7 @@ import Topic from "./pages/admin/(allUploadPages)/topic/Topic.tsx";
 import Record from "./pages/admin/(allUploadPages)/record/Record.tsx";
 import Contact from "./pages/contact/Contact.tsx";
 import Dashboard from "./pages/service-pages/dashboard/Dashboard.tsx";
+import AiExtractor from "./pages/admin/(allUploadPages)/ai-extractor.tsx";
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
           >
             <Route index element={<Admin />} />
             <Route path="question" element={<Question />} />
+            <Route path="ai-extractor" element={<AiExtractor />} />
             <Route path="record" element={<Record />} />
             <Route path="level" element={<Level />} />
             <Route path="background" element={<Background />} />

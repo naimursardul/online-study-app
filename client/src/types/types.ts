@@ -183,14 +183,6 @@ export interface IResponse {
   message: string;
 }
 
-export interface IBoardQusetonDetails {
-  level?: string;
-  subject?: string;
-  questionType?: string;
-  institution?: string;
-  year?: string;
-}
-
 export type ExamStatusType = "ready" | "started" | "finished";
 export type ViewModeType = "viewOnly" | "showAns" | "practice";
 
@@ -293,3 +285,8 @@ export interface ICQWithMeta extends IBaseQuestion {
 }
 
 export type IQuestionWithMeta = IMCQWithMeta | ICQWithMeta;
+
+export interface IqDetails {
+  withId: Record<string, string | undefined>;
+  withName: Record<string, string | undefined>;
+}

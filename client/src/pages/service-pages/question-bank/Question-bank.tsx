@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { extractIdTo_ } from "@/utils/utils";
@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/Auth-context";
 import { BookOpen, Layers } from "lucide-react";
 import InstitutionSubject from "@/components/qb/Institution-subjects";
 import { useMasterData } from "@/lib/MasterData-context";
+import { Badge } from "@/components/ui/badge";
 
 export default function QuestionBank() {
   const { user, userExisted } = useAuth();
@@ -39,28 +40,35 @@ export default function QuestionBank() {
               <h2 className="font-bold text-xl pl-4">My Level</h2>
 
               {user?.level?.name && userFilteredSubjects?.length ? (
-                <div className="space-y-6 bg-input rounded-2xl px-4 py-5">
-                  <h2 className="flex gap-2 font-semibold pl-2">
-                    <Layers size={"22px"} />
-                    {user?.level.name}{" "}
-                    <span className="bg-foreground text-background text-xs py-1 px-2 rounded-2xl">
-                      {user?.background?.name}
-                    </span>
-                  </h2>
+                <Card className="px-5 py-6">
+                  <CardTitle className="flex gap-5 justify-between">
+                    <h2 className="flex gap-2 font-semibold pl-2">
+                      <Layers size={"22px"} />
+                      {user?.level.name}{" "}
+                      <span className="bg-foreground text-background text-xs py-1 px-2 rounded-2xl">
+                        {user?.background?.name}
+                      </span>
+                    </h2>
+                    <Badge>
+                      Subjects: {(userFilteredSubjects || []).length}
+                    </Badge>
+                  </CardTitle>
 
-                  <div className="flex flex-wrap gap-4">
-                    {userFilteredSubjects.map((subject) => (
-                      <Link
-                        key={subject._id}
-                        to={`${extractIdTo_(masterData?.levels, subject.levelId, "name")}_${subject.name}`}
-                      >
-                        <Card className="bg-sidebar flex flex-col gap-1.5 justify-center items-center text-xs font-semibold p-1 w-40 h-25 border cursor-pointer hover:opacity-70 transition-opacity">
-                          <BookOpen size={20} /> {subject.name}
-                        </Card>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-4">
+                      {userFilteredSubjects.map((subject) => (
+                        <Link
+                          key={subject._id}
+                          to={`${extractIdTo_(masterData?.levels, subject.levelId, "name")}_${subject.name}`}
+                        >
+                          <Card className="bg-input flex flex-col gap-1.5 justify-center items-center text-xs font-semibold p-1 w-40 h-25 border cursor-pointer hover:scale-105 transition-transform">
+                            <BookOpen size={20} /> {subject.name}
+                          </Card>
+                        </Link>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               ) : (
                 <QbSecSkeleton />
               )}

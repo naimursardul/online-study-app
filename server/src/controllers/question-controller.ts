@@ -175,11 +175,13 @@ async function createQuestion(req: Request, res: Response) {
 // GET ALL QUESTIONS
 const getAllQuestions = async (req: Request, res: Response) => {
   try {
-    const { questionType, level, background } = req.body;
     const {
-      subject,
-      chapter,
-      topic,
+      questionType,
+      levelId,
+      backgroundId,
+      subjectId,
+      chapterId,
+      topicId,
       recordId,
       recordType,
       institution,
@@ -187,22 +189,23 @@ const getAllQuestions = async (req: Request, res: Response) => {
       search,
     } = req.query;
 
-    if (typeof questionType !== "string" || typeof level !== "string") {
+    if (typeof questionType !== "string" || typeof levelId !== "string") {
+      console.log("err");
       res.status(200).json({
         success: false,
-        message: "Question-type, level must be selected.",
+        message: "Question-type, levelId must be selected.",
         data: null,
       });
       return;
     }
-    const query: any = { questionType, level };
-    if (background)
-      query.background = Array.isArray(background)
-        ? [...background]
-        : [background];
-    if (typeof subject === "string") query.subject = subject;
-    if (typeof chapter === "string") query.chapter = chapter;
-    if (typeof topic === "string") query.topic = topic;
+    const query: any = { questionType, levelId };
+    if (backgroundId)
+      query.background = Array.isArray(backgroundId)
+        ? [...backgroundId]
+        : [backgroundId];
+    if (typeof subjectId === "string") query.subjectId = subjectId;
+    if (typeof chapterId === "string") query.chapterId = chapterId;
+    if (typeof topicId === "string") query.topicId = topicId;
     if (typeof recordId === "string") query.recordId = recordId;
     // Initialize $elemMatch filter if needed
     const elemMatch: any = {};

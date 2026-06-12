@@ -17,6 +17,7 @@ import type { ICQWithMeta, ISubQuestionWithMeta } from "@/types/types";
 import QuestionMetaSection from "./QuestionMetaSection";
 import ValidationSummary from "./ValidationSummary ";
 import type { IQuestionValidationResult } from "@/utils/validateQuestion";
+import { extractIdTo_ } from "@/utils/utils";
 
 interface CQCardProps {
   question: ICQWithMeta;
@@ -202,10 +203,15 @@ export default function CQCard({
             {!editMode && (sq.chapterId || sq.topicId) && (
               <div className="flex flex-wrap gap-2 pt-2 border-t">
                 {sq.chapterId && (
-                  <Badge variant="secondary">Chapter: {sq.chapterId}</Badge>
+                  <Badge variant="secondary">
+                    Chapter:{" "}
+                    {extractIdTo_(masterData.chapters, sq.chapterId, "name")}
+                  </Badge>
                 )}
                 {sq.topicId && (
-                  <Badge variant="secondary">Topic: {sq.topicId}</Badge>
+                  <Badge variant="secondary">
+                    Topic: {extractIdTo_(masterData.topics, sq.topicId, "name")}
+                  </Badge>
                 )}
               </div>
             )}

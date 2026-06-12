@@ -10,6 +10,7 @@ export default function AdminLayout() {
       url: "/admin/uploads",
       icon: <Upload />,
       subItem: [
+        { title: "AI-Extractor", url: "/admin/ai-extractor" },
         { title: "Question", url: "/admin/question" },
         { title: "Record", url: "/admin/record" },
         { title: "Level", url: "/admin/level" },

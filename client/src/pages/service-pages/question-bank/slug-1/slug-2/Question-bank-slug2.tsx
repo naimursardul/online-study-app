@@ -14,9 +14,9 @@ import { client } from "@/utils/utils";
 import type {
   ExamStatusType,
   IBaseQuestion,
-  IBoardQusetonDetails,
   ICQ,
   IMCQ,
+  IqDetails,
   ScriptResType,
   SingleMcqAnswerType,
   ViewModeType,
@@ -32,7 +32,7 @@ type OutletContextType = {
   setTimeRemaining: React.Dispatch<React.SetStateAction<number>>;
   setExamStatus: React.Dispatch<React.SetStateAction<ExamStatusType>>;
   viewMode: ViewModeType;
-  qDetails: IBoardQusetonDetails;
+  qDetails: IqDetails;
   examStatus: ExamStatusType;
 };
 
@@ -72,6 +72,7 @@ function QuestionBankSlug2() {
     qDetails,
     examStatus,
   } = useOutletContext<OutletContextType>();
+  console.log(qDetails);
 
   // =========================
   // KEEP REF UPDATED
@@ -89,18 +90,16 @@ function QuestionBankSlug2() {
 
       const params = new URLSearchParams();
 
-      Object.entries(qDetails).forEach(([key, value]) => {
-        if (key !== "questionType" && value) {
+      Object.entries(qDetails.withId).forEach(([key, value]) => {
+        if (value) {
           params.append(key, String(value));
         }
       });
 
       try {
-        const res = await client.post(`/question?${params.toString()}`, {
-          questionType: qDetails.questionType,
-          level: qDetails.level,
-        });
+        const res = await client.get(`/question?${params.toString()}`);
 
+        console.log(res.data);
         if (res.data?.success) {
           setAllQuestion(res.data.data);
 
@@ -120,6 +119,7 @@ function QuestionBankSlug2() {
     fetchQuestions();
   }, [qDetails]);
 
+  console.log(allQuestion);
   // =========================
   // TOTAL TIME
   // =========================
@@ -201,9 +201,9 @@ function QuestionBankSlug2() {
       const res = await client.post("/exam/create-answer", {
         u_id: user?._id,
 
-        subjectId: allSubject?.find((s) => qDetails.subject === s.name)?._id,
+        subjectId: qDetails?.withId?.subjectId,
 
-        examName: `${qDetails.level} - ${qDetails.subject} - ${qDetails.institution} - ${qDetails.year}`,
+        examName: `${qDetails?.withName?.level} - ${qDetails?.withName?.subject} - ${qDetails?.withName?.institution} - ${qDetails?.withName?.year}`,
 
         // ✅ latest data
         answers: answerScriptRef.current,
@@ -264,7 +264,6 @@ function QuestionBankSlug2() {
 
           return 0;
         }
-
         return time - 1000;
       });
     }, 1000);
@@ -275,7 +274,7 @@ function QuestionBankSlug2() {
   // LOADING
   // =========================
   if (loading) {
-    return qDetails?.questionType === "MCQ" ? (
+    return qDetails?.withId?.questionType === "MCQ" ? (
       <div className="space-y-5">
         <McqQuestionSkeleton />
         <McqQuestionSkeleton />
@@ -293,7 +292,7 @@ function QuestionBankSlug2() {
   // =========================
   // MCQ VIEW
   // =========================
-  if (qDetails.questionType === "MCQ") {
+  if (qDetails.withId.questionType === "MCQ") {
     return (
       <div className="space-y-5">
         {viewMode === "practice" && examStatus === "finished" && (
@@ -378,7 +377,7 @@ function QuestionBankSlug2() {
   // =========================
   // CQ VIEW
   // =========================
-  if (qDetails.questionType === "CQ") {
+  if (qDetails.withId.questionType === "CQ") {
     return (
       <div className="space-y-5">
         {allQuestion.map((q, i) => (

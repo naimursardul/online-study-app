@@ -23,6 +23,7 @@ import type {
   IQuestionWithMeta,
 } from "@/types/types";
 import { validateAll } from "@/utils/validateQuestion";
+import BulkUploadButton from "./BulkUploadButton";
 
 // -------------------------
 // Default meta state
@@ -90,6 +91,10 @@ export default function QuestionExtractor() {
   const [extractedQuestionType, setExtractedQuestionType] =
     useState<IBaseQuestion["questionType"]>("MCQ");
 
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const validationResults = useMemo(() => validateAll(questions), [questions]);
+  const allValid = validationResults.every((r) => r.valid);
+
   // -------------------------
   // Update a single question in state
   // -------------------------
@@ -155,9 +160,6 @@ export default function QuestionExtractor() {
     }
   }
 
-  // inside QuestionExtractor, above return:
-  const validationResults = useMemo(() => validateAll(questions), [questions]);
-
   function handleClearMeta() {
     setMeta(defaultMeta);
     setQuestions((prev) =>
@@ -180,6 +182,98 @@ export default function QuestionExtractor() {
     );
   }
 
+  // -------------------------
+  // Build upload payload
+  // -------------------------
+  function buildPayload(q: IQuestionWithMeta) {
+    if (q.questionType === "MCQ") {
+      const mcq = q as IMCQWithMeta;
+      return {
+        questionType: "MCQ",
+        levelId: mcq.levelId,
+        backgroundId: mcq.backgroundId,
+        subjectId: mcq.subjectId,
+        chapterId: mcq.chapterId,
+        topicId: mcq.topicId,
+        record: mcq.record,
+        recordId: mcq.recordId,
+        marks: mcq.marks,
+        timeRequired: mcq.timeRequired,
+        difficulty: mcq.difficulty,
+        question: mcq.question,
+        options: mcq.options,
+        correctAnswer: mcq.correctAnswer,
+        explanation: mcq.explanation,
+      };
+    }
+
+    const cq = q as ICQWithMeta;
+    return {
+      questionType: "CQ",
+      levelId: cq.levelId,
+      backgroundId: cq.backgroundId,
+      subjectId: cq.subjectId,
+      chapterId: cq.chapterId,
+      topicId: cq.topicId,
+      record: cq.record,
+      recordId: cq.recordId,
+      marks: cq.marks,
+      timeRequired: cq.timeRequired,
+      difficulty: cq.difficulty,
+      statement: cq.statement,
+      subQuestions: cq.subQuestions.map((sq) => ({
+        questionNo: sq.questionNo,
+        question: sq.question,
+        answer: sq.answer,
+        chapterId: sq.chapterId,
+        topicId: sq.topicId,
+      })),
+    };
+  }
+
+  async function handleBulkUpload() {
+    if (!allValid) return;
+
+    try {
+      setUploadLoading(true);
+
+      const payload = questions.map(buildPayload);
+
+      const res = await client.post("/question/bulk-create", {
+        questions: payload,
+      });
+
+      if (!res.data.success) {
+        toast.error(res.data.message || "Upload failed.");
+        return;
+      }
+
+      const { inserted, failed } = res.data;
+
+      if (inserted > 0) {
+        toast.success(
+          `${inserted} question${inserted > 1 ? "s" : ""} uploaded successfully.`,
+        );
+      }
+
+      if (failed > 0) {
+        toast.warning(
+          `${failed} question${failed > 1 ? "s" : ""} failed to upload.`,
+        );
+      }
+
+      // Clear uploaded questions that succeeded
+      if (failed === 0) {
+        setQuestions([]);
+        setEditMode(false);
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Bulk upload failed.");
+    } finally {
+      setUploadLoading(false);
+    }
+  }
+
   // const allValid = validationResults.every((r) => r.valid);
   return (
     <div className="container mx-auto py-10 max-w-6xl space-y-8">
@@ -193,13 +287,11 @@ export default function QuestionExtractor() {
           </p>
         </div>
       </div>
-
       <GlobalMetadataPanel
         meta={meta}
         setMeta={(updated) => handleMetaChange(updated as IBaseQuestion)}
         onClear={handleClearMeta}
       />
-
       {/* File + options */}
       <Card className="p-6 space-y-6">
         <FileUploader file={file} onFileChange={setFile} />
@@ -244,7 +336,6 @@ export default function QuestionExtractor() {
           )}
         </Button>
       </Card>
-
       {/* Global metadata — only shown after extraction */}
       {questions.length > 0 && (
         <>
@@ -292,6 +383,14 @@ export default function QuestionExtractor() {
             )}
           </div>
         </>
+      )}
+      {questions.length > 0 && (
+        <BulkUploadButton
+          allValid={allValid}
+          loading={uploadLoading}
+          total={questions.length}
+          onUpload={handleBulkUpload}
+        />
       )}
     </div>
   );

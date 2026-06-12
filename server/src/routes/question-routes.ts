@@ -14,7 +14,7 @@ const router = Router();
 router.post("/create", createQuestion);
 
 // Get all questions
-router.post("/", getAllQuestions);
+router.get("/", getAllQuestions);
 
 // Get single question by exam name
 router.get("/:id", getSingleQuestion);

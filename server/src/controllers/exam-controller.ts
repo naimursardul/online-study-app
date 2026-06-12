@@ -48,7 +48,6 @@ export const createAnswer = async (req: Request, res: Response) => {
     // 🔹 Step 3: Update analytics
     await updateUserAnalytics(u_id, result.topicStats);
 
-    console.log("Saved Answer:", savedAnswer);
     res.status(200).json({
       success: true,
       message: "Exam submitted successfully",

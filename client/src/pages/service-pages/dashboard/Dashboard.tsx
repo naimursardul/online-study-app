@@ -3,15 +3,13 @@ import PerformanceGraph from "@/components/analytics/PerformanceGraph";
 import WeakTopics from "@/components/analytics/WeakTopic";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/lib/Auth-context";
-import type { IMasterData } from "@/types/types";
-import { useOutletContext } from "react-router-dom";
+import { useMasterData } from "@/lib/MasterData-context";
 
 function Dashboard() {
   const { user } = useAuth();
-  const allSubjects = useOutletContext<IMasterData>()?.subjects || [];
-  const masterData = useOutletContext<IMasterData>();
+  const { masterData } = useMasterData();
 
-  const filteredSubjects = allSubjects.filter(
+  const filteredSubjects = masterData?.subjects.filter(
     (s) =>
       String(s.levelId) === user?.level._id &&
       String(s.backgroundId).includes(user?.background._id),

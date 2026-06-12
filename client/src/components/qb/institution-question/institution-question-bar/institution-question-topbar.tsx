@@ -1,5 +1,5 @@
 import FormatTime from "@/components/format-time/format-time";
-import type { IBoardQusetonDetails, ViewModeType } from "@/types/types";
+import type { IqDetails, ViewModeType } from "@/types/types";
 
 function InstitutionQuestionTopbar({
   qDetails,
@@ -8,7 +8,7 @@ function InstitutionQuestionTopbar({
   viewMode,
   setViewMode,
 }: {
-  qDetails?: IBoardQusetonDetails;
+  qDetails?: IqDetails;
   timeRemaining: number;
   examStatus: "ready" | "started" | "finished";
   viewMode: ViewModeType;
@@ -21,20 +21,21 @@ function InstitutionQuestionTopbar({
       <div className="flex gap-3 justify-between items-center">
         <div>
           <h3 className="font-semibold">
-            {qDetails?.level} Board Question / {qDetails?.subject}
+            {qDetails?.withName?.level} Board Question /{" "}
+            {qDetails?.withName?.subject}
           </h3>
           <p className="text-xs text-chart-2 font-semibold">
-            {qDetails?.institution &&
-              qDetails?.year &&
-              qDetails?.questionType &&
-              `${qDetails?.institution} - ${qDetails?.year} (${qDetails?.questionType})`}
+            {qDetails?.withName?.institution &&
+              qDetails?.withName?.year &&
+              qDetails?.withName?.questionType &&
+              `${qDetails?.withName?.institution} - ${qDetails?.withName?.year} (${qDetails?.withName?.questionType})`}
           </p>
         </div>
 
         {/*  */}
         {/*  */}
         {/* MODE SELECTOR */}
-        {qDetails?.questionType === "MCQ" && (
+        {qDetails?.withName?.questionType === "MCQ" && (
           <form
             onChange={(e: React.ChangeEvent<HTMLFormElement>) =>
               setViewMode(e.target?.value)
