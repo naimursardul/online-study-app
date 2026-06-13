@@ -181,13 +181,15 @@ function ComboboxMulti<T>({
 }
 
 // ── Main DataField ───────────────────────────────────────────────
+
 export default function DataField<T>({
   formData,
   setFormData,
   field,
   forAllDataPage,
 }: DataFieldProps<T>) {
-  const fieldName = formData[field.name as keyof T];
+  const fieldName = field.name;
+  const fieldValue = formData[fieldName as keyof T];
 
   return (
     <div className="space-y-1.5">
@@ -199,13 +201,13 @@ export default function DataField<T>({
       {field?.inputType === "input" && (
         <Input
           type={field?.type || "text"}
-          id={field?.name}
-          name={field?.name}
+          id={fieldName}
+          name={fieldName}
           value={(fieldName as string) || ""}
           onChange={(e) =>
             setFormData({
               ...formData,
-              [field.name as keyof IBaseQuestion]:
+              [fieldName as keyof IBaseQuestion]:
                 field.type === "number"
                   ? Number(e.target.value)
                   : e.target.value,
@@ -223,13 +225,13 @@ export default function DataField<T>({
       {/* ── Textarea ───────────────────────────────────────────── */}
       {field?.inputType === "textarea" && (
         <Textarea
-          id={field?.name}
-          name={field?.name}
-          value={(fieldName as string) || ""}
+          id={fieldName}
+          name={fieldName}
+          value={(fieldValue as string) || ""}
           onChange={(e) =>
             setFormData({
               ...formData,
-              [field.name as keyof IBaseQuestion]: e.target.value,
+              [fieldName as keyof IBaseQuestion]: e.target.value,
             })
           }
           placeholder={`Enter ${field?.placeholder ?? field?.label}`}
@@ -240,7 +242,7 @@ export default function DataField<T>({
       {/* ── Select ─────────────────────────────────────────────── */}
       {field?.inputType === "select" && (
         <Select
-          value={fieldName ? String(fieldName) : ""}
+          value={fieldValue ? String(fieldValue) : ""}
           onValueChange={(value) => {
             setFormData((prev) => {
               const obj: T = { ...prev, [fieldName as keyof T]: value } as T;
@@ -276,7 +278,7 @@ export default function DataField<T>({
                 )
               ) : (
                 <SelectItem value="__empty__" disabled className="text-sm">
-                  No {field.label ?? field.name} available
+                  No {field.label ?? fieldName} available
                 </SelectItem>
               )}
             </SelectGroup>
@@ -296,7 +298,7 @@ export default function DataField<T>({
             />
           ) : (
             <p className="text-sm text-muted-foreground pl-1">
-              No {field?.label ?? field?.name} available.
+              No {field?.label ?? fieldName} available.
             </p>
           )
         ) : // On the form: classic checkbox list
@@ -306,15 +308,15 @@ export default function DataField<T>({
               "name" in option ? (
                 <div key={option._id} className="flex items-center gap-2">
                   <Checkbox
-                    id={`${field.name}-${option._id}`}
+                    id={`${fieldName}-${option._id}`}
                     className="cursor-pointer"
-                    checked={((fieldName as string[]) || []).includes(
+                    checked={((fieldValue as string[]) || []).includes(
                       option._id,
                     )}
                     onCheckedChange={(checked: boolean) => {
                       setFormData((prev) => {
                         const ids = [
-                          ...((prev[field.name as keyof T] as string[]) || []),
+                          ...((prev[fieldName as keyof T] as string[]) || []),
                         ];
                         if (checked) {
                           if (!ids.includes(option._id)) ids.push(option._id);
@@ -324,9 +326,9 @@ export default function DataField<T>({
                         }
                         const updated: T = {
                           ...prev,
-                          [field.name as keyof T]: ids,
+                          [fieldName as keyof T]: ids,
                         };
-                        DEPENDENT_RESETS[field.name as string]?.forEach(
+                        DEPENDENT_RESETS[fieldName as string]?.forEach(
                           (dep) => {
                             if (dep === "backgroundId") {
                               updated["backgroundId" as keyof T] =
@@ -341,7 +343,7 @@ export default function DataField<T>({
                     }}
                   />
                   <Label
-                    htmlFor={`${field.name}-${option._id}`}
+                    htmlFor={`${fieldName}-${option._id}`}
                     className="text-sm font-normal cursor-pointer"
                   >
                     {option.name}
@@ -352,7 +354,7 @@ export default function DataField<T>({
           </div>
         ) : (
           <p className="text-sm text-muted-foreground pl-1">
-            No {field?.label ?? field?.name} available.
+            No {field?.label ?? fieldName} available.
           </p>
         ))}
     </div>
