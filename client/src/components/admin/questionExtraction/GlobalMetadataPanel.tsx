@@ -20,7 +20,7 @@ const fields: IField[] = [
   { label: "Subject", inputType: "select", name: "subjectId" },
   { label: "Chapter", inputType: "select", name: "chapterId" },
   { label: "Topic", inputType: "select", name: "topicId" },
-  { label: "Record", inputType: "checkbox", name: "record" },
+  { label: "Record", inputType: "checkbox", name: "recordId" },
   {
     label: "Difficulty",
     inputType: "select",
