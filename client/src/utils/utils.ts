@@ -175,7 +175,7 @@ export function getQuestionDataOption<T>(
             ),
           };
 
-        case "record":
+        case "recordId":
           return {
             ...field,
             optionData: masterData.records,

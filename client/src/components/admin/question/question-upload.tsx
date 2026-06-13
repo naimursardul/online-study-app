@@ -71,7 +71,7 @@ export default function QuestionUpload() {
     {
       label: "Record",
       inputType: "checkbox",
-      name: "record",
+      name: "recordId",
     },
     {
       label: "Difficulty",
