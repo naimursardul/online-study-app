@@ -147,16 +147,19 @@ export function getQuestionDataOption<T>(
         case "subjectId":
           return {
             ...field,
-            optionData: masterData.subjects?.filter(
-              (sub) =>
+            optionData: masterData.subjects?.filter((sub) => {
+              return (
                 String(sub.levelId) ===
                   String(formData["levelId" as keyof T]) &&
-                sub.backgroundId?.some((bgId: string) =>
-                  (formData["backgroundId" as keyof T] as string[])?.includes(
-                    bgId,
+                sub.backgroundId.length ===
+                  (formData["backgroundId" as keyof T] as string[]).length &&
+                sub.backgroundId.every((bgI) =>
+                  (formData["backgroundId" as keyof T] as string[]).includes(
+                    bgI,
                   ),
-                ),
-            ),
+                )
+              );
+            }),
           };
 
         case "chapterId":

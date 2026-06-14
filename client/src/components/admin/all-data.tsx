@@ -42,6 +42,7 @@ import { useMasterData } from "@/lib/MasterData-context";
 import DataField from "./data-field";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "../ui/card";
 
 const PAGE_SIZE = 10;
 type DataType = (
@@ -81,6 +82,7 @@ export default function AllData({
 
   useEffect(() => {
     async function getAllData() {
+      setLoading(true);
       const query: string[] = [];
       for (const key in queryFormData) {
         const value = queryFormData[key as keyof IQueryFormData];
@@ -175,7 +177,7 @@ export default function AllData({
 
       {/* ── Filters ─────────────────────────────────────────────── */}
       {hasFilters && (
-        <div className="rounded-xl border bg-muted/30 p-4 space-y-3">
+        <Card className="rounded-xl border p-4 space-y-3">
           {/* Filter header row */}
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
@@ -208,7 +210,7 @@ export default function AllData({
           </div>
 
           {/* Filter inputs */}
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3 ">
             {filterFields.map((field: IField, i: number) => (
               <div
                 key={i}
@@ -248,11 +250,11 @@ export default function AllData({
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       )}
 
       {/* ── Table ───────────────────────────────────────────────── */}
-      <div className="rounded-xl border overflow-hidden shadow-sm">
+      <Card className="rounded-xl border overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -409,7 +411,7 @@ export default function AllData({
             </TableBody>
           </Table>
         </div>
-      </div>
+      </Card>
 
       {/* ── Pagination ──────────────────────────────────────────── */}
       {!loading && allData.length > PAGE_SIZE && (
