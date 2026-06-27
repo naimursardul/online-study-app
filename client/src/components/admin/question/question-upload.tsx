@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { PlusCircle } from "lucide-react";
+import { CheckCircle, PlusCircle } from "lucide-react";
 import React, { useState, useEffect, useMemo } from "react";
 import QuestionDataField from "./question-forms/question-data-field";
 import {
@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import type { IMCQ, IBaseQuestion, ICQ, IField } from "@/types/types";
 import SubmitBtn from "@/components/submit-btn/submit-btn";
 import { useMasterData } from "@/lib/MasterData-context";
+import { Button } from "@/components/ui/button";
 
 export default function QuestionUpload() {
   const [formData, setFormData] = useState<IBaseQuestion | IMCQ | ICQ>({
@@ -41,6 +42,7 @@ export default function QuestionUpload() {
   const [loading, setLoading] = useState<boolean>(false);
   const [qType, setQType] = useState<"MCQ" | "CQ">("MCQ");
   const { masterData } = useMasterData();
+  const [isQuestionReady, setIsQuestionReady] = useState(false);
 
   const fields: IField[] = [
     {
@@ -176,6 +178,11 @@ export default function QuestionUpload() {
   const handleSubmit = async (e: React.FormEvent) => {
     setLoading(true);
     e.preventDefault();
+    if (!isQuestionReady) {
+      setIsQuestionReady(true);
+      setLoading(false);
+      return;
+    }
 
     try {
       const res = await client.post(`/question/create`, formData);
@@ -192,6 +199,7 @@ export default function QuestionUpload() {
       toast.error("Server error.");
     } finally {
       setLoading(false);
+      setIsQuestionReady(false);
     }
   };
 
@@ -242,6 +250,8 @@ export default function QuestionUpload() {
               <div className="space-y-4 w-full">
                 {qType === "MCQ" && (
                   <McqForm
+                    isQuestionReady={isQuestionReady}
+                    setIsQuestionReady={setIsQuestionReady}
                     formData={formData as IMCQ}
                     setFormData={
                       setFormData as React.Dispatch<React.SetStateAction<IMCQ>>
@@ -251,6 +261,8 @@ export default function QuestionUpload() {
 
                 {qType === "CQ" && (
                   <CqForm
+                    isQuestionReady={isQuestionReady}
+                    setIsQuestionReady={setIsQuestionReady}
                     formData={formData as ICQ}
                     setFormData={
                       setFormData as React.Dispatch<React.SetStateAction<ICQ>>
@@ -260,7 +272,10 @@ export default function QuestionUpload() {
               </div>
             </div>
 
-            <SubmitBtn loading={loading} />
+            <SubmitBtn
+              loading={loading}
+              btnName={isQuestionReady ? "Submit" : "Ready"}
+            />
           </form>
         </CardContent>
       </Card>

@@ -2,9 +2,7 @@ import Markdown from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
-
 import remarkMath from "remark-math";
-
 import "katex/dist/katex.min.css";
 
 export default function ReactMarkdownRender({ text }: { text: string }) {

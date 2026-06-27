@@ -20,6 +20,8 @@ import type { IQuestionValidationResult } from "@/utils/validateQuestion";
 import { extractIdTo_ } from "@/utils/utils";
 
 interface CQCardProps {
+  isQuestionReady: boolean;
+  setIsQuestionReady: React.Dispatch<React.SetStateAction<boolean>>;
   question: ICQWithMeta;
   editMode: boolean;
   onChange: (updated: ICQWithMeta) => void;
@@ -29,6 +31,8 @@ interface CQCardProps {
 const SUB_QUESTION_LABELS = ["A", "B", "C", "D"];
 
 export default function CQCard({
+  isQuestionReady,
+  setIsQuestionReady,
   question,
   editMode,
   onChange,
@@ -80,7 +84,12 @@ export default function CQCard({
       <div className="space-y-2">
         <Label>উদ্দীপক</Label>
         {editMode ? (
-          <TextEditor value={question.statement} onChangeFn={handleStatement} />
+          <TextEditor
+            isFinished={isQuestionReady}
+            setIsFinished={setIsQuestionReady}
+            value={question.statement}
+            onChangeFn={handleStatement}
+          />
         ) : (
           <ReactMarkdownRender text={question.statement} />
         )}
@@ -178,6 +187,8 @@ export default function CQCard({
               <Label className="font-light">Question</Label>
               {editMode ? (
                 <TextEditor
+                  isFinished={isQuestionReady}
+                  setIsFinished={setIsQuestionReady}
                   value={sq.question}
                   onChangeFn={(val) => handleSubQuestion(i, "question", val)}
                 />
@@ -191,6 +202,8 @@ export default function CQCard({
               <Label className="font-light">Answer</Label>
               {editMode ? (
                 <TextEditor
+                  isFinished={isQuestionReady}
+                  setIsFinished={setIsQuestionReady}
                   value={sq.answer}
                   onChangeFn={(val) => handleSubQuestion(i, "answer", val)}
                 />

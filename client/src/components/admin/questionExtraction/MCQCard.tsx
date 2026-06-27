@@ -17,6 +17,8 @@ import type { IQuestionValidationResult } from "@/utils/validateQuestion";
 import ValidationSummary from "./ValidationSummary ";
 
 interface MCQCardProps {
+  isQuestionReady: boolean;
+  setIsQuestionReady: React.Dispatch<React.SetStateAction<boolean>>;
   question: IMCQWithMeta;
   editMode: boolean;
   onChange: (updated: IMCQWithMeta) => void;
@@ -24,6 +26,8 @@ interface MCQCardProps {
 }
 
 export default function MCQCard({
+  isQuestionReady,
+  setIsQuestionReady,
   question,
   editMode,
   onChange,
@@ -49,6 +53,8 @@ export default function MCQCard({
         <Label>Question</Label>
         {editMode ? (
           <TextEditor
+            isFinished={isQuestionReady}
+            setIsFinished={setIsQuestionReady}
             value={question.question}
             onChangeFn={(val) => handleField("question", val)}
           />
@@ -63,6 +69,8 @@ export default function MCQCard({
           <div key={i} className="space-y-1 ml-4">
             {editMode ? (
               <TextEditor
+                isFinished={isQuestionReady}
+                setIsFinished={setIsQuestionReady}
                 label={`Option ${i + 1}`}
                 value={option}
                 onChangeFn={(val) => handleOption(i, val)}
@@ -124,6 +132,8 @@ export default function MCQCard({
         <Label>Explanation</Label>
         {editMode ? (
           <TextEditor
+            isFinished={isQuestionReady}
+            setIsFinished={setIsQuestionReady}
             value={question.explanation}
             onChangeFn={(val) => handleField("explanation", val)}
           />

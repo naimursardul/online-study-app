@@ -7,7 +7,7 @@ interface ValidationSummaryProps {
 }
 
 export default function ValidationSummary({ result }: ValidationSummaryProps) {
-  if (result.valid) {
+  if (result?.valid) {
     return (
       <div className="flex items-center gap-2 text-green-500 text-sm pt-2">
         <CheckCircle2 size={16} />
@@ -21,7 +21,7 @@ export default function ValidationSummary({ result }: ValidationSummaryProps) {
       <AlertCircle className="h-4 w-4" />
       <AlertDescription>
         <ul className="list-disc pl-4 space-y-1">
-          {result.errors.map((err, i) => (
+          {result?.errors.map((err, i) => (
             <li key={i} className="text-sm">
               {err.message}
             </li>

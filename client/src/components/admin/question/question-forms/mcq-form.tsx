@@ -12,9 +12,13 @@ import type { IMCQ } from "@/types/types";
 import React from "react";
 
 export default function McqForm({
+  isQuestionReady,
+  setIsQuestionReady,
   formData,
   setFormData,
 }: {
+  isQuestionReady: boolean;
+  setIsQuestionReady: React.Dispatch<React.SetStateAction<boolean>>;
   formData: IMCQ;
   setFormData: React.Dispatch<React.SetStateAction<IMCQ>>;
 }) {
@@ -23,6 +27,8 @@ export default function McqForm({
       <div className="space-y-2">
         <Label>Question</Label>
         <TextEditor
+          setIsFinished={setIsQuestionReady}
+          isFinished={isQuestionReady}
           onChangeFn={function (val: string): void {
             setFormData((prev) => ({ ...prev, question: val }));
           }}
@@ -35,6 +41,8 @@ export default function McqForm({
           <div key={i} className="space-y-2 ml-4">
             <Label className="text-sm font-light">Option-{_o}</Label>
             <TextEditor
+              setIsFinished={setIsQuestionReady}
+              isFinished={isQuestionReady}
               onChangeFn={(val) => {
                 const _os = formData.options;
                 _os[_o - 1] = val;
@@ -80,6 +88,8 @@ export default function McqForm({
       <div className="space-y-2">
         <Label>Explanation</Label>
         <TextEditor
+          setIsFinished={setIsQuestionReady}
+          isFinished={isQuestionReady}
           onChangeFn={(val) => setFormData({ ...formData, explanation: val })}
         />
       </div>

@@ -13,9 +13,13 @@ import { useMasterData } from "@/lib/MasterData-context";
 import TextEditor from "@/components/text-editor/TextEditor";
 
 export default function CqForm({
+  isQuestionReady,
+  setIsQuestionReady,
   formData,
   setFormData,
 }: {
+  isQuestionReady: boolean;
+  setIsQuestionReady: React.Dispatch<React.SetStateAction<boolean>>;
   formData: ICQ;
   setFormData: React.Dispatch<React.SetStateAction<ICQ>>;
 }) {
@@ -80,6 +84,8 @@ export default function CqForm({
       <div className="space-y-2">
         <Label>Statement</Label>
         <TextEditor
+          setIsFinished={setIsQuestionReady}
+          isFinished={isQuestionReady}
           onChangeFn={(val) =>
             setFormData((prev) => ({
               ...prev,
@@ -163,6 +169,8 @@ export default function CqForm({
                     <Label className="font-light">Question</Label>
 
                     <TextEditor
+                      setIsFinished={setIsQuestionReady}
+                      isFinished={isQuestionReady}
                       onChangeFn={(val) => {
                         setFormData((prev) => ({
                           ...prev,
@@ -184,6 +192,8 @@ export default function CqForm({
                     <Label className="font-light">Answer</Label>
 
                     <TextEditor
+                      setIsFinished={setIsQuestionReady}
+                      isFinished={isQuestionReady}
                       onChangeFn={(val) => {
                         setFormData((prev) => ({
                           ...prev,
