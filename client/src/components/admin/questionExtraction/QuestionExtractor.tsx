@@ -451,20 +451,18 @@ export default function QuestionExtractor() {
           <div className="flex justify-end">
             <Button
               variant={editMode ? "default" : "outline"}
-              onClick={() => setEditMode((prev) => !prev)}
+              onClick={() => {
+                if (editMode) setIsQuestionReady(true);
+                if (!editMode) setIsQuestionReady(false);
+                setEditMode((prev) => !prev);
+              }}
               className="gap-2"
             >
               {editMode ? (
                 <>
-                  {isQuestionReady ? (
-                    <>
-                      {" "}
-                      <Check size={16} />
-                      Done Editing{" "}
-                    </>
-                  ) : (
-                    <>Ready</>
-                  )}
+                  {" "}
+                  <Check size={16} />
+                  Done Editing{" "}
                 </>
               ) : (
                 <>
