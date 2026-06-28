@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, PlusCircle } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import React, { useState, useEffect, useMemo } from "react";
 import QuestionDataField from "./question-forms/question-data-field";
 import {
@@ -22,7 +22,6 @@ import { toast } from "sonner";
 import type { IMCQ, IBaseQuestion, ICQ, IField } from "@/types/types";
 import SubmitBtn from "@/components/submit-btn/submit-btn";
 import { useMasterData } from "@/lib/MasterData-context";
-import { Button } from "@/components/ui/button";
 
 export default function QuestionUpload() {
   const [formData, setFormData] = useState<IBaseQuestion | IMCQ | ICQ>({
@@ -73,7 +72,7 @@ export default function QuestionUpload() {
     {
       label: "Record",
       inputType: "checkbox",
-      name: "recordId",
+      name: "record",
     },
     {
       label: "Difficulty",
