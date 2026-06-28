@@ -13,38 +13,52 @@ export default function ReactMarkdownRender({ text }: { text: string }) {
       rehypePlugins={[rehypeKatex]}
       components={{
         h1: ({ children }) => (
-          <h1 className="text-4xl font-bold mt-2">{children}</h1>
+          <h1 className="text-4xl font-bold mt-2 text-foreground">
+            {children}
+          </h1>
         ),
         h2: ({ children }) => (
-          <h2 className="text-3xl font-semibold my-1.5">{children}</h2>
+          <h2 className="text-3xl font-semibold my-1.5 text-foreground">
+            {children}
+          </h2>
         ),
         h3: ({ children }) => (
-          <h3 className="text-2xl font-semibold my-1">{children}</h3>
+          <h3 className="text-2xl font-semibold my-1 text-foreground">
+            {children}
+          </h3>
         ),
         h4: ({ children }) => (
-          <h4 className="text-xl font-semibold my-1">{children}</h4>
+          <h4 className="text-xl font-semibold my-1 text-foreground">
+            {children}
+          </h4>
         ),
         h5: ({ children }) => (
-          <h5 className="text-lg font-semibold my-0.5">{children}</h5>
+          <h5 className="text-lg font-semibold my-0.5 text-foreground">
+            {children}
+          </h5>
         ),
         h6: ({ children }) => (
-          <h6 className="text-base font-semibold my-0.5">{children}</h6>
+          <h6 className="text-base font-semibold my-0.5 text-foreground">
+            {children}
+          </h6>
         ),
 
-        p: ({ children }) => <p className="my-2 leading-relaxed">{children}</p>,
+        p: ({ children }) => (
+          <p className="my-2 leading-relaxed text-foreground">{children}</p>
+        ),
 
         ul: ({ children }) => (
-          <ul className="list-disc pl-6 my-2">{children}</ul>
+          <ul className="list-disc pl-6 my-2 text-foreground">{children}</ul>
         ),
 
         ol: ({ children }) => (
-          <ol className="list-decimal pl-6 my-2">{children}</ol>
+          <ol className="list-decimal pl-6 my-2 text-foreground">{children}</ol>
         ),
 
         li: ({ children }) => <li className="my-0.5">{children}</li>,
 
         blockquote: ({ children }) => (
-          <blockquote className="border-l-4 border-gray-300 pl-4 italic my-4 text-gray-600">
+          <blockquote className="border-l-4 border-border pl-4 italic my-4 text-muted-foreground">
             {children}
           </blockquote>
         ),
@@ -52,14 +66,14 @@ export default function ReactMarkdownRender({ text }: { text: string }) {
         code({ inline, className, children, ...props }: any) {
           if (inline) {
             return (
-              <code className="bg-gray-200 px-1 py-0.5 rounded text-sm">
+              <code className="bg-muted text-muted-foreground px-1 py-0.5 rounded text-sm">
                 {children}
               </code>
             );
           }
 
           return (
-            <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-2">
+            <pre className="bg-secondary text-secondary-foreground p-4 rounded-lg overflow-x-auto my-2 border border-border">
               <code className={className} {...props}>
                 {children}
               </code>
@@ -68,32 +82,35 @@ export default function ReactMarkdownRender({ text }: { text: string }) {
         },
 
         table: ({ children }) => (
-          <table className="table-auto border-collapse border border-gray-300 my-4 w-full">
+          <table className="table-auto border-collapse border border-border my-4 w-full text-foreground">
             {children}
           </table>
         ),
 
         th: ({ children }) => (
-          <th className="border border-gray-300 px-3 py-2 bg-gray-100 text-left">
+          <th className="border border-border px-3 py-2 bg-muted text-muted-foreground text-left">
             {children}
           </th>
         ),
 
         td: ({ children }) => (
-          <td className="border border-gray-300 px-3 py-2">{children}</td>
+          <td className="border border-border px-3 py-2 text-foreground">
+            {children}
+          </td>
         ),
 
         a: ({ href, children }) => (
           <a
             href={href}
-            className="text-blue-600 underline hover:text-blue-800"
+            className="text-primary underline underline-offset-2 hover:text-primary/80"
             target="_blank"
+            rel="noopener noreferrer"
           >
             {children}
           </a>
         ),
 
-        hr: () => <hr className="my-6 border-gray-300" />,
+        hr: () => <hr className="my-6 border-border" />,
       }}
     >
       {text}
