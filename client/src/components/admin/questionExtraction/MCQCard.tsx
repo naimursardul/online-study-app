@@ -94,7 +94,12 @@ export default function MCQCard({
         {editMode ? (
           <Select
             value={question.correctAnswer}
-            onValueChange={(val) => handleField("correctAnswer", val)}
+            onValueChange={(val) =>
+              setQuestions((prev) => {
+                prev[index].correctAnswer = val;
+                return [...prev];
+              })
+            }
           >
             <SelectTrigger className="w-full cursor-pointer">
               <SelectValue placeholder="Select correct answer" />
