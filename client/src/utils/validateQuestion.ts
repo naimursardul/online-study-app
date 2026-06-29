@@ -1,8 +1,4 @@
-import type {
-  ICQWithMeta,
-  IMCQWithMeta,
-  IQuestionWithMeta,
-} from "@/types/types";
+import type { ICQ, IMCQ } from "@/types/types";
 
 export interface IValidationError {
   field: string;
@@ -14,7 +10,7 @@ export interface IQuestionValidationResult {
   errors: IValidationError[];
 }
 
-function validateBase(q: IQuestionWithMeta): IValidationError[] {
+function validateBase(q: IMCQ | ICQ): IValidationError[] {
   const errors: IValidationError[] = [];
 
   if (!q.levelId)
@@ -43,7 +39,7 @@ function validateBase(q: IQuestionWithMeta): IValidationError[] {
   return errors;
 }
 
-function validateMCQ(q: IMCQWithMeta): IValidationError[] {
+function validateMCQ(q: IMCQ): IValidationError[] {
   const errors: IValidationError[] = [];
 
   if (!q.question?.trim())
@@ -66,7 +62,7 @@ function validateMCQ(q: IMCQWithMeta): IValidationError[] {
   return errors;
 }
 
-function validateCQ(q: ICQWithMeta): IValidationError[] {
+function validateCQ(q: ICQ): IValidationError[] {
   const errors: IValidationError[] = [];
 
   if (!q.statement?.trim())
@@ -106,21 +102,17 @@ function validateCQ(q: ICQWithMeta): IValidationError[] {
   return errors;
 }
 
-export function validateQuestion(
-  q: IQuestionWithMeta,
-): IQuestionValidationResult {
+export function validateQuestion(q: IMCQ | ICQ): IQuestionValidationResult {
   const baseErrors = validateBase(q);
   const typeErrors =
-    q.questionType === "MCQ"
-      ? validateMCQ(q as IMCQWithMeta)
-      : validateCQ(q as ICQWithMeta);
+    q.questionType === "MCQ" ? validateMCQ(q as IMCQ) : validateCQ(q as ICQ);
 
   const errors = [...baseErrors, ...typeErrors];
   return { valid: errors.length === 0, errors };
 }
 
 export function validateAll(
-  questions: IQuestionWithMeta[],
+  questions: (IMCQ | ICQ)[],
 ): IQuestionValidationResult[] {
   return questions.map(validateQuestion);
 }

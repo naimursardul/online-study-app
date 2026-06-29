@@ -13,29 +13,31 @@ import { useMemo } from "react";
 import { useMasterData } from "@/lib/MasterData-context";
 import ReactMarkdownRender from "../../text-editor/ReactMarkdownRender";
 import TextEditor from "../../text-editor/TextEditor";
-import type { ICQWithMeta, ISubQuestionWithMeta } from "@/types/types";
+import type { ICQ } from "@/types/types";
 import QuestionMetaSection from "./QuestionMetaSection";
 import ValidationSummary from "./ValidationSummary ";
 import type { IQuestionValidationResult } from "@/utils/validateQuestion";
 import { extractIdTo_ } from "@/utils/utils";
 
 interface CQCardProps {
+  setQuestions: React.Dispatch<React.SetStateAction<ICQ[]>>;
+  index: number;
   isQuestionReady: boolean;
   setIsQuestionReady: React.Dispatch<React.SetStateAction<boolean>>;
-  question: ICQWithMeta;
+  question: ICQ;
   editMode: boolean;
-  onChange: (updated: ICQWithMeta) => void;
   validationResult: IQuestionValidationResult;
 }
 
 const SUB_QUESTION_LABELS = ["A", "B", "C", "D"];
 
 export default function CQCard({
+  setQuestions,
+  index,
   isQuestionReady,
   setIsQuestionReady,
   question,
   editMode,
-  onChange,
   validationResult,
 }: CQCardProps) {
   const { masterData } = useMasterData();
@@ -56,28 +58,6 @@ export default function CQCard({
     [masterData.topics, question.subQuestions],
   );
 
-  function handleStatement(val: string) {
-    onChange({ ...question, statement: val });
-  }
-
-  function handleSubQuestion(
-    index: number,
-    field: keyof ISubQuestionWithMeta,
-    value: string,
-  ) {
-    const updated = question.subQuestions.map((sq, i) =>
-      i === index
-        ? {
-            ...sq,
-            [field]: value,
-            // reset topicId when chapter changes
-            ...(field === "chapterId" && { topicId: "" }),
-          }
-        : sq,
-    );
-    onChange({ ...question, subQuestions: updated });
-  }
-
   return (
     <Card className="p-6 space-y-6">
       {/* Statement */}
@@ -88,7 +68,12 @@ export default function CQCard({
             isFinished={isQuestionReady}
             setIsFinished={setIsQuestionReady}
             value={question.statement}
-            onChangeFn={handleStatement}
+            onChangeFn={(val) =>
+              setQuestions((prev) => {
+                prev[index].statement = val;
+                return [...prev];
+              })
+            }
           />
         ) : (
           <ReactMarkdownRender text={question.statement} />
@@ -116,7 +101,10 @@ export default function CQCard({
                   <Select
                     value={sq.chapterId || ""}
                     onValueChange={(val) =>
-                      handleSubQuestion(i, "chapterId", val)
+                      setQuestions((prev) => {
+                        prev[index].chapterId = val;
+                        return [...prev];
+                      })
                     }
                     disabled={!question.subjectId}
                   >
@@ -151,7 +139,10 @@ export default function CQCard({
                   <Select
                     value={sq.topicId || ""}
                     onValueChange={(val) =>
-                      handleSubQuestion(i, "topicId", val)
+                      setQuestions((prev) => {
+                        prev[index].levelId = val;
+                        return [...prev];
+                      })
                     }
                     disabled={topicOptionsMap[i]?.length === 0}
                   >
@@ -190,7 +181,12 @@ export default function CQCard({
                   isFinished={isQuestionReady}
                   setIsFinished={setIsQuestionReady}
                   value={sq.question}
-                  onChangeFn={(val) => handleSubQuestion(i, "question", val)}
+                  onChangeFn={(val) =>
+                    setQuestions((prev) => {
+                      prev[index].subQuestions[i].question = val;
+                      return [...prev];
+                    })
+                  }
                 />
               ) : (
                 <ReactMarkdownRender text={sq.question} />
@@ -205,7 +201,12 @@ export default function CQCard({
                   isFinished={isQuestionReady}
                   setIsFinished={setIsQuestionReady}
                   value={sq.answer}
-                  onChangeFn={(val) => handleSubQuestion(i, "answer", val)}
+                  onChangeFn={(val) =>
+                    setQuestions((prev) => {
+                      prev[index].subQuestions[i].answer = val;
+                      return [...prev];
+                    })
+                  }
                 />
               ) : (
                 <ReactMarkdownRender text={sq.answer} />
@@ -234,12 +235,9 @@ export default function CQCard({
       <QuestionMetaSection
         meta={question}
         onChange={(updated) =>
-          onChange({
-            ...question,
-            ...updated,
-            questionType: "CQ",
-            statement: question.statement,
-            subQuestions: question.subQuestions,
+          setQuestions((prev) => {
+            prev[index] = { ...prev[index], ...updated };
+            return [...prev];
           })
         }
         editMode={editMode}

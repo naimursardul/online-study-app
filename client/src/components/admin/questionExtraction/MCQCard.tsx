@@ -11,41 +11,30 @@ import { Label } from "@/components/ui/label";
 import { CheckCircle2 } from "lucide-react";
 import ReactMarkdownRender from "../../text-editor/ReactMarkdownRender";
 import TextEditor from "../../text-editor/TextEditor";
-import type { IMCQWithMeta } from "@/types/types";
+import type { IMCQ } from "@/types/types";
 import QuestionMetaSection from "./QuestionMetaSection";
 import type { IQuestionValidationResult } from "@/utils/validateQuestion";
 import ValidationSummary from "./ValidationSummary ";
 
 interface MCQCardProps {
+  setQuestions: React.Dispatch<React.SetStateAction<IMCQ[]>>;
+  index: number;
   isQuestionReady: boolean;
   setIsQuestionReady: React.Dispatch<React.SetStateAction<boolean>>;
-  question: IMCQWithMeta;
+  question: IMCQ;
   editMode: boolean;
-  onChange: (updated: IMCQWithMeta) => void;
   validationResult: IQuestionValidationResult;
 }
 
 export default function MCQCard({
+  setQuestions,
+  index,
   isQuestionReady,
   setIsQuestionReady,
   question,
   editMode,
-  onChange,
   validationResult,
 }: MCQCardProps) {
-  function handleField(
-    field: keyof IMCQWithMeta,
-    value: IMCQWithMeta[keyof IMCQWithMeta],
-  ) {
-    onChange({ ...question, [field]: value });
-  }
-
-  function handleOption(index: number, value: string) {
-    const updated = [...question.options];
-    updated[index] = value;
-    onChange({ ...question, options: updated });
-  }
-
   return (
     <Card className="p-6 space-y-6">
       {/* Question */}
@@ -56,7 +45,12 @@ export default function MCQCard({
             isFinished={isQuestionReady}
             setIsFinished={setIsQuestionReady}
             value={question.question}
-            onChangeFn={(val) => handleField("question", val)}
+            onChangeFn={(val) =>
+              setQuestions((prev) => {
+                prev[index].question = val;
+                return [...prev];
+              })
+            }
           />
         ) : (
           <ReactMarkdownRender text={question.question} />
@@ -73,7 +67,12 @@ export default function MCQCard({
                 setIsFinished={setIsQuestionReady}
                 label={`Option ${i + 1}`}
                 value={option}
-                onChangeFn={(val) => handleOption(i, val)}
+                onChangeFn={(val) =>
+                  setQuestions((prev) => {
+                    prev[index].options[i] = val;
+                    return [...prev];
+                  })
+                }
               />
             ) : (
               <div
@@ -135,7 +134,12 @@ export default function MCQCard({
             isFinished={isQuestionReady}
             setIsFinished={setIsQuestionReady}
             value={question.explanation}
-            onChangeFn={(val) => handleField("explanation", val)}
+            onChangeFn={(val) =>
+              setQuestions((prev) => {
+                prev[index].explanation = val;
+                return [...prev];
+              })
+            }
           />
         ) : (
           <p className="text-sm text-muted-foreground">
@@ -146,7 +150,10 @@ export default function MCQCard({
       <QuestionMetaSection
         meta={question}
         onChange={(updated) =>
-          onChange({ ...question, ...updated } as IMCQWithMeta)
+          setQuestions((prev) => {
+            prev[index] = { ...prev[index], ...updated };
+            return [...prev];
+          })
         }
         editMode={editMode}
       />

@@ -23,7 +23,7 @@ export default function QuestionDataField({
 }: IQuestionDataFieldProps) {
   const fieldValue = formData[field.name as keyof IBaseQuestion];
   return (
-    <div className="space-y-2 min-w-60">
+    <div className="space-y-2 ">
       {field?.label && <Label>{field.label}</Label>}
 
       {/* Input */}

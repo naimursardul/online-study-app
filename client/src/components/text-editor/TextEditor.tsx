@@ -41,10 +41,13 @@ export default function TextEditor({
   // Save when finished
   useEffect(() => {
     if (isFinished) {
+      console.log("first");
+      console.log(internalText);
       onChangeFn(internalText);
     }
   }, [isFinished]);
 
+  console.log(isFinished);
   return (
     <div className="space-y-1">
       {label && (

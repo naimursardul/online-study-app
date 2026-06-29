@@ -8,6 +8,9 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import ReactMarkdownRender from "@/components/text-editor/ReactMarkdownRender";
+import { Badge } from "@/components/ui/badge";
+import { useMasterData } from "@/lib/MasterData-context";
+import { extractIdTo_ } from "@/utils/utils";
 
 export default function SingleMcqQuestion({
   q,
@@ -22,6 +25,7 @@ export default function SingleMcqQuestion({
   examStatus: "ready" | "started" | "finished";
   setAnswerScript: Dispatch<SetStateAction<SingleMcqAnswerType[]>>;
 }) {
+  const { masterData } = useMasterData();
   const [isMarked, setIsMarked] = useState<boolean>(false);
   const [changeOption, setChangeOption] = useState<boolean>(true);
   const [singleMcqAnswer, setSingleMcqAnswer] = useState<SingleMcqAnswerType>({
@@ -29,7 +33,7 @@ export default function SingleMcqQuestion({
     givenAns: undefined,
   });
   const optionRefs = useRef<(HTMLInputElement | null)[]>([]);
-
+  console.log(q);
   //
   //
   // COLLAPSE SETTING FOR EXPLATION
@@ -71,25 +75,22 @@ export default function SingleMcqQuestion({
     });
   }
 
-  //
-  //
-  // OPTION BG SELECTOR FUNCTION
   const optionBg = (optionNumber: string) => {
     if (examStatus === "finished") {
       if (optionNumber === q.correctAnswer) {
-        return "bg-green-500 text-white";
+        return "bg-primary text-primary-foreground";
       }
 
       if (
         singleMcqAnswer?.givenAns === optionNumber &&
         singleMcqAnswer?.givenAns !== q.correctAnswer
       ) {
-        return "bg-red-500 text-white";
+        return "bg-destructive text-destructive-foreground";
       }
     }
 
     if (singleMcqAnswer?.givenAns === optionNumber) {
-      return "bg-green-500 text-white";
+      return "bg-primary text-primary-foreground";
     }
     return "bg-sidebar-accent";
   };
@@ -117,7 +118,7 @@ export default function SingleMcqQuestion({
             {viewMode === "practice" &&
               examStatus === "finished" &&
               singleMcqAnswer?.givenAns !== q.correctAnswer && (
-                <X className="text-red-700 " />
+                <X className="text-destructive" />
               )}
           </div>
           {/*  */}
@@ -145,24 +146,31 @@ export default function SingleMcqQuestion({
         {/* QUESTION DETAILS */}
         {/*  */}
         {/*  */}
-        <p className="w-full max-sm:text-sm">
+        <div className="w-full max-sm:text-sm">
           <ReactMarkdownRender text={q?.question} />
           {/* {q?.question} */}
-        </p>
+        </div>
         {/*  */}
         {/*  */}
         {/*  */}
         {/* RECORDS */}
         {/*  */}
         {/*  */}
-        {q?.record?.length > 0 && (
-          <div className="flex justify-end ">
-            <p className="bg-sidebar-accent px-2 py-2 text-chart-2 text-xs max-sm:text-[11px] font-bold rounded">
+        <div className="flex flex-col items-end gap-2">
+          {q?.record?.length > 0 && (
+            <Badge variant="secondary">
               {Array.isArray(q?.record) &&
                 q.record.map((r) => `${r.institution}-${r.year}`).join(", ")}
-            </p>
+            </Badge>
+          )}
+          <div className="flex gap-2">
+            <Badge variant="secondary">
+              {extractIdTo_(masterData.chapters, q.chapterId, "name")} -{" "}
+              {extractIdTo_(masterData.topics, q.topicId, "name")}
+            </Badge>
+            <Badge variant="secondary">{q.difficulty}</Badge>
           </div>
-        )}
+        </div>
 
         {viewMode === "practice" ? (
           <>
@@ -215,8 +223,8 @@ export default function SingleMcqQuestion({
                       }}
                       disabled={!changeOption || examStatus === "finished"}
                       type="radio"
-                      name="mcq"
-                      id="mcq"
+                      name={`mcq-${q._id}`}
+                      id={`mcq-${q._id}-${j}`}
                       value={String(j)}
                     />
                     {/*  */}
@@ -265,7 +273,7 @@ export default function SingleMcqQuestion({
                   key={j}
                   className={` flex gap-2 items-center px-2 py-2 rounded-lg  ${
                     viewMode === "showAns" && q?.correctAnswer === String(j)
-                      ? "bg-green-500 text-white border-none"
+                      ? "bg-primary text-primary-foreground border-none"
                       : "bg-sidebar-accent"
                   }`}
                 >

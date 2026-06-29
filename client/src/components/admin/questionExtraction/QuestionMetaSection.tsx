@@ -93,7 +93,7 @@ export default function QuestionMetaSection({
   return (
     <div className="pt-4 border-t space-y-4">
       <Label className="text-sm font-semibold">Metadata Override</Label>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="flex flex-row flex-wrap gap-4 ">
         {filteredFields.map((field, i) => (
           <QuestionDataField
             key={i}
@@ -105,7 +105,7 @@ export default function QuestionMetaSection({
 
               // When metadata changes inside a CQ card,
               // cascade chapterId/topicId resets same as QuestionDataField does
-              onChange(next as IBaseQuestion);
+              onChange(next);
             }}
           />
         ))}

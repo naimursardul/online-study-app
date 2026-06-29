@@ -71,7 +71,7 @@ export interface IRecord {
 
 // Base Question
 export interface IBaseQuestion {
-  questionType: string;
+  questionType: "MCQ" | "CQ";
   levelId: string;
   backgroundId: string[];
   subjectId: string;
@@ -269,22 +269,6 @@ export interface ISubQuestionWithMeta {
   chapterId: string;
   topicId: string;
 }
-
-export interface IMCQWithMeta extends IBaseQuestion {
-  questionType: "MCQ";
-  question: string;
-  options: string[];
-  correctAnswer: string;
-  explanation: string;
-}
-
-export interface ICQWithMeta extends IBaseQuestion {
-  questionType: "CQ";
-  statement: string;
-  subQuestions: ISubQuestionWithMeta[];
-}
-
-export type IQuestionWithMeta = IMCQWithMeta | ICQWithMeta;
 
 export interface IqDetails {
   withId: Record<string, string | undefined>;
