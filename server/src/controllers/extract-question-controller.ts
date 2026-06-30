@@ -296,10 +296,11 @@ ${userText}`,
       }
 
       const rawText = response?.text?.trim() || "{}";
+      console.log(rawText);
 
       // console.log(rawText);
       const extracted = JSON.parse(rawText);
-      console.log(extracted);
+      // console.log(extracted);
 
       const questions = Array.isArray(extracted.questions)
         ? extracted.questions

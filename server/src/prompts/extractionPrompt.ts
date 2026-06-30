@@ -241,7 +241,10 @@ For prose:
 * Always use inline LaTeX notation: $...$.
 * Never use display math notation: $$...$$.
 * Preserve line breaks between mathematical steps.
-* For multi-step calculations, place each step on a separate line.
+* For multi-step calculations, place each complete equation or calculation step on a separate line.
+* Never insert a line break inside a single LaTeX expression.
+* A line break is allowed only between complete equations, never between LaTeX commands such as \left and \right, \begin and \end, or between any LaTeX command and its arguments.
+* Every \left must have a matching \right within the same LaTeX expression.
 * Keep the mathematical content exactly as written; only convert formatting when necessary.
 
 Example:
@@ -346,7 +349,7 @@ The output must be valid, parsable JSON. Pay special attention to backslashes:
 * Apply this to ALL LaTeX commands, not just common ones.
 * Do NOT use single backslashes anywhere in JSON string values.
 * Only valid JSON escape sequences are allowed in string values: backslash-backslash, backslash-quote, backslash-slash, backslash-b, backslash-f, backslash-n, backslash-r, backslash-t, and backslash-u followed by 4 hex digits.
-* * Before finalizing the output, double-check every "\" character in math expressions and ensure it is written as "\\".
+* Before finalizing the output, double-check every "\" character in math expressions and ensure it is written as "\\".
 
 # Output Format
 

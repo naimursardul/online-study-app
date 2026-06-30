@@ -40,7 +40,11 @@ export function FileUploader({ files, setFiles }: Props) {
       />
 
       {files?.length &&
-        files.map((file) => <div className="mt-4 text-sm">{file.name}</div>)}
+        files.map((file, i) => (
+          <div key={i} className="mt-4 text-sm">
+            {file.name}
+          </div>
+        ))}
     </label>
   );
 }
