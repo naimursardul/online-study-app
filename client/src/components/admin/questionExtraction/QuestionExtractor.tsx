@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, FileQuestion, Pencil, Check } from "lucide-react";
+import { Loader2, FileQuestion } from "lucide-react";
 import { FileUploader } from "./FileUploader";
 import { client } from "@/utils/utils";
 import { toast } from "sonner";
@@ -181,11 +181,10 @@ function enrichQuestions(
 
 export default function QuestionExtractor() {
   const [files, setFiles] = useState<File[] | null>(null);
-  const [questionType, setQuestionType] = useState("MCQ");
-  const [extractAll, setExtractAll] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [editMode, setEditMode] = useState(false);
-  const [isQuestionReady, setIsQuestionReady] = useState(false);
+  const [questionType, setQuestionType] =
+    useState<IBaseQuestion["questionType"]>("MCQ");
+  const [extractAll, setExtractAll] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   // Global metadata state
   const [meta, setMeta] = useState<IBaseQuestion>(defaultMeta);
@@ -193,10 +192,12 @@ export default function QuestionExtractor() {
   // Enriched questions state
   const [questions, setQuestions] = useState<(IMCQ | ICQ)[]>([]);
 
+  // console.log(questions);
   // Extracted question type — drives which card to render
   const [extractedQuestionType, setExtractedQuestionType] =
     useState<IBaseQuestion["questionType"]>("CQ");
 
+  console.log(questions);
   const [uploadLoading, setUploadLoading] = useState(false);
   const validationResults = useMemo(() => validateAll(questions), [questions]);
   const allValid = validationResults?.every((r) => r.valid);
@@ -367,7 +368,6 @@ export default function QuestionExtractor() {
       // Clear uploaded questions that succeeded
       if (failed === 0) {
         setQuestions([]);
-        setEditMode(false);
       }
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Bulk upload failed.");
@@ -378,7 +378,7 @@ export default function QuestionExtractor() {
 
   // const allValid = validationResults.every((r) => r.valid);
   return (
-    <div className="container mx-auto py-10 max-w-6xl space-y-8">
+    <div className=" py-10 space-y-8">
       {/* Header */}
       <div className="flex items-center gap-3">
         <FileQuestion className="text-primary" size={34} />
@@ -399,7 +399,12 @@ export default function QuestionExtractor() {
         <FileUploader files={files} setFiles={setFiles} />
 
         <div className="grid md:grid-cols-2 gap-4">
-          <Select value={questionType} onValueChange={setQuestionType}>
+          <Select
+            value={questionType}
+            onValueChange={
+              setQuestionType as React.Dispatch<React.SetStateAction<string>>
+            }
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -438,80 +443,33 @@ export default function QuestionExtractor() {
           )}
         </Button>
       </Card>
-      {/* Global metadata — only shown after extraction */}
+      {/* Question cards */}
       {questions.length > 0 && (
-        <>
-          {/* Edit All toggle */}
-          <div className="flex justify-end">
-            <Button
-              variant={editMode ? "default" : "outline"}
-              onClick={() => {
-                console.log(`Question - 1 : `, questions[0]);
-
-                if (editMode && !isQuestionReady) {
-                  setIsQuestionReady(true);
-                  return;
+        <div className="space-y-6">
+          {questions.map((q, i) => {
+            return extractedQuestionType === "MCQ" ? (
+              <MCQCard
+                key={crypto.randomUUID()}
+                setQuestions={
+                  setQuestions as React.Dispatch<React.SetStateAction<IMCQ[]>>
                 }
-                if (setIsQuestionReady) setIsQuestionReady(false);
-                setEditMode((prev) => !prev);
-              }}
-              className="gap-2"
-            >
-              {editMode ? (
-                <>
-                  {isQuestionReady ? (
-                    <>
-                      <Check size={16} />
-                      Done Editing
-                    </>
-                  ) : (
-                    <>
-                      <Check size={16} /> Finish
-                    </>
-                  )}
-                </>
-              ) : (
-                <>
-                  <Pencil size={16} />
-                  Edit All
-                </>
-              )}
-            </Button>
-          </div>
-
-          {/* Question cards */}
-          <div className="space-y-6">
-            {questions.map((q, i) =>
-              extractedQuestionType === "MCQ" ? (
-                <MCQCard
-                  key={i}
-                  setQuestions={
-                    setQuestions as React.Dispatch<React.SetStateAction<IMCQ[]>>
-                  }
-                  index={i}
-                  isQuestionReady={isQuestionReady}
-                  setIsQuestionReady={setIsQuestionReady}
-                  question={q as IMCQ}
-                  editMode={editMode}
-                  validationResult={validationResults[i]}
-                />
-              ) : (
-                <CQCard
-                  key={i}
-                  setQuestions={
-                    setQuestions as React.Dispatch<React.SetStateAction<ICQ[]>>
-                  }
-                  index={i}
-                  isQuestionReady={isQuestionReady}
-                  setIsQuestionReady={setIsQuestionReady}
-                  question={q as ICQ}
-                  editMode={editMode}
-                  validationResult={validationResults[i]}
-                />
-              ),
-            )}
-          </div>
-        </>
+                index={i}
+                question={q as IMCQ}
+                validationResult={validationResults[i]}
+              />
+            ) : (
+              <CQCard
+                key={crypto.randomUUID()}
+                setQuestions={
+                  setQuestions as React.Dispatch<React.SetStateAction<ICQ[]>>
+                }
+                index={i}
+                question={q as ICQ}
+                validationResult={validationResults[i]}
+              />
+            );
+          })}
+        </div>
       )}
       {questions.length > 0 && (
         <BulkUploadButton
