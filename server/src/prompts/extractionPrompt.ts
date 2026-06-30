@@ -333,6 +333,21 @@ Never reconstruct missing content from prior knowledge.
 
 Maintain the exact order in which Creative Questions appear in the document.
 
+# JSON Escaping Rules (Critical)
+
+The output must be valid, parsable JSON. Pay special attention to backslashes:
+
+* Every backslash character used in LaTeX (e.g. \frac, \times, \sqrt, \theta, \pi, \cdot, \div, \alpha, \beta, etc.) MUST be escaped as a double backslash in the JSON string.
+
+  Example:
+  Correct:   "$\\frac{x}{y}$"
+  Incorrect: "$\frac{x}{y}$"
+
+* Apply this to ALL LaTeX commands, not just common ones.
+* Do NOT use single backslashes anywhere in JSON string values.
+* Only valid JSON escape sequences are allowed in string values: backslash-backslash, backslash-quote, backslash-slash, backslash-b, backslash-f, backslash-n, backslash-r, backslash-t, and backslash-u followed by 4 hex digits.
+* * Before finalizing the output, double-check every "\" character in math expressions and ensure it is written as "\\".
+
 # Output Format
 
 Return ONLY valid JSON.
@@ -438,6 +453,7 @@ Before returning:
 * Answers paraphrased when extracted.
 * Missing answers use "".
 * Return exactly one JSON object.
+* Every backslash in LaTeX expressions is properly escaped as \\.
 `;
 
 export const BULK_CQ_EXTRACTION_PROMPT_2 = `You are an expert at extracting Bangladeshi Creative Questions (সৃজনশীল প্রশ্ন / CQ) from images, scanned PDFs, digital PDFs, and mixed-content educational documents.

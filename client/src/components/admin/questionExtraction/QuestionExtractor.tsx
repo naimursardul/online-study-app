@@ -180,7 +180,7 @@ function enrichQuestions(
 // ];
 
 export default function QuestionExtractor() {
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[] | null>(null);
   const [questionType, setQuestionType] = useState("MCQ");
   const [extractAll, setExtractAll] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -229,19 +229,23 @@ export default function QuestionExtractor() {
   // Extract handler
   // -------------------------
   async function handleExtract() {
-    if (!file) return;
+    if (!files || files.length <= 0) return;
 
     try {
       setLoading(true);
 
       const formData = new FormData();
-      formData.append("file", file);
+
+      files.forEach((file) => {
+        formData.append("files", file); // same key "files" for each file
+      });
+
       formData.append("questionType", questionType);
       formData.append("extractAll", String(extractAll));
 
       const res = await client.post("/extraction/extract-questions", formData);
 
-      console.log(res);
+      // console.log(res);
       if (!res.data.success) {
         toast.error(res.data.message || "Failed to extract questions");
         return;
@@ -392,7 +396,7 @@ export default function QuestionExtractor() {
       />
       {/* File + options */}
       <Card className="p-6 space-y-6">
-        <FileUploader file={file} onFileChange={setFile} />
+        <FileUploader files={files} setFiles={setFiles} />
 
         <div className="grid md:grid-cols-2 gap-4">
           <Select value={questionType} onValueChange={setQuestionType}>
@@ -421,7 +425,7 @@ export default function QuestionExtractor() {
 
         <Button
           onClick={handleExtract}
-          disabled={!file || loading}
+          disabled={!files || (files && files?.length <= 0) || loading}
           className="w-full"
         >
           {loading ? (

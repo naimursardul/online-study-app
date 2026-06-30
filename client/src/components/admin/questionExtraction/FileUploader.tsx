@@ -1,11 +1,11 @@
 import { UploadCloud } from "lucide-react";
 
 interface Props {
-  file: File | null;
-  onFileChange: (file: File) => void;
+  files: File[] | null;
+  setFiles: (files: File[]) => void;
 }
 
-export function FileUploader({ file, onFileChange }: Props) {
+export function FileUploader({ files, setFiles }: Props) {
   return (
     <label
       className="
@@ -32,13 +32,15 @@ export function FileUploader({ file, onFileChange }: Props) {
         hidden
         type="file"
         accept=".pdf,image/*"
+        multiple
         onChange={(e) => {
-          const selected = e.target.files?.[0];
-          if (selected) onFileChange(selected);
+          const selected = e.target.files;
+          if (selected) setFiles(Array.from(selected));
         }}
       />
 
-      {file && <div className="mt-4 text-sm">{file.name}</div>}
+      {files?.length &&
+        files.map((file) => <div className="mt-4 text-sm">{file.name}</div>)}
     </label>
   );
 }
