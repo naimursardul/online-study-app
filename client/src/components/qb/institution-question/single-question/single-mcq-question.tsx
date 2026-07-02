@@ -1,7 +1,6 @@
 import { useRef, useState, type Dispatch, type SetStateAction } from "react";
-import { Bookmark, BookmarkCheck, ChevronsUpDown, X } from "lucide-react";
+import { ChevronsUpDown, X } from "lucide-react";
 import type { ICollection, IMCQ, SingleMcqAnswerType } from "@/types/types";
-import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
@@ -11,6 +10,7 @@ import ReactMarkdownRender from "@/components/text-editor/ReactMarkdownRender";
 import { Badge } from "@/components/ui/badge";
 import { useMasterData } from "@/lib/MasterData-context";
 import { extractIdTo_ } from "@/utils/utils";
+import SaveToCollectionButton from "@/components/saveToCollectionBtn/saveToCollectionBtn";
 
 export default function SingleMcqQuestion({
   q,
@@ -20,6 +20,7 @@ export default function SingleMcqQuestion({
   examStatus,
   collections,
   setCollections,
+  collectionFetchLoading,
 }: {
   q: IMCQ & { _id: string };
   i: number;
@@ -30,9 +31,9 @@ export default function SingleMcqQuestion({
   setCollections: React.Dispatch<
     React.SetStateAction<(ICollection & { _id: string })[]>
   >;
+  collectionFetchLoading: boolean;
 }) {
   const { masterData } = useMasterData();
-  const [isMarked, setIsMarked] = useState<boolean>(false);
   const [changeOption, setChangeOption] = useState<boolean>(true);
   const [singleMcqAnswer, setSingleMcqAnswer] = useState<SingleMcqAnswerType>({
     questionId: q._id || "",
@@ -133,18 +134,12 @@ export default function SingleMcqQuestion({
           {/* BOOKMAR BUTTON */}
           {/*  */}
           {/*  */}
-          <Button
-            onClick={() => setIsMarked(!isMarked)}
-            variant={"ghost"}
-            size={"icon"}
-            className="cursor-pointer"
-          >
-            {isMarked ? (
-              <BookmarkCheck className="text-destructive" />
-            ) : (
-              <Bookmark />
-            )}
-          </Button>
+          <SaveToCollectionButton
+            questionId={(q as { _id: string } & IMCQ)._id}
+            collections={collections}
+            setCollections={setCollections}
+            collectionFetchLoading={collectionFetchLoading}
+          />
         </div>
         {/*  */}
         {/*  */}

@@ -10,17 +10,20 @@ import {
 import { client } from "@/utils/utils";
 import { toast } from "sonner";
 import type { ICollection } from "@/types/types";
+import { Skeleton } from "../ui/skeleton";
 
 export default function SaveToCollectionButton({
   questionId,
   collections,
   setCollections,
+  collectionFetchLoading,
 }: {
   questionId: string;
   collections: (ICollection & { _id: string })[];
   setCollections: React.Dispatch<
     React.SetStateAction<(ICollection & { _id: string })[]>
   >;
+  collectionFetchLoading: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -83,12 +86,13 @@ export default function SaveToCollectionButton({
     }
   }
 
-  console.log(collections);
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="cursor-pointer">
-          {isSaved ? (
+          {collectionFetchLoading ? (
+            <Skeleton className="size-8 rounded-full" />
+          ) : isSaved ? (
             <BookmarkCheck className="text-destructive" />
           ) : (
             <Bookmark />

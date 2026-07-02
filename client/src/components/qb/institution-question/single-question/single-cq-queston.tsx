@@ -16,6 +16,7 @@ export default function SingleCqQuestion({
   i,
   collections,
   setCollections,
+  collectionFetchLoading,
 }: {
   q: ICQ;
   i: number;
@@ -23,6 +24,7 @@ export default function SingleCqQuestion({
   setCollections: React.Dispatch<
     React.SetStateAction<(ICollection & { _id: string })[]>
   >;
+  collectionFetchLoading: boolean;
 }) {
   const { masterData } = useMasterData();
 
@@ -37,6 +39,7 @@ export default function SingleCqQuestion({
             questionId={(q as { _id: string } & ICQ)._id}
             collections={collections}
             setCollections={setCollections}
+            collectionFetchLoading={collectionFetchLoading}
           />
         </div>
         <p className="w-full max-sm:text-sm">

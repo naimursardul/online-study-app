@@ -78,6 +78,7 @@ function QuestionBankSlug2() {
   const [collections, setCollections] = useState<
     (ICollection & { _id: string })[]
   >([]);
+  const [collectionFetchLoading, setCollectionFetchLoading] = useState(true);
 
   // =========================
   // KEEP REF UPDATED
@@ -124,7 +125,6 @@ function QuestionBankSlug2() {
     fetchQuestions();
   }, [qDetails]);
 
-  console.log(allQuestion);
   // =========================
   // TOTAL TIME
   // =========================
@@ -281,11 +281,16 @@ function QuestionBankSlug2() {
         if (res.data.success) {
           setCollections(res.data.data);
         }
+        if (!res.data.success) {
+          toast.error(res.data.message || "Failed to load collections.");
+        }
       } catch (error) {
         console.error("Failed to load collections", error);
         toast.error(
           error instanceof Error ? error.message : "Failed to load collections",
         );
+      } finally {
+        setCollectionFetchLoading(false);
       }
     }
 
@@ -364,6 +369,7 @@ function QuestionBankSlug2() {
               examStatus={examStatus}
               collections={collections}
               setCollections={setCollections}
+              collectionFetchLoading={collectionFetchLoading}
             />
           ))}
 
@@ -408,6 +414,7 @@ function QuestionBankSlug2() {
             i={i + 1}
             collections={collections}
             setCollections={setCollections}
+            collectionFetchLoading={collectionFetchLoading}
           />
         ))}
       </div>
