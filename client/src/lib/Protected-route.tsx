@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./Auth-context";
 import Loader from "@/components/loader/Loader";
 import { type ReactNode } from "react";
@@ -14,6 +14,7 @@ type ProtectedRouteProps = {
 
 const ProtectedRoute = ({ element, roles }: ProtectedRouteProps) => {
   const { authLoader, user } = useAuth();
+  const location = useLocation();
 
   // 🔄 Loading
   if (authLoader) {
@@ -22,7 +23,7 @@ const ProtectedRoute = ({ element, roles }: ProtectedRouteProps) => {
 
   // ❌ Not logged in
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
   // ❌ Unauthorized (only if roles are provided)

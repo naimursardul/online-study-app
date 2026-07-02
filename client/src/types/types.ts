@@ -149,6 +149,12 @@ export interface ITopic {
   chapterId: string | IPopulatedData;
 }
 
+// Collection
+export interface ICollection {
+  name: string;
+  questionIds: string[];
+}
+
 // IRegistrationFormField
 export interface IRegistrationFormField {
   name: string;

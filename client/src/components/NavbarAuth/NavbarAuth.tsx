@@ -22,9 +22,10 @@ import { useAuth } from "@/lib/Auth-context";
 import { toast } from "sonner";
 import { client } from "@/utils/utils";
 import ThemeToggle from "../theme/toggleMode";
+import { Skeleton } from "../ui/skeleton";
 
 export default function NavbarAuth() {
-  const { user, userExisted, setUser } = useAuth();
+  const { user, userExisted, setUser, authLoader } = useAuth();
   const isMobile = window.innerWidth < 640; // Example breakpoint for mobile devices
 
   const navigate = useNavigate();
@@ -52,16 +53,20 @@ export default function NavbarAuth() {
     }
   };
 
+  console.log(user);
+
   return (
     <div className="flex items-center gap-4 max-sm:gap-2">
       <ThemeToggle />
-      {user || userExisted ? (
+      {userExisted && authLoader ? (
+        <Skeleton className="h-8 w-8 rounded-full bg-background border-background " />
+      ) : user ? (
         <DropdownMenu>
           <DropdownMenuTrigger className="cursor-pointer hover:opacity-90 border-none outline-none">
             <Avatar>
               <AvatarImage src={user?.img} />
               <AvatarFallback className="bg-background font-bold">
-                {user?.name.slice(0, 1).toLocaleUpperCase()}
+                {user?.name?.slice(0, 1).toLocaleUpperCase()}
               </AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
@@ -74,7 +79,7 @@ export default function NavbarAuth() {
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={user?.img} alt={user?.name} />
                   <AvatarFallback className="rounded-full ">
-                    {user?.name.slice(0, 1).toLocaleUpperCase()}
+                    {user?.name?.slice(0, 1).toLocaleUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">

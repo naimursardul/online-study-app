@@ -14,6 +14,7 @@ import { client } from "@/utils/utils";
 import type {
   ExamStatusType,
   IBaseQuestion,
+  ICollection,
   ICQ,
   IMCQ,
   IqDetails,
@@ -73,6 +74,10 @@ function QuestionBankSlug2() {
     examStatus,
   } = useOutletContext<OutletContextType>();
   console.log(qDetails);
+
+  const [collections, setCollections] = useState<
+    (ICollection & { _id: string })[]
+  >([]);
 
   // =========================
   // KEEP REF UPDATED
@@ -269,10 +274,24 @@ function QuestionBankSlug2() {
     }, 1000);
   }
 
-  console.log(allQuestion);
-  // =========================
-  // LOADING
-  // =========================
+  useEffect(() => {
+    async function fetchCollections() {
+      try {
+        const res = await client.get("/collection");
+        if (res.data.success) {
+          setCollections(res.data.data);
+        }
+      } catch (error) {
+        console.error("Failed to load collections", error);
+        toast.error(
+          error instanceof Error ? error.message : "Failed to load collections",
+        );
+      }
+    }
+
+    fetchCollections();
+  }, []);
+
   if (loading) {
     return qDetails?.withId?.questionType === "MCQ" ? (
       <div className="space-y-5">
@@ -343,6 +362,8 @@ function QuestionBankSlug2() {
               viewMode={viewMode}
               setAnswerScript={setAnswerScript}
               examStatus={examStatus}
+              collections={collections}
+              setCollections={setCollections}
             />
           ))}
 
@@ -381,7 +402,13 @@ function QuestionBankSlug2() {
     return (
       <div className="space-y-5">
         {allQuestion.map((q, i) => (
-          <SingleCqQuestion key={q._id} q={q as ICQ} i={i + 1} />
+          <SingleCqQuestion
+            key={q._id}
+            q={q as ICQ}
+            i={i + 1}
+            collections={collections}
+            setCollections={setCollections}
+          />
         ))}
       </div>
     );

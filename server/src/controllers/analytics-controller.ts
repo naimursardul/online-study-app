@@ -5,8 +5,6 @@ import {
   getSubjectPerformance,
   getWeakTopics,
 } from "../services/analytics.service";
-import { IUser } from "../type/type";
-import mongoose from "mongoose";
 
 // =========================================
 // GET WEAK TOPICS
@@ -14,11 +12,12 @@ import mongoose from "mongoose";
 
 export const weakTopicsController = async (req: Request, res: Response) => {
   try {
-    const user = req?.user as IUser & { _id: mongoose.Types.ObjectId };
+    const user = req?.user;
     const limit = Number(req.query.limit) || 5;
     const subjectId = req.query.subjectId as string | undefined;
 
-    const data = await getWeakTopics(String(user?._id), limit, subjectId);
+    const userId = req.user?._id;
+    const data = await getWeakTopics(String(userId), limit, subjectId);
 
     res
       .status(200)
@@ -38,11 +37,19 @@ export const getDashboardStatsController = async (
   res: Response,
 ) => {
   try {
-    const u_id = (req.user as IUser & { _id: string })?._id;
+    const userId = req.user?._id;
     const { subjectId } = req.query;
 
     console.log(subjectId);
-    const data = await getDashboardStats(u_id, subjectId as string | undefined);
+
+    if (!userId) {
+      res.status(200).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+    const data = await getDashboardStats(
+      userId,
+      subjectId as string | undefined,
+    );
 
     res.status(200).json({
       success: true,
@@ -51,7 +58,7 @@ export const getDashboardStatsController = async (
     return;
   } catch (error: any) {
     console.error("getDashboardStatsController Error:", error.message);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
     return;
   }
 };
@@ -64,14 +71,14 @@ export const getSubjectPerformanceController = async (
   res: Response,
 ) => {
   try {
-    const u_id = (req.user as IUser & { _id: string })?._id;
+    const userId = req.user?._id;
 
-    if (!u_id) {
-      res.status(401).json({ message: "Unauthorized" });
+    if (!userId) {
+      res.status(200).json({ success: false, message: "Unauthorized" });
       return;
     }
 
-    const data = await getSubjectPerformance(u_id);
+    const data = await getSubjectPerformance(userId);
 
     res.status(200).json({
       success: true,
@@ -80,7 +87,7 @@ export const getSubjectPerformanceController = async (
     return;
   } catch (error: any) {
     console.error("getSubjectPerformanceController Error:", error.message);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
     return;
   }
 };
@@ -94,11 +101,11 @@ export const performanceGraphController = async (
   res: Response,
 ) => {
   try {
-    const user = req?.user as IUser & { _id: mongoose.Types.ObjectId };
+    const userId = req.user?._id;
     const limit = Number(req.query.limit) || 20;
     const subjectId = req.query.subjectId as string | undefined;
 
-    const data = await getPerformanceGraph(String(user?._id), limit, subjectId);
+    const data = await getPerformanceGraph(String(userId), limit, subjectId);
 
     res.status(200).json({
       message: "Graph data retrieved successfully.",

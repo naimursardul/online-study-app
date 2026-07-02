@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { toast } from "sonner";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { IRegistrationFormField } from "@/types/types";
 import { Card } from "@/components/ui/card";
 import SubmitBtn from "@/components/submit-btn/submit-btn";
@@ -41,6 +41,13 @@ export default function LoginForm() {
   });
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/";
+
+  // =========================================
+  // SUBMIT LOGIN
+  // =========================================
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     console.log(values);
     try {
@@ -53,7 +60,7 @@ export default function LoginForm() {
       }
       localStorage.setItem("userExisted", "true");
       setUser(data.user);
-      navigate("/", { replace: true });
+      navigate(from, { replace: true });
       return;
     } catch (error) {
       console.log(error);

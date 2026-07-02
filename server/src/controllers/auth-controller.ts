@@ -217,7 +217,9 @@ export const requireAuth = async (
       return;
     }
 
-    const userObj = data;
+    const userObj = { ...data, _id: String(data._id) } as IUser & {
+      _id: string;
+    };
     delete userObj.password;
     // console.log(userObj);
     req.user = userObj;
@@ -233,7 +235,7 @@ export const requireAuth = async (
 export const checkAuth = async (req: Request, res: Response) => {
   // console.log(req.user);
   try {
-    if (!req.user) {
+    if (!req.user?._id) {
       res.status(200).json({
         success: false,
         message: "Unauthorized! User not found.",

@@ -1,6 +1,6 @@
 import { useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { Bookmark, BookmarkCheck, ChevronsUpDown, X } from "lucide-react";
-import type { IMCQ, SingleMcqAnswerType } from "@/types/types";
+import type { ICollection, IMCQ, SingleMcqAnswerType } from "@/types/types";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -18,12 +18,18 @@ export default function SingleMcqQuestion({
   viewMode,
   setAnswerScript,
   examStatus,
+  collections,
+  setCollections,
 }: {
   q: IMCQ & { _id: string };
   i: number;
   viewMode: string;
   examStatus: "ready" | "started" | "finished";
   setAnswerScript: Dispatch<SetStateAction<SingleMcqAnswerType[]>>;
+  collections: (ICollection & { _id: string })[];
+  setCollections: React.Dispatch<
+    React.SetStateAction<(ICollection & { _id: string })[]>
+  >;
 }) {
   const { masterData } = useMasterData();
   const [isMarked, setIsMarked] = useState<boolean>(false);

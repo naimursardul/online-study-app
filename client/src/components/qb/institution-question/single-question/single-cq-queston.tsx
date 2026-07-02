@@ -1,21 +1,30 @@
-import { useState } from "react";
-import { Bookmark, BookmarkCheck, ChevronsUpDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ChevronsUpDown } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import type { ICQ } from "@/types/types";
+import type { ICollection, ICQ } from "@/types/types";
 import ReactMarkdownRender from "@/components/text-editor/ReactMarkdownRender";
 import { Badge } from "@/components/ui/badge";
 import { extractIdTo_ } from "@/utils/utils";
 import { useMasterData } from "@/lib/MasterData-context";
+import SaveToCollectionBtn from "@/components/saveToCollectionBtn/saveToCollectionBtn";
 
-export default function SingleCqQuestion({ q, i }: { q: ICQ; i: number }) {
+export default function SingleCqQuestion({
+  q,
+  i,
+  collections,
+  setCollections,
+}: {
+  q: ICQ;
+  i: number;
+  collections: (ICollection & { _id: string })[];
+  setCollections: React.Dispatch<
+    React.SetStateAction<(ICollection & { _id: string })[]>
+  >;
+}) {
   const { masterData } = useMasterData();
-
-  const [isMarked, setIsMarked] = useState<boolean>(false);
 
   return (
     <div className="bg-background rounded-xl p-5 max-sm:p-4 border border-sidebar-border">
@@ -24,18 +33,11 @@ export default function SingleCqQuestion({ q, i }: { q: ICQ; i: number }) {
           <p className="bg-input size-5 md:size-7 flex justify-center items-center px-2 py-2 text-xs rounded">
             {i}
           </p>
-          <Button
-            onClick={() => setIsMarked(!isMarked)}
-            variant={"ghost"}
-            size={"icon"}
-            className="cursor-pointer"
-          >
-            {isMarked ? (
-              <BookmarkCheck className="text-destructive" />
-            ) : (
-              <Bookmark />
-            )}
-          </Button>
+          <SaveToCollectionBtn
+            questionId={(q as { _id: string } & ICQ)._id}
+            collections={collections}
+            setCollections={setCollections}
+          />
         </div>
         <p className="w-full max-sm:text-sm">
           {" "}
@@ -58,24 +60,27 @@ export default function SingleCqQuestion({ q, i }: { q: ICQ; i: number }) {
         </div>
 
         {Array.isArray(q?.subQuestions) &&
-          q.subQuestions.map((sq, i) => (
-            <Collapsible key={i} className="border pl-3 pr-2 py-2 rounded">
-              <div className="flex justify-between items-center gap-2 ">
-                <span className="font-semibold text-chart-2">
-                  {sq?.questionNo}
-                </span>
-                <p className="w-full">
-                  <ReactMarkdownRender text={sq?.question} />
-                </p>
-                <CollapsibleTrigger className="cursor-pointer rounded ">
-                  <ChevronsUpDown className="size-5 max-sm:size-4 hover:bg-sidebar-accent p-.5" />
-                </CollapsibleTrigger>
-              </div>
-              <CollapsibleContent className="px-4 py-3 max-sm:text-sm text-chart-2">
-                <ReactMarkdownRender text={sq?.answer} />
-              </CollapsibleContent>
-            </Collapsible>
-          ))}
+          q.subQuestions.map((sq, i) => {
+            const qNo: string = ["A", "B", "C", "D"][
+              Number(sq?.questionNo) || 0
+            ];
+            return (
+              <Collapsible key={i} className="border pl-3 pr-2 py-2 rounded">
+                <div className="flex justify-between items-center gap-2 ">
+                  <span className="font-semibold text-chart-2">{qNo}</span>
+                  <p className="w-full">
+                    <ReactMarkdownRender text={sq?.question} />
+                  </p>
+                  <CollapsibleTrigger className="cursor-pointer rounded ">
+                    <ChevronsUpDown className="size-5 max-sm:size-4 hover:bg-sidebar-accent p-.5" />
+                  </CollapsibleTrigger>
+                </div>
+                <CollapsibleContent className="px-4 py-3 max-sm:text-sm text-chart-2">
+                  <ReactMarkdownRender text={sq?.answer} />
+                </CollapsibleContent>
+              </Collapsible>
+            );
+          })}
       </div>
     </div>
   );

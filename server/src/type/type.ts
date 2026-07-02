@@ -72,6 +72,13 @@ export interface IPopulatedData {
   name: string;
 }
 
+// Collection
+export interface ICollection extends Document {
+  userId: mongoose.Types.ObjectId;
+  name: string;
+  questionIds: mongoose.Types.ObjectId[];
+}
+
 // Level
 export interface ILevel extends Document {
   name: string;
