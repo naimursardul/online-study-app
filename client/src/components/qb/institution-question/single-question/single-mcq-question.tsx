@@ -52,6 +52,7 @@ export default function SingleMcqQuestion({
   // HANDLE AFTER SELECTING AN OPTION
   function handleSingleMcqSubmit(e: React.ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!setAnswerScript) return;
     const singleAnsObj: SingleMcqAnswerType = {
       questionId: q._id,
       givenAns: e.target.value,
