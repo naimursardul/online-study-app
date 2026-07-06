@@ -4,14 +4,14 @@ import SidebarTemplate from "@/components/sidebar-template/SidebarTemplate";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useMasterData } from "@/lib/MasterData-context";
 import type { SidebarItemType } from "@/types/types";
-import { Calendar, Home, Inbox, LayoutDashboard } from "lucide-react";
+import { Calendar, Home, Inbox, LayoutDashboard, Library } from "lucide-react";
 import { Outlet } from "react-router-dom";
 
 export default function ServiceLayout() {
   // Menu items.
   const items: SidebarItemType[] = [
     {
-      title: "Question bank",
+      title: "Question-bank",
       url: "/question-bank",
       icon: <Home />,
     },
@@ -29,6 +29,12 @@ export default function ServiceLayout() {
       title: "Dashboard",
       url: "/dashboard",
       icon: <LayoutDashboard />,
+      role: ["user", "admin"],
+    },
+    {
+      title: "Collection",
+      url: "/collection",
+      icon: <Library />,
       role: ["user", "admin"],
     },
   ];

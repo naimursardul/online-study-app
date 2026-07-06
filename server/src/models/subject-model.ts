@@ -1,4 +1,3 @@
-// ===== models/subject-model.ts =====
 import mongoose, { Schema } from "mongoose";
 import { ISubject } from "../type/type";
 import { BaseQuestion } from "./question-model";

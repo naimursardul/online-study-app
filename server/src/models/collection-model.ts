@@ -13,14 +13,9 @@ const collectionSchema = new Schema<ICollection>(
       required: true,
       trim: true,
     },
-    questionIds: [
-      {
-        type: Schema.Types.ObjectId,
-        default: [],
-      },
-    ],
   },
   { timestamps: true },
 );
 
-export const Collection = model<ICollection>("Collection", collectionSchema);
+const Collection = model<ICollection>("Collection", collectionSchema);
+export default Collection;

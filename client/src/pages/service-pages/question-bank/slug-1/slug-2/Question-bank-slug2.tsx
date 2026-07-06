@@ -14,7 +14,6 @@ import { client } from "@/utils/utils";
 import type {
   ExamStatusType,
   IBaseQuestion,
-  ICollection,
   ICQ,
   IMCQ,
   IqDetails,
@@ -26,7 +25,6 @@ import { McqQuestionSkeleton } from "@/components/skeleton/McqQuestionSkeleton";
 import { CqQuestionSkeleton } from "@/components/skeleton/CqQuestionSkeleton";
 import { useAuth } from "@/lib/Auth-context";
 import { toast } from "sonner";
-import { useMasterData } from "@/lib/MasterData-context";
 
 type OutletContextType = {
   timeRemaining: number;
@@ -44,11 +42,9 @@ function QuestionBankSlug2() {
   const [loading, setLoading] = useState(true);
 
   const [allQuestion, setAllQuestion] = useState<
-    ((IMCQ | ICQ) & { _id: string })[]
+    ((IMCQ & { _id: string }) | (ICQ & { _id: string }))[]
   >([]);
 
-  const allSubject = useMasterData().masterData.subjects;
-  console.log(allSubject);
   const [answerScript, setAnswerScript] = useState<SingleMcqAnswerType[]>([]);
 
   const [scriptRes, setScriptRes] = useState<ScriptResType>({
@@ -74,11 +70,6 @@ function QuestionBankSlug2() {
     examStatus,
   } = useOutletContext<OutletContextType>();
   console.log(qDetails);
-
-  const [collections, setCollections] = useState<
-    (ICollection & { _id: string })[]
-  >([]);
-  const [collectionFetchLoading, setCollectionFetchLoading] = useState(true);
 
   // =========================
   // KEEP REF UPDATED
@@ -274,29 +265,6 @@ function QuestionBankSlug2() {
     }, 1000);
   }
 
-  useEffect(() => {
-    async function fetchCollections() {
-      try {
-        const res = await client.get("/collection");
-        if (res.data.success) {
-          setCollections(res.data.data);
-        }
-        if (!res.data.success) {
-          toast.error(res.data.message || "Failed to load collections.");
-        }
-      } catch (error) {
-        console.error("Failed to load collections", error);
-        toast.error(
-          error instanceof Error ? error.message : "Failed to load collections",
-        );
-      } finally {
-        setCollectionFetchLoading(false);
-      }
-    }
-
-    fetchCollections();
-  }, []);
-
   if (loading) {
     return qDetails?.withId?.questionType === "MCQ" ? (
       <div className="space-y-5">
@@ -367,9 +335,6 @@ function QuestionBankSlug2() {
               viewMode={viewMode}
               setAnswerScript={setAnswerScript}
               examStatus={examStatus}
-              collections={collections}
-              setCollections={setCollections}
-              collectionFetchLoading={collectionFetchLoading}
             />
           ))}
 
@@ -410,11 +375,8 @@ function QuestionBankSlug2() {
         {allQuestion.map((q, i) => (
           <SingleCqQuestion
             key={q._id}
-            q={q as ICQ}
+            q={q as ICQ & { _id: string }}
             i={i + 1}
-            collections={collections}
-            setCollections={setCollections}
-            collectionFetchLoading={collectionFetchLoading}
           />
         ))}
       </div>

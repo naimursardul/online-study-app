@@ -25,6 +25,8 @@ import Record from "./pages/admin/(allUploadPages)/record/Record.tsx";
 import Contact from "./pages/contact/Contact.tsx";
 import Dashboard from "./pages/service-pages/dashboard/Dashboard.tsx";
 import AiExtractor from "./pages/admin/(allUploadPages)/ai-extractor.tsx";
+import Collection from "./pages/collection/Collection.tsx";
+import SingleCollectionPage from "./pages/collection/slug-1/SingleCollectionPage.tsx";
 
 function App() {
   return (
@@ -73,6 +75,13 @@ function App() {
                 <ProtectedRoute roles={["user"]} element={<Dashboard />} />
               }
             />
+            <Route
+              path="/collection"
+              element={
+                <ProtectedRoute roles={["user"]} element={<Collection />} />
+              }
+            />
+            <Route path="/collections/:id" element={<SingleCollectionPage />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />

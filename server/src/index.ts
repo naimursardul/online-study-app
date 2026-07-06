@@ -57,7 +57,6 @@ app.use("/api/extraction", ExtractionRouter);
 // Global error handler (should be after routes)
 app.use(errorHandler);
 
-console.log(process.env.JWT_SECRET);
 // INITIATE APP
 const startServer = async () => {
   try {

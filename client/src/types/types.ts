@@ -151,8 +151,8 @@ export interface ITopic {
 
 // Collection
 export interface ICollection {
+  userId: string;
   name: string;
-  questionIds: string[];
 }
 
 // IRegistrationFormField
@@ -220,6 +220,7 @@ export interface IMasterData {
     levelId: string;
   }[];
   records: (IRecord & { _id: string })[];
+  collections: (ICollection & { _id: string; createdAt: string })[];
 }
 
 // Query form data

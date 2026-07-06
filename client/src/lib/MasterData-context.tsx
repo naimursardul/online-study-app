@@ -17,7 +17,7 @@ type MasterDataContextType = {
 
 // 👉 Create context
 const MasterDataContext = createContext<MasterDataContextType | undefined>(
-  undefined
+  undefined,
 );
 
 // 👉 Provider props
@@ -33,6 +33,7 @@ const MasterDataProvider = ({ children }: MasterDataProviderProps) => {
     chapters: [],
     topics: [],
     records: [],
+    collections: [],
   });
   const [masterDataLoading, setMasterDataLoading] = useState(true);
   const [masterDataError, setMasterDataError] = useState<string | null>(null);
@@ -81,9 +82,7 @@ const useMasterData = (): MasterDataContextType => {
   const context = useContext(MasterDataContext);
 
   if (!context) {
-    throw new Error(
-      "useMasterData must be used within MasterDataProvider"
-    );
+    throw new Error("useMasterData must be used within MasterDataProvider");
   }
 
   return context;

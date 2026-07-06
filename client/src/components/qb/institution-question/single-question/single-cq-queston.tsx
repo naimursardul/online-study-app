@@ -4,27 +4,19 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import type { ICollection, ICQ } from "@/types/types";
+import type { ICQ } from "@/types/types";
 import ReactMarkdownRender from "@/components/text-editor/ReactMarkdownRender";
 import { Badge } from "@/components/ui/badge";
 import { extractIdTo_ } from "@/utils/utils";
 import { useMasterData } from "@/lib/MasterData-context";
-import SaveToCollectionBtn from "@/components/saveToCollectionBtn/saveToCollectionBtn";
+import SaveToCollectionButton from "@/components/collection/saveToCollectionBtn";
 
 export default function SingleCqQuestion({
   q,
   i,
-  collections,
-  setCollections,
-  collectionFetchLoading,
 }: {
-  q: ICQ;
+  q: ICQ & { _id: string };
   i: number;
-  collections: (ICollection & { _id: string })[];
-  setCollections: React.Dispatch<
-    React.SetStateAction<(ICollection & { _id: string })[]>
-  >;
-  collectionFetchLoading: boolean;
 }) {
   const { masterData } = useMasterData();
 
@@ -35,11 +27,12 @@ export default function SingleCqQuestion({
           <p className="bg-input size-5 md:size-7 flex justify-center items-center px-2 py-2 text-xs rounded">
             {i}
           </p>
-          <SaveToCollectionBtn
-            questionId={(q as { _id: string } & ICQ)._id}
-            collections={collections}
-            setCollections={setCollections}
-            collectionFetchLoading={collectionFetchLoading}
+          <SaveToCollectionButton
+            questionType={q.questionType}
+            questionId={q._id}
+            subjectId={q.subjectId}
+            chapterId={q.chapterId}
+            topicId={q.topicId}
           />
         </div>
         <p className="w-full max-sm:text-sm">

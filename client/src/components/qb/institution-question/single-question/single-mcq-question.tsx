@@ -1,6 +1,11 @@
 import { useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { ChevronsUpDown, X } from "lucide-react";
-import type { ICollection, IMCQ, SingleMcqAnswerType } from "@/types/types";
+import type {
+  ExamStatusType,
+  IMCQ,
+  SingleMcqAnswerType,
+  ViewModeType,
+} from "@/types/types";
 import {
   Collapsible,
   CollapsibleContent,
@@ -10,7 +15,7 @@ import ReactMarkdownRender from "@/components/text-editor/ReactMarkdownRender";
 import { Badge } from "@/components/ui/badge";
 import { useMasterData } from "@/lib/MasterData-context";
 import { extractIdTo_ } from "@/utils/utils";
-import SaveToCollectionButton from "@/components/saveToCollectionBtn/saveToCollectionBtn";
+import SaveToCollectionButton from "@/components/collection/saveToCollectionBtn";
 
 export default function SingleMcqQuestion({
   q,
@@ -18,20 +23,12 @@ export default function SingleMcqQuestion({
   viewMode,
   setAnswerScript,
   examStatus,
-  collections,
-  setCollections,
-  collectionFetchLoading,
 }: {
   q: IMCQ & { _id: string };
   i: number;
-  viewMode: string;
-  examStatus: "ready" | "started" | "finished";
-  setAnswerScript: Dispatch<SetStateAction<SingleMcqAnswerType[]>>;
-  collections: (ICollection & { _id: string })[];
-  setCollections: React.Dispatch<
-    React.SetStateAction<(ICollection & { _id: string })[]>
-  >;
-  collectionFetchLoading: boolean;
+  viewMode: ViewModeType;
+  examStatus?: ExamStatusType;
+  setAnswerScript?: Dispatch<SetStateAction<SingleMcqAnswerType[]>>;
 }) {
   const { masterData } = useMasterData();
   const [changeOption, setChangeOption] = useState<boolean>(true);
@@ -40,14 +37,10 @@ export default function SingleMcqQuestion({
     givenAns: undefined,
   });
   const optionRefs = useRef<(HTMLInputElement | null)[]>([]);
-  console.log(q);
-  //
-  //
+
   // COLLAPSE SETTING FOR EXPLATION
   const [isOpen, setIsOpen] = useState(false);
 
-  //
-  //
   // CONVERT OPTION INDEX TO STRING
   const optionSetting: Record<number, string> = {
     0: "A",
@@ -56,12 +49,9 @@ export default function SingleMcqQuestion({
     3: "D",
   };
 
-  //
-  //
   // HANDLE AFTER SELECTING AN OPTION
   function handleSingleMcqSubmit(e: React.ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
-    console.log(e.target.value);
     const singleAnsObj: SingleMcqAnswerType = {
       questionId: q._id,
       givenAns: e.target.value,
@@ -105,19 +95,9 @@ export default function SingleMcqQuestion({
   return (
     <div className="bg-background rounded-xl p-5 max-sm:p-4 border border-sidebar-border">
       <div className="flex flex-col gap-3">
-        {/*  */}
-        {/*  */}
-        {/*  */}
         {/* NUMBERING + BOOKMARK BUTTON */}
-        {/*  */}
-        {/*  */}
         <div className="flex gap-3 justify-between items-start ">
-          {/*  */}
-          {/*  */}
-          {/*  */}
           {/* NUMBERING */}
-          {/*  */}
-          {/*  */}
           <div className="flex gap-2">
             <p className="bg-input size-5 md:size-7 flex justify-center items-center px-2 py-2 text-xs rounded">
               {i}
@@ -128,35 +108,20 @@ export default function SingleMcqQuestion({
                 <X className="text-destructive" />
               )}
           </div>
-          {/*  */}
-          {/*  */}
-          {/*  */}
-          {/* BOOKMAR BUTTON */}
-          {/*  */}
-          {/*  */}
+          {/* BOOKMARK BUTTON */}
           <SaveToCollectionButton
-            questionId={(q as { _id: string } & IMCQ)._id}
-            collections={collections}
-            setCollections={setCollections}
-            collectionFetchLoading={collectionFetchLoading}
+            questionId={q._id}
+            subjectId={q.subjectId}
+            chapterId={q.chapterId}
+            topicId={q.topicId}
+            questionType={q.questionType}
           />
         </div>
-        {/*  */}
-        {/*  */}
-        {/*  */}
         {/* QUESTION DETAILS */}
-        {/*  */}
-        {/*  */}
         <div className="w-full max-sm:text-sm">
           <ReactMarkdownRender text={q?.question} />
-          {/* {q?.question} */}
         </div>
-        {/*  */}
-        {/*  */}
-        {/*  */}
         {/* RECORDS */}
-        {/*  */}
-        {/*  */}
         <div className="flex flex-col items-end gap-2">
           {q?.record?.length > 0 && (
             <Badge variant="secondary">
@@ -175,12 +140,7 @@ export default function SingleMcqQuestion({
 
         {viewMode === "practice" ? (
           <>
-            {/*  */}
-            {/*  */}
-            {/*  */}
             {/* MCQ FORM */}
-            {/*  */}
-            {/*  */}
             <form
               onChange={handleSingleMcqSubmit}
               className="grid grid-cols-1 sm:grid-cols-2 gap-1 "
@@ -194,12 +154,7 @@ export default function SingleMcqQuestion({
                       String(j),
                     )}`}
                   >
-                    {/*  */}
-                    {/*  */}
-                    {/*  */}
                     {/* OPTION NUMBERING */}
-                    {/*  */}
-                    {/*  */}
                     <div
                       className={`min-w-4 min-h-4 md:min-w-5 md:min-h-5 flex items-center justify-center border border-primary rounded-full text-xs md:text-sm ${
                         singleMcqAnswer?.givenAns === String(j) ||
@@ -211,12 +166,7 @@ export default function SingleMcqQuestion({
                     >
                       {optionSetting[j]}
                     </div>
-                    {/*  */}
-                    {/*  */}
-                    {/*  */}
                     {/* OPTION INPUT */}
-                    {/*  */}
-                    {/*  */}
                     <input
                       hidden
                       ref={(el) => {
@@ -228,22 +178,12 @@ export default function SingleMcqQuestion({
                       id={`mcq-${q._id}-${j}`}
                       value={String(j)}
                     />
-                    {/*  */}
-                    {/*  */}
-                    {/*  */}
                     {/* OPTION DETAILS */}
-                    {/*  */}
-                    {/*  */}
                     <p className="max-sm:text-sm ">{o}</p>
                   </div>
                 ))}
             </form>
-            {/*  */}
-            {/*  */}
-            {/*  */}
             {/* MCQ EXPLANATION (PRACTICE) */}
-            {/*  */}
-            {/*  */}
             {examStatus === "finished" && (
               <Collapsible
                 open={isOpen}
@@ -261,12 +201,7 @@ export default function SingleMcqQuestion({
             )}
           </>
         ) : (
-          //
-          //
-          //
           // MCQ (VIEW ONLY + SHOW ANSWER MODE)
-          //
-          //
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 ">
             {q?.options?.length &&
               q.options.map((o, j) => (
@@ -278,12 +213,7 @@ export default function SingleMcqQuestion({
                       : "bg-sidebar-accent"
                   }`}
                 >
-                  {/*  */}
-                  {/*  */}
-                  {/*  */}
                   {/* OPTION NUMBERING */}
-                  {/*  */}
-                  {/*  */}
                   <span
                     className={`min-w-4 min-h-4 md:min-w-5 md:min-h-5 flex items-center justify-center border  ${
                       viewMode === "showAns" && q?.correctAnswer === String(j)
@@ -293,12 +223,7 @@ export default function SingleMcqQuestion({
                   >
                     {optionSetting[j]}
                   </span>
-                  {/*  */}
-                  {/*  */}
-                  {/*  */}
                   {/* OPTION DETAILS */}
-                  {/*  */}
-                  {/*  */}
                   <span className="flex justify-center items-center max-sm:text-sm">
                     <ReactMarkdownRender text={o} />
                   </span>
@@ -306,12 +231,7 @@ export default function SingleMcqQuestion({
               ))}
           </div>
         )}
-        {/*  */}
-        {/*  */}
-        {/*  */}
         {/* MCQ EXPLANATION */}
-        {/*  */}
-        {/*  */}
         {viewMode === "showAns" && (
           <Collapsible
             open={isOpen}

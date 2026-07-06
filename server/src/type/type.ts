@@ -76,7 +76,6 @@ export interface IPopulatedData {
 export interface ICollection extends Document {
   userId: mongoose.Types.ObjectId;
   name: string;
-  questionIds: mongoose.Types.ObjectId[];
 }
 
 // Level
@@ -88,7 +87,7 @@ export interface ILevel extends Document {
 // Background
 export interface IBackground extends Document {
   name: string;
-  levelId: mongoose.Schema.Types.ObjectId;
+  levelId: mongoose.Types.ObjectId;
 }
 
 // Subject

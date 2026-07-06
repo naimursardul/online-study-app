@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
-import { Collection } from "../models/collection-model";
+import { SavedQuestion } from "../models/saved-question-model";
+import Collection from "../models/collection-model";
 
 // GET all collections of logged-in user
 export async function getCollections(req: Request, res: Response) {
@@ -14,11 +15,11 @@ export async function getCollections(req: Request, res: Response) {
   }
 }
 
-// CREATE new collection (folder)
+// CREATE new collection (folder only, no question yet)
 export async function createCollection(req: Request, res: Response) {
   try {
     const userId = req.user?._id;
-    const { name, questionId } = req.body;
+    const { name } = req.body;
 
     if (!name || !name.trim()) {
       res
@@ -30,7 +31,6 @@ export async function createCollection(req: Request, res: Response) {
     const collection = await Collection.create({
       userId,
       name: name.trim(),
-      questionIds: questionId ? [questionId] : [],
     });
 
     res.status(201).json({ success: true, data: collection });
@@ -39,7 +39,7 @@ export async function createCollection(req: Request, res: Response) {
   }
 }
 
-// UPDATE collection name
+// RENAME collection
 export async function renameCollection(req: Request, res: Response) {
   try {
     const userId = req.user?._id;
@@ -70,61 +70,21 @@ export async function renameCollection(req: Request, res: Response) {
   }
 }
 
-// TOGGLE question inside a collection (add if not exist, remove if exist)
-export async function toggleQuestionInCollection(req: Request, res: Response) {
-  try {
-    const userId = req.user?._id;
-    const { id } = req.params;
-    const { questionId } = req.body;
-
-    if (!questionId) {
-      res
-        .status(200)
-        .json({ success: false, message: "questionId is required" });
-      return;
-    }
-
-    const collection = await Collection.findOne({ _id: id, userId });
-
-    if (!collection) {
-      res.status(200).json({ success: false, message: "Collection not found" });
-      return;
-    }
-
-    const alreadySaved = collection.questionIds.some(
-      (qId) => qId.toString() === questionId,
-    );
-    if (alreadySaved) {
-      collection.questionIds = collection.questionIds.filter(
-        (qId) => qId.toString() !== questionId,
-      );
-    } else {
-      collection.questionIds.push(questionId);
-    }
-
-    await collection.save();
-
-    res.status(200).json({ success: true, data: collection });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Something went wrong" });
-  }
-}
-
-// DELETE collection
+// DELETE collection (also delete all saved questions inside it)
 export async function deleteCollection(req: Request, res: Response) {
   try {
     const userId = req.user?._id;
     const { id } = req.params;
 
-    const collection = await Collection.findOneAndDelete({
-      _id: id,
-      userId,
-    });
+    const collection = await Collection.findOneAndDelete({ _id: id, userId });
 
     if (!collection) {
       res.status(404).json({ success: false, message: "Collection not found" });
       return;
     }
+
+    // clean up: remove all saved questions that belonged to this collection
+    await SavedQuestion.deleteMany({ collectionId: id, userId });
 
     res.status(200).json({ success: true, message: "Collection deleted" });
   } catch (error) {
