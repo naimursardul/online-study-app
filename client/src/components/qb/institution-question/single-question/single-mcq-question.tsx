@@ -207,11 +207,8 @@ export default function SingleMcqQuestion({
                 >
                   {/* OPTION NUMBERING */}
                   <span
-                    className={`min-w-4 min-h-4 md:min-w-5 md:min-h-5 flex items-center justify-center border  ${
-                      viewMode === "showAns" && q?.correctAnswer === String(j)
-                        ? "border-white"
-                        : "border-primary"
-                    } rounded-full text-xs md:text-sm`}
+                    className={`min-w-4 min-h-4 md:min-w-5 md:min-h-5 flex items-center justify-center border border-primary
+                    rounded-full text-xs md:text-sm`}
                   >
                     {optionSetting[j]}
                   </span>
