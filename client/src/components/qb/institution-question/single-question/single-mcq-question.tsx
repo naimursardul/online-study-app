@@ -76,7 +76,7 @@ export default function SingleMcqQuestion({
   const optionBg = (optionNumber: string) => {
     if (examStatus === "finished") {
       if (optionNumber === q.correctAnswer) {
-        return "bg-green-500";
+        return "bg-green-400";
       }
 
       if (
@@ -85,6 +85,10 @@ export default function SingleMcqQuestion({
       ) {
         return "bg-red-500";
       }
+    }
+
+    if (optionNumber === singleMcqAnswer.givenAns) {
+      return "bg-green-400";
     }
 
     return "bg-sidebar-accent";
@@ -201,7 +205,7 @@ export default function SingleMcqQuestion({
                   key={j}
                   className={` flex gap-2 items-center px-2 py-2 rounded-lg  ${
                     viewMode === "showAns" && q?.correctAnswer === String(j)
-                      ? "bg-green-600 border-none"
+                      ? "bg-green-400 border-none"
                       : "bg-sidebar-accent"
                   }`}
                 >
