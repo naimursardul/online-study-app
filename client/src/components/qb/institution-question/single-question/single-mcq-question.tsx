@@ -76,20 +76,17 @@ export default function SingleMcqQuestion({
   const optionBg = (optionNumber: string) => {
     if (examStatus === "finished") {
       if (optionNumber === q.correctAnswer) {
-        return "bg-primary text-primary-foreground";
+        return "bg-green-500";
       }
 
       if (
         singleMcqAnswer?.givenAns === optionNumber &&
         singleMcqAnswer?.givenAns !== q.correctAnswer
       ) {
-        return "bg-destructive text-destructive-foreground";
+        return "bg-red-500";
       }
     }
 
-    if (singleMcqAnswer?.givenAns === optionNumber) {
-      return "bg-primary text-primary-foreground";
-    }
     return "bg-sidebar-accent";
   };
 
@@ -157,13 +154,7 @@ export default function SingleMcqQuestion({
                   >
                     {/* OPTION NUMBERING */}
                     <div
-                      className={`min-w-4 min-h-4 md:min-w-5 md:min-h-5 flex items-center justify-center border border-primary rounded-full text-xs md:text-sm ${
-                        singleMcqAnswer?.givenAns === String(j) ||
-                        (examStatus === "finished" &&
-                          q?.correctAnswer === String(j))
-                          ? "border-white"
-                          : "border-primary"
-                      }`}
+                      className={`min-w-4 min-h-4 md:min-w-5 md:min-h-5 flex items-center justify-center border border-primary rounded-full text-xs md:text-sm`}
                     >
                       {optionSetting[j]}
                     </div>
@@ -210,7 +201,7 @@ export default function SingleMcqQuestion({
                   key={j}
                   className={` flex gap-2 items-center px-2 py-2 rounded-lg  ${
                     viewMode === "showAns" && q?.correctAnswer === String(j)
-                      ? "bg-primary text-primary-foreground border-none"
+                      ? "bg-green-600 border-none"
                       : "bg-sidebar-accent"
                   }`}
                 >
@@ -225,7 +216,9 @@ export default function SingleMcqQuestion({
                     {optionSetting[j]}
                   </span>
                   {/* OPTION DETAILS */}
-                  <span className="flex justify-center items-center max-sm:text-sm">
+                  <span
+                    className={`flex justify-center items-center max-sm:text-sm `}
+                  >
                     <ReactMarkdownRender text={o} />
                   </span>
                 </div>
