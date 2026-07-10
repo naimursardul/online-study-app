@@ -79,7 +79,7 @@ export default function InstitutionSubject({
               key={s._id}
               to={`${extractIdTo_(masterData.levels, s.levelId, "name")}_${s.name}`}
             >
-              <Card className="bg-input flex flex-col gap-1.5 justify-center items-center text-xs font-semibold p-1 w-40 h-25 border cursor-pointer hover:scale-105 transition-transform">
+              <Card className="bg-input flex flex-col gap-1.5 justify-center items-center text-xs font-semibold p-1 w-40 max-lg:w-30 h-25 border cursor-pointer hover:scale-105 transition-transform">
                 <BookOpen size="20" /> {s.name}
               </Card>
             </Link>

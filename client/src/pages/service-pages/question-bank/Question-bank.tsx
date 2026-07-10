@@ -2,13 +2,13 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
 import { extractIdTo_ } from "@/utils/utils";
 import { useAuth } from "@/lib/Auth-context";
 import { BookOpen, Layers } from "lucide-react";
 import InstitutionSubject from "@/components/qb/Institution-subjects";
 import { useMasterData } from "@/lib/MasterData-context";
 import { Badge } from "@/components/ui/badge";
+import { QbSecSkeleton } from "@/components/skeleton/QbSecSkeleton";
 
 export default function QuestionBank() {
   const { user, userExisted } = useAuth();
@@ -61,7 +61,7 @@ export default function QuestionBank() {
                           key={subject._id}
                           to={`${extractIdTo_(masterData?.levels, subject.levelId, "name")}_${subject.name}`}
                         >
-                          <Card className="bg-input flex flex-col gap-1.5 justify-center items-center text-xs font-semibold p-1 w-40 h-25 border cursor-pointer hover:scale-105 transition-transform">
+                          <Card className="bg-input flex flex-col gap-1.5 justify-center items-center text-xs font-semibold p-1 w-40 max-lg:w-30 h-25 border cursor-pointer hover:scale-105 transition-transform">
                             <BookOpen size={20} /> {subject.name}
                           </Card>
                         </Link>
@@ -87,26 +87,6 @@ export default function QuestionBank() {
                 <InstitutionSubject key={level._id} level={level} />
               ))}
         </section>
-      </div>
-    </div>
-  );
-}
-
-export function QbSecSkeleton() {
-  return (
-    <div className="space-y-3 bg-input rounded-2xl px-4 py-5">
-      <Skeleton className="h-8 w-50 rounded-2xl" />
-
-      <div className="flex gap-2">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-8 w-25 rounded-xl" />
-        ))}
-      </div>
-
-      <div className="flex flex-wrap gap-4">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="w-30 h-30 rounded-2xl" />
-        ))}
       </div>
     </div>
   );
