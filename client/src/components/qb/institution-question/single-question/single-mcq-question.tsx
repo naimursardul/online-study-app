@@ -1,5 +1,5 @@
 import { useRef, useState, type Dispatch, type SetStateAction } from "react";
-import { ChevronsUpDown, X } from "lucide-react";
+import { ChevronsUpDown } from "lucide-react";
 import type {
   ExamStatusType,
   IMCQ,
