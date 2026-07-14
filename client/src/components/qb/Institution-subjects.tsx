@@ -50,36 +50,41 @@ export default function InstitutionSubject({
 
   return (
     <Card className="px-5 py-6">
-      <CardTitle className="flex justify-between gap-5">
-        <div className="flex gap-2">
-          <Layers size={"22px"} />
-          <h2 className="font-bold ">{level.name}</h2>
+      <CardTitle className="flex flex-col gap-3">
+        <div className="flex justify-between gap-5">
+          <div className="flex gap-2">
+            <Layers size={"22px"} />
+            <h2 className="font-bold ">{level.name}</h2>
+          </div>
+          <Badge>Subjects: {(subjects || []).length}</Badge>
         </div>
-        <Badge>Subjects: {(subjects || []).length}</Badge>
-      </CardTitle>
 
-      {/* BACKGROUND FILTERS */}
-      <ToggleGroup type="multiple" onValueChange={(value) => setFilter(value)}>
-        {backgrounds.map((b) => (
-          <ToggleGroupItem
-            key={b._id}
-            value={b._id}
-            className="px-4 py-3 max-md:text-xs font-medium border bg-popover text-chart-2 cursor-pointer"
-          >
-            {extractIdTo_(masterData.backgrounds, b._id, "name")}
-          </ToggleGroupItem>
-        ))}
-      </ToggleGroup>
+        {/* BACKGROUND FILTERS */}
+        <ToggleGroup
+          type="multiple"
+          onValueChange={(value) => setFilter(value)}
+        >
+          {backgrounds.map((b) => (
+            <ToggleGroupItem
+              key={b._id}
+              value={b._id}
+              className="px-4 py-3 max-md:text-xs font-medium border bg-popover text-chart-2 cursor-pointer"
+            >
+              {extractIdTo_(masterData.backgrounds, b._id, "name")}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      </CardTitle>
 
       <CardContent>
         {/* SUBJECTS */}
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-wrap gap-4 max-lg:gap-2.5">
           {subjects.map((s) => (
             <Link
               key={s._id}
               to={`${extractIdTo_(masterData.levels, s.levelId, "name")}_${s.name}`}
             >
-              <Card className="bg-input flex flex-col gap-1.5 justify-center items-center text-xs font-semibold p-1 w-40 max-lg:w-30 h-25 border cursor-pointer hover:scale-105 transition-transform">
+              <Card className="bg-input flex flex-col gap-1.5 justify-center items-center text-xs max-lg:text-[11px] font-semibold p-1 w-40 max-lg:w-27 h-25 max-lg:h-20 border cursor-pointer hover:scale-105 transition-transform">
                 <BookOpen size="20" /> {s.name}
               </Card>
             </Link>

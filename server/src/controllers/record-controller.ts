@@ -123,17 +123,8 @@ export const updateRecord = async (req: Request, res: Response) => {
     for (const question of questions) {
       // Find the index of the recordId in question.recordId
       const recordIndex = question.recordId.findIndex(
-        (recId) => recId.toString() === id
+        (recId) => recId.toString() === id,
       );
-
-      if (recordIndex !== -1) {
-        // Replace record information in question.record at the corresponding index
-        question.record[recordIndex] = {
-          recordType: record.recordType,
-          institution: record.institution,
-          year: record.year,
-        };
-      }
 
       await question.save();
     }
@@ -183,7 +174,7 @@ export const deleteRecord = async (req: Request, res: Response) => {
             year: deleted.year,
           },
         },
-      }
+      },
     );
 
     res.status(200).json({

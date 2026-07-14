@@ -47,22 +47,6 @@ const baseQuestionSchema = new Schema<IBaseQuestion>(
         required: true,
       },
     ],
-    record: [
-      {
-        recordType: {
-          type: String,
-          required: true,
-        },
-        institution: {
-          type: String,
-          required: true,
-        },
-        year: {
-          type: String,
-          required: true,
-        },
-      },
-    ],
     marks: {
       type: Number,
       required: true,

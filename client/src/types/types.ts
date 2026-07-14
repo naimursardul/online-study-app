@@ -192,6 +192,91 @@ export interface IResponse {
 export type ExamStatusType = "ready" | "started" | "finished";
 export type ViewModeType = "viewOnly" | "showAns" | "practice";
 
+// =========================================
+// EXAM SYSTEM
+// =========================================
+export type ExamDifficultyType = "Easy" | "Medium" | "Hard" | "Mix";
+export type ExamModeType = "random" | "weak";
+export type ExamSessionStatusType = "generated" | "submitted";
+
+export interface ExamConfigType {
+  examName: string;
+  subjectId: string;
+  topicIds: string[];
+  difficulty: ExamDifficultyType;
+  mode: ExamModeType;
+  size: number;
+}
+
+export interface ExamResultType {
+  obtainedMarks: number;
+  percentage: number;
+  correctCount: number;
+  wrongCount: number;
+  totalQuestions: number;
+  timeTaken: number;
+  examDate: string;
+}
+
+export interface ExamSessionType {
+  _id: string;
+  u_id: string;
+  examName: string;
+  subjectId: string;
+  scope: { topicIds: string[] };
+  difficulty: ExamDifficultyType;
+  mode: ExamModeType;
+  size: number;
+  questionIds: string[];
+  totalMarks: number;
+  totalTime: number;
+  status: ExamSessionStatusType;
+  answerId?: string;
+  result?: ExamResultType;
+  createdAt?: string;
+}
+
+// Response of POST /exam/generate
+export interface ExamGenResType {
+  exam: ExamSessionType;
+  questions: (IMCQ & { _id: string })[];
+}
+
+// Response of GET /exam/:examId
+export interface ExamGetResType {
+  exam: ExamSessionType;
+  mode: "take" | "review";
+  questions: (IMCQ & { _id: string })[] | ExamReviewItemType[];
+  result?: ExamResultType;
+}
+
+// Row in GET /exam/list
+export interface ExamListItemType {
+  _id: string;
+  examName: string;
+  subjectId: string;
+  status: ExamSessionStatusType;
+  size: number;
+  totalMarks: number;
+  totalTime: number;
+  difficulty: ExamDifficultyType;
+  mode: ExamModeType;
+  questionIds: string[];
+  result?: ExamResultType;
+  createdAt?: string;
+}
+
+export interface ExamReviewItemType {
+  questionId: string;
+  question: string;
+  options: string[];
+  correctAnswer: string; // option index "0" | "1" | "2" | "3"
+  explanation: string;
+  marks: number;
+  givenAns: string | undefined;
+  isCorrect: boolean;
+}
+
 export interface IMasterData {
   levels: { _id: string; name: string }[];
   backgrounds: {

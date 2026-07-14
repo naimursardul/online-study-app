@@ -177,6 +177,42 @@ export const updateUserAnalytics = async (u_id: string, topicStats: any[]) => {
 };
 
 // --------------------------------
+// GET SCOPED TOPIC STATS
+// Returns per-topic accuracy for the given topic ids that the user
+// has actually attempted (present in analytics). Topics not returned
+// are treated as "new"/unseen by the caller.
+// --------------------------------
+export const getScopedTopicStats = async (
+  u_id: string,
+  scopedTopicIds: string[],
+) => {
+  const analytics = await UserAnalytics.findOne(
+    { u_id },
+    { topicStats: 1 },
+  ).lean();
+
+  const scopeSet = new Set(scopedTopicIds.map(String));
+
+  const stats: Record<
+    string,
+    { correct: number; total: number; accuracy: number }
+  > = {};
+
+  (analytics?.topicStats || []).forEach((t: any) => {
+    const topicId = String(t.topicId);
+    if (!scopeSet.has(topicId)) return;
+
+    stats[topicId] = {
+      correct: t.correct,
+      total: t.total,
+      accuracy: t.total === 0 ? 0 : Number(((t.correct / t.total) * 100).toFixed(2)),
+    };
+  });
+
+  return stats;
+};
+
+// --------------------------------
 // GET WEAK TOPICS
 // --------------------------------
 export const getWeakTopics = async (

@@ -27,6 +27,7 @@ import Dashboard from "./pages/service-pages/dashboard/Dashboard.tsx";
 import AiExtractor from "./pages/admin/(allUploadPages)/ai-extractor.tsx";
 import Collection from "./pages/collection/Collection.tsx";
 import SingleCollectionPage from "./pages/collection/slug-1/SingleCollectionPage.tsx";
+import SingleExamPage from "./pages/service-pages/exam/slug-1/SingleExamPage.tsx";
 
 function App() {
   return (
@@ -68,6 +69,7 @@ function App() {
               <Route path=":slug2" element={<QuestionBankSlug2 />} />
             </Route>
             <Route path="exam" element={<Exam />} />
+            <Route path="exam/:examId" element={<SingleExamPage />} />
             <Route path="doubt" element={<Doubt />} />
             <Route
               path="/dashboard"

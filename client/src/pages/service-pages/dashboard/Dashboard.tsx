@@ -16,7 +16,7 @@ function Dashboard() {
   );
 
   return (
-    <div className="py-4 space-y-8">
+    <div className="space-y-8">
       {/* Header */}
       <div className="space-y-2">
         <span className="text-sm font-medium uppercase tracking-widest text-muted-foreground">

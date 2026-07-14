@@ -36,7 +36,6 @@ export interface IBaseQuestion extends Document {
   subjectId: string;
   chapterId: string;
   topicId: string;
-  record: IRecord[];
   recordId: string[];
   marks: number;
   timeRequired: number;
@@ -144,6 +143,42 @@ export interface IAnswer extends Document {
   examDate: Date;
 }
 
+// EXAM SESSION
+export interface IExamResult {
+  obtainedMarks: number;
+  percentage: number;
+  correctCount: number;
+  wrongCount: number;
+  totalQuestions: number;
+  timeTaken: number;
+  examDate: Date;
+}
+
+export interface IExam extends Document {
+  u_id: string;
+  examCategory: ExamCategoryType;
+  examName: string;
+  subjectId: string;
+
+  scope: {
+    topicIds: string[];
+  };
+
+  difficulty: "Easy" | "Medium" | "Hard" | "Mix";
+  mode: "random" | "weak";
+
+  size: number;
+  questionIds: mongoose.Types.ObjectId[];
+
+  totalMarks: number;
+  totalTime: number;
+
+  status: "generated" | "submitted";
+  answerId?: mongoose.Types.ObjectId;
+
+  result?: IExamResult;
+}
+
 // ANALYTICS
 interface ITopicStat {
   topicId: string;
@@ -161,3 +196,5 @@ export interface IUserAnalytics extends Document {
 
   topicStats: ITopicStat[];
 }
+
+export type ExamCategoryType = "record" | "personal";

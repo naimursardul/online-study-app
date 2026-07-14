@@ -17,6 +17,7 @@ function InstitutionQuestionLayout() {
     [masterData, slug1, slug2],
   );
 
+  console.log(qDetails);
   const [viewMode, setViewMode] = useState<ViewModeType>("viewOnly");
 
   const [examStatus, setExamStatus] = useState<ExamStatusType>("ready");

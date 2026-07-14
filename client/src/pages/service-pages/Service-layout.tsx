@@ -50,7 +50,7 @@ export default function ServiceLayout() {
           <SidebarTrigger className="mt-1 cursor-pointer" />
           <ServiceNavbar items={items} />
         </div>
-        <main className="pl-6 pr-6">
+        <main className="mx-6 mt-8 mb-16">
           {masterDataLoading ? <Loader /> : <Outlet />}
         </main>
       </div>

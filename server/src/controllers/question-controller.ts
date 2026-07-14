@@ -183,14 +183,9 @@ const getAllQuestions = async (req: Request, res: Response) => {
       chapterId,
       topicId,
       recordId,
-      recordType,
-      institution,
-      year,
       search,
     } = req.query;
-
     if (typeof questionType !== "string" || typeof levelId !== "string") {
-      console.log("err");
       res.status(200).json({
         success: false,
         message: "Question-type, levelId must be selected.",
@@ -206,18 +201,13 @@ const getAllQuestions = async (req: Request, res: Response) => {
     if (typeof subjectId === "string") query.subjectId = subjectId;
     if (typeof chapterId === "string") query.chapterId = chapterId;
     if (typeof topicId === "string") query.topicId = topicId;
-    if (typeof recordId === "string") query.recordId = recordId;
-    // Initialize $elemMatch filter if needed
-    const elemMatch: any = {};
+    const recordIdArray = recordId
+      ? Array.isArray(recordId)
+        ? recordId
+        : [recordId]
+      : [];
 
-    if (typeof recordType === "string") elemMatch.recordType = recordType;
-    if (typeof institution === "string") elemMatch.institution = institution;
-    if (typeof year === "string") elemMatch.year = parseInt(year);
-
-    // Only assign $elemMatch if any of the conditions are added
-    if (Object.keys(elemMatch).length > 0) {
-      query.record = { $elemMatch: elemMatch };
-    }
+    if (recordIdArray.length > 0) query.recordId = { $in: recordIdArray };
 
     let allQuestions;
     switch (questionType) {

@@ -1,12 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Award,
-  CheckCircle2,
-  ListOrdered,
-  MousePointerClick,
-  XCircle,
-} from "lucide-react";
-import { useOutletContext, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import SingleCqQuestion from "@/components/qb/institution-question/single-question/single-cq-queston";
 import SingleMcqQuestion from "@/components/qb/institution-question/single-question/single-mcq-question";
 import { Button } from "@/components/ui/button";
@@ -17,14 +10,12 @@ import type {
   ICQ,
   IMCQ,
   IqDetails,
-  ScriptResType,
-  SingleMcqAnswerType,
   ViewModeType,
 } from "@/types/types";
 import { McqQuestionSkeleton } from "@/components/skeleton/McqQuestionSkeleton";
 import { CqQuestionSkeleton } from "@/components/skeleton/CqQuestionSkeleton";
-import { useAuth } from "@/lib/Auth-context";
 import { toast } from "sonner";
+import Loader from "@/components/loader/Loader";
 
 type OutletContextType = {
   timeRemaining: number;
@@ -36,59 +27,38 @@ type OutletContextType = {
 };
 
 function QuestionBankSlug2() {
-  const { user } = useAuth();
-  const { slug2 } = useParams();
-
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<{
+    question: boolean;
+    generateExam: boolean;
+  }>({
+    question: true,
+    generateExam: false,
+  });
 
   const [allQuestion, setAllQuestion] = useState<
     ((IMCQ & { _id: string }) | (ICQ & { _id: string }))[]
   >([]);
 
-  const [answerScript, setAnswerScript] = useState<SingleMcqAnswerType[]>([]);
+  const navigate = useNavigate();
 
-  const [scriptRes, setScriptRes] = useState<ScriptResType>({
-    correct: 0,
-    wrong: 0,
-    obtain: 0,
-    total: 0,
-  });
-
-  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // ✅ latest answerScript ref
-  const answerScriptRef = useRef<SingleMcqAnswerType[]>([]);
-  // prevent duplicate submissions
-  const isSubmittingRef = useRef(false);
-
-  const {
-    timeRemaining,
-    setTimeRemaining,
-    setExamStatus,
-    viewMode,
-    qDetails,
-    examStatus,
-  } = useOutletContext<OutletContextType>();
-  console.log(qDetails);
-
-  // =========================
-  // KEEP REF UPDATED
-  // =========================
-  useEffect(() => {
-    answerScriptRef.current = answerScript;
-  }, [answerScript]);
+  const { setTimeRemaining, viewMode, qDetails, examStatus } =
+    useOutletContext<OutletContextType>();
 
   // =========================
   // FETCH QUESTIONS
   // =========================
   useEffect(() => {
     const fetchQuestions = async () => {
-      setLoading(true);
+      setLoading((prev) => ({ ...prev, question: true }));
 
       const params = new URLSearchParams();
 
       Object.entries(qDetails.withId).forEach(([key, value]) => {
-        if (value) {
+        if (value === undefined || value === null || value === "") return;
+
+        if (Array.isArray(value)) {
+          value.forEach((item) => params.append(key, String(item)));
+        } else {
           params.append(key, String(value));
         }
       });
@@ -109,7 +79,7 @@ function QuestionBankSlug2() {
       } catch (error) {
         console.log(error);
       } finally {
-        setLoading(false);
+        setLoading((prev) => ({ ...prev, question: false }));
       }
     };
 
@@ -117,155 +87,42 @@ function QuestionBankSlug2() {
   }, [qDetails]);
 
   // =========================
-  // TOTAL TIME
-  // =========================
-  const totalTime = useMemo(() => {
-    return allQuestion.reduce((acc, cur) => {
-      return acc + cur?.timeRequired;
-    }, 0);
-  }, [slug2, viewMode, allQuestion]);
-
-  const totalMarks = useMemo(() => {
-    return allQuestion.reduce((acc, cur) => acc + cur?.marks, 0);
-  }, [slug2, viewMode, allQuestion]);
-
-  // =========================
-  // CLEAR TIMER
-  // =========================
-  function clearTimer() {
-    if (countdownRef.current) {
-      clearInterval(countdownRef.current);
-      countdownRef.current = null;
-    }
-  }
-
-  // =========================
-  // RESET QUESTION STATE
-  // =========================
-  function resetQuestionState() {
-    clearTimer();
-
-    setScriptRes({
-      correct: 0,
-      wrong: 0,
-      obtain: 0,
-      total: 0,
-    });
-
-    setTimeRemaining(totalTime * 1000);
-
-    setExamStatus("ready");
-
-    const initialAnswers = allQuestion.reduce(
-      (acc: SingleMcqAnswerType[], curr: IBaseQuestion & { _id: string }) => {
-        if (curr.questionType === "MCQ") {
-          acc.push({
-            questionId: curr._id,
-            givenAns: undefined,
-          });
-        }
-
-        return acc;
-      },
-      [],
-    );
-
-    setAnswerScript(initialAnswers);
-
-    // update ref immediately
-    answerScriptRef.current = initialAnswers;
-  }
-
-  useEffect(() => {
-    resetQuestionState();
-  }, [slug2, allQuestion]);
-
-  // =========================
-  // MCQ SUBMIT
-  // =========================
-  async function handleMcqSubmit() {
-    // guard against duplicate calls (e.g. timer + manual click)
-    if (isSubmittingRef.current) {
-      return;
-    }
-
-    isSubmittingRef.current = true;
-
-    try {
-      clearTimer();
-
-      const res = await client.post("/exam/create-answer", {
-        u_id: user?._id,
-
-        subjectId: qDetails?.withId?.subjectId,
-
-        examName: `${qDetails?.withName?.level} - ${qDetails?.withName?.subject} - ${qDetails?.withName?.institution} - ${qDetails?.withName?.year}`,
-
-        // ✅ latest data
-        answers: answerScriptRef.current,
-
-        timeTaken: totalTime - timeRemaining / 1000,
-      });
-
-      if (!res.data.success) {
-        toast.error(
-          res.data.message || "Failed to submit exam. Please try again.",
-        );
-        return;
-      }
-
-      console.log(res.data);
-      setScriptRes({
-        correct: res.data.data?.correctCount,
-        wrong: res.data.data?.wrongCount,
-        obtain: res.data.data?.obtainedMarks,
-        total: res.data.data?.totalMarks,
-      });
-
-      setExamStatus("finished");
-      toast.success("Exam submitted successfully!");
-      return;
-    } catch (error) {
-      console.log(error);
-
-      toast.error("An error occurred while submitting the exam.");
-      return;
-    } finally {
-      isSubmittingRef.current = false;
-    }
-  }
-
-  // =========================
   // START EXAM
   // =========================
-  function handleStart() {
-    clearTimer();
-
-    setScriptRes({
-      correct: 0,
-      wrong: 0,
-      obtain: 0,
-      total: 0,
-    });
-
-    setExamStatus("started");
-
-    countdownRef.current = setInterval(() => {
-      setTimeRemaining((time) => {
-        if (time <= 1000) {
-          clearTimer();
-
-          // ✅ latest answerScript available
-          handleMcqSubmit();
-
-          return 0;
-        }
-        return time - 1000;
+  async function handleStart() {
+    setLoading((prev) => ({ ...prev, generateExam: true }));
+    const { level, subject, institution, year } = qDetails.withName;
+    const { levelId, subjectId, recordId, questionType } = qDetails.withId;
+    try {
+      const res = await client.post("/exam/generate", {
+        examCategory: "record",
+        examName:
+          level +
+          "-" +
+          subject +
+          "-" +
+          questionType +
+          "-" +
+          institution +
+          "-" +
+          year,
+        subjectId,
+        filter: { levelId, recordId },
       });
-    }, 1000);
+
+      if (!res.data?.success) {
+        toast.error(res.data?.message || "Failed to generate exam.");
+        return;
+      }
+      navigate(`/exam/${res.data.data.exam._id}`);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to generate exam.");
+    } finally {
+      setLoading((prev) => ({ ...prev, generateExam: false }));
+    }
   }
 
-  if (loading) {
+  if (loading.question) {
     return qDetails?.withId?.questionType === "MCQ" ? (
       <div className="space-y-5">
         <McqQuestionSkeleton />
@@ -287,40 +144,6 @@ function QuestionBankSlug2() {
   if (qDetails.withId.questionType === "MCQ") {
     return (
       <div className="space-y-5">
-        {viewMode === "practice" && examStatus === "finished" && (
-          <>
-            <div className="grid grid-cols-2 gap-2 border-2 border-sidebar-border bg-sidebar px-4 py-4 rounded text-chart-2">
-              <div className="flex gap-1 items-center">
-                <ListOrdered className="size-5" />
-                <span>Total:</span>
-                {scriptRes.total}
-              </div>
-
-              <div className="flex gap-1 items-center">
-                <CheckCircle2 className="size-5" />
-                <span>Correct:</span>
-                {scriptRes.correct}
-              </div>
-
-              <div className="flex gap-1 items-center">
-                <Award className="size-5" />
-                <span>Obtain:</span>
-                {scriptRes.obtain}
-              </div>
-
-              <div className="flex gap-1 items-center">
-                <XCircle className="size-5" />
-                <span>Wrong:</span>
-                {scriptRes.wrong}
-              </div>
-            </div>
-
-            <Button className="cursor-pointer" onClick={resetQuestionState}>
-              Restart
-            </Button>
-          </>
-        )}
-
         {((viewMode === "practice" && examStatus !== "ready") ||
           viewMode !== "practice") &&
           allQuestion.map((q, i) => (
@@ -333,33 +156,21 @@ function QuestionBankSlug2() {
               }
               i={i + 1}
               viewMode={viewMode}
-              setAnswerScript={setAnswerScript}
               examStatus={examStatus}
             />
           ))}
 
-        {viewMode === "practice" && examStatus === "started" && (
-          <Button className="w-full" onClick={handleMcqSubmit}>
-            Submit
-          </Button>
-        )}
-
         {viewMode === "practice" && examStatus === "ready" && (
           <div className="flex flex-col gap-2 justify-center items-center text-chart-2 font-semibold">
-            <div>Total MCQ: {allQuestion.length}</div>
-
-            <div>Time: {totalTime}</div>
-
-            <div>Total Marks: {totalMarks}</div>
-
-            <Button className="cursor-pointer" onClick={handleStart}>
-              Start
-            </Button>
-
-            <div className="flex gap-2">
-              <MousePointerClick />
-              <span>Click Start button to begin exam</span>
-            </div>
+            <>
+              {loading.generateExam ? (
+                <Loader />
+              ) : (
+                <Button className="cursor-pointer" onClick={handleStart}>
+                  Ready for the exam!
+                </Button>
+              )}
+            </>
           </div>
         )}
       </div>

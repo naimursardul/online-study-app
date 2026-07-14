@@ -67,7 +67,9 @@ export function createFormInfo<T extends { _id: string }>(
   };
 }
 
-/// GET BOARD QUESTION DETAILS from slug
+// =========================================
+// GET BOARD QUESTION DETAILS from slug
+// =========================================
 export const getBoardQusetonDetails = (
   masterData: IMasterData,
   slug: string,
@@ -82,20 +84,35 @@ export const getBoardQusetonDetails = (
   if (arr[3]) obj.institution = arr[3];
   if (arr[4]) obj.year = arr[4];
 
-  const update = { ...obj };
-  if (update?.level) {
-    update.levelId = masterData.levels.find((l) => l.name === obj.level)?._id;
-    if (update.levelId) delete update.level;
+  const update: Record<string, string | string[]> = {};
+  if (obj?.level) {
+    update.levelId =
+      masterData.levels.find((l) => l.name === obj.level)?._id || "";
   }
-  if (update.subject) {
-    update.subjectId = masterData.subjects.find((s) =>
-      update.levelId
-        ? s.levelId === update?.levelId && s.name === obj.subject
-        : s.name === obj.subject,
-    )?._id;
-    if (update.subjectId) delete update.subject;
+  if (obj.subject) {
+    update.subjectId =
+      masterData.subjects.find((s) =>
+        update.levelId
+          ? s.levelId === update?.levelId && s.name === obj.subject
+          : s.name === obj.subject,
+      )?._id || "";
   }
-  return { withName: obj, withId: update };
+  const selectedRecordId: string[] = [];
+  if (obj?.institution && obj?.year) {
+    masterData.records.forEach((r) => {
+      if (obj.institution === r.institution && obj.year === r.year) {
+        selectedRecordId.push(r?._id);
+      }
+    });
+  }
+  update.recordId = selectedRecordId;
+  return {
+    withName: obj,
+    withId: {
+      ...update,
+      questionType: obj?.questionType || "",
+    },
+  };
 };
 
 // QUERY FORM INIT DATA

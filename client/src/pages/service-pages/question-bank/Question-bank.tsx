@@ -41,7 +41,7 @@ export default function QuestionBank() {
 
               {user?.level?.name && userFilteredSubjects?.length ? (
                 <Card className="px-5 py-6">
-                  <CardTitle className="flex gap-5 justify-between">
+                  <CardTitle className="flex gap-5 justify-between mb-2">
                     <h2 className="flex gap-2 font-semibold pl-2">
                       <Layers size={"22px"} />
                       {user?.level.name}{" "}
@@ -61,7 +61,7 @@ export default function QuestionBank() {
                           key={subject._id}
                           to={`${extractIdTo_(masterData?.levels, subject.levelId, "name")}_${subject.name}`}
                         >
-                          <Card className="bg-input flex flex-col gap-1.5 justify-center items-center text-xs font-semibold p-1 w-40 max-lg:w-30 h-25 border cursor-pointer hover:scale-105 transition-transform">
+                          <Card className="bg-input flex flex-col gap-1.5 justify-center items-center text-xs max-lg:text-[11px] font-semibold p-1 w-40 max-lg:w-27 h-25 max-lg:h-20 border cursor-pointer hover:scale-105 transition-transform">
                             <BookOpen size={20} /> {subject.name}
                           </Card>
                         </Link>
