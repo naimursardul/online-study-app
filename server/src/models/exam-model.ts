@@ -103,7 +103,6 @@ ExamSchema.index(
   { u_id: 1, examName: 1 },
   {
     unique: true,
-    partialFilterExpression: { examCategory: "personal" },
   },
 );
 
