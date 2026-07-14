@@ -76,7 +76,7 @@ export default function SingleMcqQuestion({
   const optionBg = (optionNumber: string) => {
     if (examStatus === "finished") {
       if (optionNumber === q.correctAnswer) {
-        return "bg-green-400";
+        return "bg-green-500";
       }
 
       if (
