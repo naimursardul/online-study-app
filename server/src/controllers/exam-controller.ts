@@ -181,7 +181,7 @@ export const getExam = async (req: Request, res: Response) => {
   try {
     const u_id = String(req.user?._id);
     const { examId } = req.params;
-    const data = await getExamById(u_id, examId);
+    const data = await getExamById(u_id, String(examId));
     res.status(200).json({
       success: true,
       message: "Exam retrieved successfully.",
@@ -204,7 +204,7 @@ export const removeExam = async (req: Request, res: Response) => {
   try {
     const u_id = String(req.user?._id);
     const { examId } = req.params;
-    await deleteExam(u_id, examId);
+    await deleteExam(u_id, String(examId));
     res.status(200).json({
       success: true,
       message: "Exam deleted successfully.",
