@@ -99,7 +99,13 @@ const ExamSchema = new Schema<IExam>(
 );
 
 // Exam name unique per user
-ExamSchema.index({ u_id: 1, examName: 1 }, { unique: true });
+ExamSchema.index(
+  { u_id: 1, examName: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { examCategory: "personal" },
+  },
+);
 
 const Exam = mongoose.model<IExam>("Exam", ExamSchema);
 export default Exam;

@@ -128,7 +128,7 @@ export default function ExamBuilderForm({ onGenerated }: Props) {
     setLoading(true);
     try {
       const res = await client.post("/exam/generate", {
-        examCateory: "personal",
+        examCategory: "personal",
         examName: examName.trim(),
         subjectId,
         topicIds: resolveTopicIds(),

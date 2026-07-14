@@ -74,21 +74,8 @@ export default function SingleMcqQuestion({
   }
 
   const optionBg = (optionNumber: string) => {
-    if (examStatus === "finished") {
-      if (optionNumber === q.correctAnswer) {
-        return "bg-green-500";
-      }
-
-      if (
-        singleMcqAnswer?.givenAns === optionNumber &&
-        singleMcqAnswer?.givenAns !== q.correctAnswer
-      ) {
-        return "bg-red-500";
-      }
-    }
-
     if (optionNumber === singleMcqAnswer.givenAns) {
-      return "bg-green-500";
+      return "bg-green-400";
     }
     return "bg-sidebar-accent";
   };
@@ -99,16 +86,9 @@ export default function SingleMcqQuestion({
         {/* NUMBERING + BOOKMARK BUTTON */}
         <div className="flex gap-3 justify-between items-start ">
           {/* NUMBERING */}
-          <div className="flex gap-2">
-            <p className="bg-input size-5 md:size-7 flex justify-center items-center px-2 py-2 text-xs rounded">
-              {i}
-            </p>
-            {viewMode === "practice" &&
-              examStatus === "finished" &&
-              singleMcqAnswer?.givenAns !== q.correctAnswer && (
-                <X className="text-destructive" />
-              )}
-          </div>
+          <p className="bg-input size-5 md:size-7 flex justify-center items-center px-2 py-2 text-xs rounded">
+            {i}
+          </p>
           {/* BOOKMARK BUTTON */}
           <SaveToCollectionButton
             questionId={q._id}
@@ -178,40 +158,23 @@ export default function SingleMcqQuestion({
                   </div>
                 ))}
             </form>
-            {/* MCQ EXPLANATION (PRACTICE) */}
-            {examStatus === "finished" && (
-              <Collapsible
-                open={isOpen}
-                onOpenChange={setIsOpen}
-                className="bg-chart-6 rounded-2xl"
-              >
-                <CollapsibleTrigger className="w-full flex items-center justify-center gap-1 bg-chart-6 shadow-2xl py-2.5 rounded-2xl font-semibold text-sm max-sm:text-xs hover:opacity-75 cursor-pointer">
-                  {isOpen ? "Hide Explanation" : "Show Explanation"}
-                  <ChevronsUpDown className="size-4 max-sm:size-3" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="px-4 py-3 max-sm:text-sm ">
-                  <ReactMarkdownRender text={q?.explanation} />
-                </CollapsibleContent>
-              </Collapsible>
-            )}
           </>
         ) : (
           // MCQ (VIEW ONLY + SHOW ANSWER MODE)
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 ">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 ">
             {q?.options?.length &&
               q.options.map((o, j) => (
                 <div
                   key={j}
-                  className={` flex gap-2 items-center px-2 py-2 rounded-lg  ${
+                  className={` flex gap-2 items-center px-2 py-2 rounded-lg font-semibold  ${
                     viewMode === "showAns" && q?.correctAnswer === String(j)
-                      ? "bg-green-500 border-none"
+                      ? "bg-green-400 border-none"
                       : "bg-sidebar-accent"
                   }`}
                 >
                   {/* OPTION NUMBERING */}
                   <span
-                    className={`min-w-4 min-h-4 md:min-w-5 md:min-h-5 flex items-center justify-center border border-primary
-                    rounded-full text-xs md:text-sm`}
+                    className={`min-w-4 min-h-4 md:min-w-5 md:min-h-5 flex items-center justify-center border border-primary rounded-full text-xs md:text-sm`}
                   >
                     {optionSetting[j]}
                   </span>

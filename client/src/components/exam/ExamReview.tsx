@@ -73,7 +73,7 @@ function ReviewQuestion({
       : Number(item.givenAns);
 
   const optionBg = (j: number) => {
-    if (j === correctIdx) return "bg-green-600 text-white border-none";
+    if (j === correctIdx) return "bg-green-400 text-white border-none";
     if (givenIdx === j && givenIdx !== correctIdx)
       return "bg-red-500 text-white border-none";
     return "bg-sidebar-accent";
@@ -88,7 +88,7 @@ function ReviewQuestion({
             {index}
           </p>
           {item.isCorrect ? (
-            <Badge className="bg-green-600 gap-1">
+            <Badge className="bg-green-400 gap-1">
               <Check className="size-3" /> Correct
             </Badge>
           ) : (
@@ -105,15 +105,15 @@ function ReviewQuestion({
         </div>
 
         {/* OPTIONS */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {item.options?.map((o, j) => (
             <div
               key={j}
-              className={`flex gap-2 items-center px-2 py-2 rounded-lg ${optionBg(
+              className={`pl-4 flex gap-2 items-center px-2 py-2 rounded-lg font-semibold ${optionBg(
                 j,
               )}`}
             >
-              <span className="min-w-5 min-h-5 flex items-center justify-center border border-primary rounded-full text-xs md:text-sm">
+              <span className="size-5 flex items-center justify-center border border-primary rounded-full text-xs md:text-sm text-primary">
                 {OPTION_LABEL[j]}
               </span>
               <span className="max-sm:text-sm">
