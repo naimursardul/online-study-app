@@ -24,10 +24,10 @@ import Topic from "./pages/admin/(allUploadPages)/topic/Topic.tsx";
 import Record from "./pages/admin/(allUploadPages)/record/Record.tsx";
 import Contact from "./pages/contact/Contact.tsx";
 import Dashboard from "./pages/service-pages/dashboard/Dashboard.tsx";
-import AiExtractor from "./pages/admin/(allUploadPages)/ai-extractor.tsx";
 import Collection from "./pages/collection/Collection.tsx";
 import SingleCollectionPage from "./pages/collection/slug-1/SingleCollectionPage.tsx";
 import SingleExamPage from "./pages/service-pages/exam/slug-1/SingleExamPage.tsx";
+import AiExtractor from "./pages/admin/(allUploadPages)/ai-extractor/ai-extractor.tsx";
 
 function App() {
   return (
@@ -68,7 +68,10 @@ function App() {
               <Route index element={<QuestionBankSlug1 />} />
               <Route path=":slug2" element={<QuestionBankSlug2 />} />
             </Route>
-            <Route path="exam" element={<Exam />} />
+            <Route
+              path="exam"
+              element={<ProtectedRoute roles={["user"]} element={<Exam />} />}
+            />
             <Route path="exam/:examId" element={<SingleExamPage />} />
             <Route path="doubt" element={<Doubt />} />
             <Route
@@ -83,7 +86,15 @@ function App() {
                 <ProtectedRoute roles={["user"]} element={<Collection />} />
               }
             />
-            <Route path="/collections/:id" element={<SingleCollectionPage />} />
+            <Route
+              path="/collections/:id"
+              element={
+                <ProtectedRoute
+                  roles={["user"]}
+                  element={<SingleCollectionPage />}
+                />
+              }
+            />
           </Route>
 
           <Route path="*" element={<NotFound />} />

@@ -1,9 +1,7 @@
-import FormatTime from "@/components/format-time/format-time";
 import type { IqDetails, ViewModeType } from "@/types/types";
 
 function InstitutionQuestionTopbar({
   qDetails,
-  timeRemaining,
   examStatus,
   viewMode,
   setViewMode,
@@ -56,7 +54,6 @@ function InstitutionQuestionTopbar({
           </form>
         )}
       </div>
-      {examStatus === "started" && <FormatTime timeRemaining={timeRemaining} />}
     </div>
   );
 }
