@@ -41,6 +41,12 @@ export const createExam = async (req: Request, res: Response) => {
       return;
     }
 
+    const allExams = await Exam.find({ u_id: u_id }).lean();
+    const examNo =
+      ((!allExams && !Array.isArray(allExams)) || allExams.length) <= 0
+        ? 1
+        : allExams.length + 1;
+
     let data;
     switch (examCategory) {
       case "personal": {
@@ -64,7 +70,7 @@ export const createExam = async (req: Request, res: Response) => {
         data = await generateExam({
           u_id,
           examCategory,
-          examName: String(examName).trim(),
+          examName: String(examName).trim() + `(${examNo})`,
           subjectId,
           topicIds: Array.isArray(topicIds) ? topicIds : [],
           difficulty,
@@ -117,7 +123,7 @@ export const createExam = async (req: Request, res: Response) => {
         }
         const exam = await Exam.create({
           u_id,
-          examName,
+          examName: String(examName).trim() + `(${examNo})`,
           subjectId,
           questionIds: recordQuestions.map((q) => q._id),
           totalMarks: recordQuestions.reduce((acc, cur) => {
