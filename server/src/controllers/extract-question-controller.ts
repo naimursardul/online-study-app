@@ -157,7 +157,7 @@ export const extractQuestionsHandler = [
         parts,
       });
 
-      console.log(response.raw);
+      // console.log(response.raw);
 
       const rawText = response.text.trim() || "{}";
 
