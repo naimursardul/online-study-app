@@ -11,7 +11,7 @@ type TGenerateUploadUrlPayload = {
   extension?: string;
 };
 
-const generateUploadUrl = async (payload: TGenerateUploadUrlPayload) => {
+export const generateUploadUrl = async (payload: TGenerateUploadUrlPayload) => {
   const { folder = "questions", extension = "webp" } = payload;
 
   const fileName = `${uuidv4()}.${extension}`;

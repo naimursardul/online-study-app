@@ -11,8 +11,8 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-
-import { uploadImage } from "@/utils/uploadImage";
+import { Checkbox } from "../ui/checkbox";
+import { uploadImage } from "@/lib/uploadImage";
 
 export default function FloatingUploadWidget() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -25,6 +25,7 @@ export default function FloatingUploadWidget() {
 
   const [imgKey, setImgKey] = useState<string | null>(null);
 
+  const [isEnhanched, setIsEnhanched] = useState<boolean>(false);
   const handleImageSelect = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
@@ -42,6 +43,7 @@ export default function FloatingUploadWidget() {
       setImageFile(file);
 
       const uploaded = await uploadImage({
+        isEnhanched,
         file,
         folder: folderName.trim(),
       });
@@ -113,12 +115,21 @@ export default function FloatingUploadWidget() {
             {/* Scroll Area */}
             <ScrollArea className="h-100">
               <div className="space-y-5 p-4">
+                {/* Enhanched with AI */}
+                <div className="flex gap-3">
+                  <Checkbox
+                    id="enhanched-checkbox"
+                    name="enhanched-checkbox"
+                    checked={isEnhanched}
+                    onCheckedChange={() => setIsEnhanched(!isEnhanched)}
+                  />
+                  <Label htmlFor="enhanched-checkbox">Enhanched with AI</Label>
+                </div>
                 {/* Folder Name */}
                 <div className="space-y-2">
                   <Label>
                     Folder Name <span className="text-red-500">*</span>
                   </Label>
-
                   <Input
                     placeholder="questions"
                     value={folderName}

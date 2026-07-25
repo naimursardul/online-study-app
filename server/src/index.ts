@@ -17,7 +17,7 @@ import AnalyticsRouter from "./routes/analytics-routes";
 import ExtractionRouter from "./routes/extraction-routes";
 import { errorHandler } from "./middlewares/errorHandler";
 import ConnectDB from "./db/db";
-import ImgUploadRoutes from "./routes/img-upload-routes";
+import ImgUploadRoutes from "./routes/imageUpload.routes";
 
 dotenv.config();
 const app = express();

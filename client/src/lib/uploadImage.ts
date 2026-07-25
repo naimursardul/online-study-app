@@ -1,19 +1,31 @@
 import axios from "axios";
 import imageCompression from "browser-image-compression";
-import { client } from "./utils";
+import { client } from "../utils/utils";
+import { uploadTempImage } from "./uploadTempImage";
+import { enhanceImage } from "./enhanceImage";
 
 type UploadImagePayload = {
+  isEnhanched: boolean;
   file: File;
   folder?: string;
 };
 
 export const uploadImage = async ({
+  isEnhanched,
   file,
   folder = "questions",
 }: UploadImagePayload) => {
+  let fileToCompress = file;
+  console.log(isEnhanched);
   try {
+    if (isEnhanched) {
+      const tempUrl = await uploadTempImage(file);
+
+      console.log(tempUrl);
+      fileToCompress = await enhanceImage(tempUrl);
+    }
     // Compress + convert to webp
-    const compressedFile = await imageCompression(file, {
+    const compressedFile = await imageCompression(fileToCompress, {
       maxSizeMB: 0.3,
       maxWidthOrHeight: 1200,
       useWebWorker: true,
