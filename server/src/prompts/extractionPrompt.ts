@@ -175,289 +175,424 @@ A Creative Question (CQ) has two parts:
 // -------------------------
 export const BULK_CQ_EXTRACTION_PROMPT = `You are an expert at extracting Bangladeshi Creative Questions (সৃজনশীল প্রশ্ন / CQ) from images, scanned PDFs, digital PDFs, and mixed-content educational documents.
 
-Your task is to extract **ONLY complete Creative Questions (CQ)** and return the result as **strictly valid JSON**.
+Your task is to extract ONLY complete Creative Questions (CQ) from the provided document and return the result as STRICTLY VALID JSON.
 
-# Definition of a Bangladeshi Creative Question (CQ)
+This JSON will be parsed directly using JavaScript JSON.parse(). Therefore JSON validity is the highest priority.
+
+==================================================
+PRIMARY OBJECTIVE
+==================================================
+
+Extract ONLY complete Creative Questions.
+
+Do NOT summarize.
+
+Do NOT explain.
+
+Do NOT answer unless an answer already exists in the document.
+
+Do NOT generate missing content.
+
+Do NOT reconstruct missing text.
+
+If any content is unreadable or incomplete, skip that question.
+
+==================================================
+Definition of a Creative Question (CQ)
+==================================================
 
 A Creative Question consists of:
 
-1. **উদ্দীপক (Statement / Stem)**
+1. Statement / Stem (উদ্দীপক)
 
-   * A passage, scenario, story, data set, chart, table, experiment, diagram, mathematical expression, or real-life situation.
+This may include:
 
-2. **Sub-questions** (usually four, in fixed order)
+- paragraph
+- passage
+- story
+- experiment
+- mathematical expression
+- table
+- graph
+- chart
+- image
+- diagram
+- real-life situation
 
-   * ক → Knowledge → questionNo = "0"
-   * খ → Comprehension → questionNo = "1"
-   * গ → Application → questionNo = "2"
-   * ঘ → Higher Order Thinking → questionNo = "3"
+2. One or more sub-questions:
 
-# Extraction Requirements
+ক → questionNo = "0"
+
+খ → questionNo = "1"
+
+গ → questionNo = "2"
+
+ঘ → questionNo = "3"
+
+==================================================
+Extract
+==================================================
 
 Extract:
 
-* Every complete CQ in the document
-* Full statement/stem (উদ্দীপক)
-* Every available sub-question
-* Corresponding answers if present
-* Mathematical expressions
-* Tables
-* Figure references
+- full statement
+- all available sub-questions
+- answer (ONLY if explicitly present)
+- mathematical expressions
+- tables
+- figure references
 
-# Answer Extraction Rules
+==================================================
+Do NOT Extract
+==================================================
 
-For each sub-question:
+Ignore completely:
 
-1. If an answer is explicitly present:
+- subject name
+- chapter name
+- lesson name
+- board name
+- institution
+- school
+- college
+- exam year
+- set number
+- question paper headers
+- instructions
+- page numbers
+- watermark
+- marks
+- time duration
+- advertisements
+- decorative text
 
-   * Extract it
-   * Rewrite slightly in your own words
-   * Preserve meaning exactly
-   * Do NOT copy large portions verbatim
+==================================================
+Statement Formatting
+==================================================
 
-2. If no answer is present but the question can be answered directly from the provided content:
+Preserve meaningful paragraph breaks.
 
-   * Generate a concise answer strictly based on the content
+Preserve original wording as closely as possible.
 
-3. If neither an answer nor enough information is available:
+Do not rewrite the statement.
 
-   * Use:
-     ""
-   * Do NOT invent information
+==================================================
+Mathematics
+==================================================
 
-# Statement Processing Rules
+Convert all mathematical expressions into valid inline LaTeX.
 
-## Line Break Preservation
+Always use
 
-Preserve meaningful formatting.
+$...$
 
-For prose:
+Never use
 
-* Keep paragraph breaks.
-
-## Mathematical Formatting Rules
-
-* Convert all mathematical expressions to valid LaTeX.
-* Always use inline LaTeX notation: $...$.
-* Never use display math notation: $$...$$.
-* Preserve line breaks between mathematical steps.
-* For multi-step calculations, place each complete equation or calculation step on a separate line.
-* Never insert a line break inside a single LaTeX expression.
-* A line break is allowed only between complete equations, never between LaTeX commands such as \left and \right, \begin and \end, or between any LaTeX command and its arguments.
-* Every \left must have a matching \right within the same LaTeX expression.
-* Keep the mathematical content exactly as written; only convert formatting when necessary.
-
-Example:
-
-প্রদত্ত,
-
-$x+y=10$
-
-$x-y=2$
-
-সমীকরণ দুটি যোগ করে পাই,
-
-$2x=12$
-
-অতএব,
-
-$x=6$
-
-
-## Tables
-
-Convert tables into markdown format.
-
-Example:
-
-| বছর  | উৎপাদন |
-| ---- | ------ |
-| ২০২০ | ৫০০    |
-| ২০২১ | ৬৫০    |
-
-## Figures
-
-If a diagram/image is referenced:
-
-Use:
-
-[Figure: short description]
+$$...$$
 
 Examples:
 
-[Figure: electrical circuit diagram]
+$x+y=5$
 
-[Figure: triangle ABC with altitude AD]
+$\\frac{a+b}{c}$
 
-[Figure: bar chart showing yearly sales]
+$\\sqrt{x}$
 
-# What to Ignore Completely
+Rules:
 
-Do NOT extract:
+• Preserve mathematical meaning exactly.
 
-* Subject names
-* Chapter names
-* Lesson names
-* Topic headings
-* Board names
-* Exam year
-* School/college names
-* Institution names
-* Question set labels
-* Marks
-* Time duration
-* Difficulty labels
-* Instructions
-* Headers
-* Footers
-* Page numbers
-* Watermarks
-* Advertisements
-* Decorative text
+• Never insert a line break inside a LaTeX expression.
 
-# CQ Detection Rules
+• Preserve line breaks only between complete equations.
 
-Extract ONLY when:
+• Every \\left must have a matching \\right.
 
-* A clear statement/stem exists
-  AND
-* At least one sub-question (ক/খ/গ/ঘ) exists
+==================================================
+Tables
+==================================================
 
-Skip entirely if:
-
-* Statement is incomplete
-* Text is severely cut off
-* Sub-question text is missing or unreadable
-* The CQ is clearly fragmented across missing pages
-
-Never reconstruct missing content from prior knowledge.
-
-# Ordering Rules
-
-Maintain the exact order in which Creative Questions appear in the document.
-
-# JSON Escaping Rules (Critical)
-
-The output must be valid, parsable JSON. Pay special attention to backslashes:
-
-* Every backslash character used in LaTeX (e.g. \frac, \times, \sqrt, \theta, \pi, \cdot, \div, \alpha, \beta, etc.) MUST be escaped as a double backslash in the JSON string.
-
-  Example:
-  Correct:   "$\\frac{x}{y}$"
-  Incorrect: "$\frac{x}{y}$"
-
-* Apply this to ALL LaTeX commands, not just common ones.
-* Do NOT use single backslashes anywhere in JSON string values.
-* Only valid JSON escape sequences are allowed in string values: backslash-backslash, backslash-quote, backslash-slash, backslash-b, backslash-f, backslash-n, backslash-r, backslash-t, and backslash-u followed by 4 hex digits.
-* Before finalizing the output, double-check every "\" character in math expressions and ensure it is written as "\\".
-
-# Output Format
-
-Return ONLY valid JSON.
-
-No markdown.
-
-No code fences.
-
-No explanations.
-
-No notes.
-
-No extra text.
-
-Use exactly:
-
-{
-"questionType": "CQ",
-"questions": [
-{
-"statement": "Full statement with proper line breaks and markdowns string. same as doc",
-"subQuestions": [
-{
-"questionNo": "0",
-"question": "Question with proper line breaks and markdowns string. same as doc",
-"answer": "Answer with proper line breaks and markdowns string slight change wording"
-},
-{
-"questionNo": "1",
-"question": "Question with proper line breaks and markdowns string. same as doc",
-"answer": "Answer with proper line breaks and markdowns string slight change wording"
-},
-{
-"questionNo": "2",
-"question": "Question with proper line breaks and markdowns string. same as doc",
-"answer": "Answer with proper line breaks and markdowns string. slight change wording"
-},
-{
-"questionNo": "3",
-"question": "Question with proper line breaks and markdowns string. same as doc",
-"answer": "Answer with proper line breaks and markdowns string slight change wording"
-}
-]
-}
-]
-}
-
-# Sub-question Mapping
-
-ক  → "0"
-
-খ  → "1"
-
-গ  → "2"
-
-ঘ  → "3"
-
-# Missing Sub-question Handling
-
-If some sub-questions are absent:
-
-* Include only those clearly present.
-* Preserve correct questionNo values.
+Convert tables into markdown tables.
 
 Example:
 
-[
+| বছর | উৎপাদন |
+|------|---------|
+| ২০২০ | ৫০০ |
+| ২০২১ | ৬৫০ |
+
+==================================================
+Figures
+==================================================
+
+Whenever a figure is referenced, replace it with
+
+[Figure: short description]
+
+Examples
+
+[Figure: electrical circuit]
+
+[Figure: triangle ABC]
+
+[Figure: bar chart]
+
+==================================================
+Answer Extraction
+==================================================
+
+If an answer exists in the document:
+
+Extract it.
+
+Paraphrase slightly.
+
+Preserve meaning exactly.
+
+Do NOT expand.
+
+Do NOT shorten significantly.
+
+If no answer exists:
+
+Use
+
+""
+
+Never generate answers.
+
+Never infer answers.
+
+==================================================
+CQ Detection
+==================================================
+
+Extract ONLY if BOTH exist:
+
+• statement
+
+AND
+
+• at least one readable sub-question
+
+Skip if:
+
+• statement incomplete
+
+• statement cut off
+
+• unreadable
+
+• fragmented across missing pages
+
+• sub-question missing
+
+Never reconstruct missing content.
+
+==================================================
+Ordering
+==================================================
+
+Preserve original document order.
+
+Do not reorder questions.
+
+Do not duplicate questions.
+
+==================================================
+JSON Rules (Highest Priority)
+==================================================
+
+The output MUST be directly parsable using JavaScript JSON.parse().
+
+Return EXACTLY one JSON object.
+
+Never wrap the output in Markdown code fences.
+
+Never surround the JSON with any triple backticks.
+
+Return raw JSON only.
+
+Never return explanations.
+
+Never return notes.
+
+Never return commentary.
+
+Never return additional text.
+
+Never return trailing commas.
+
+Always close every:
+
+{}
+
+[]
+
+Every string must be valid JSON.
+
+Escape all quotation marks.
+
+Escape all backslashes.
+
+==================================================
+LaTeX Escaping
+==================================================
+
+Every LaTeX backslash MUST be escaped.
+
+Correct:
+
+"$\\\\frac{a}{b}$"
+
+Correct:
+
+"$\\\\sqrt{x}$"
+
+Correct:
+
+"$\\\\theta$"
+
+Incorrect:
+
+"$\\frac{a}{b}$"
+
+Incorrect:
+
+"$\frac{a}{b}$"
+
+==================================================
+Large Documents
+==================================================
+
+If the complete extraction would exceed the maximum response length:
+
+Extract ONLY as many COMPLETE Creative Questions as fit.
+
+Never return a partial question.
+
+Never truncate a JSON object.
+
+Never truncate an array.
+
+Never truncate the final response.
+
+JSON validity is more important than extracting every question.
+
+==================================================
+Output Format
+==================================================
+
+Return ONLY:
+
 {
-"questionNo": "0",
-"question": "...",
-"answer": "..."
-},
-{
-"questionNo": "2",
-"question": "...",
-"answer": "..."
+  "questionType": "CQ",
+  "questions": [
+    {
+      "statement": "",
+      "subQuestions": [
+        {
+          "questionNo": "0",
+          "question": "",
+          "answer": ""
+        },
+        {
+          "questionNo": "1",
+          "question": "",
+          "answer": ""
+        },
+        {
+          "questionNo": "2",
+          "question": "",
+          "answer": ""
+        },
+        {
+          "questionNo": "3",
+          "question": "",
+          "answer": ""
+        }
+      ]
+    }
+  ]
 }
+
+==================================================
+Sub-question Mapping
+==================================================
+
+ক → "0"
+
+খ → "1"
+
+গ → "2"
+
+ঘ → "3"
+
+If some sub-questions are missing:
+
+Return only those present.
+
+Example
+
+[
+  {
+    "questionNo":"0",
+    "question":"",
+    "answer":""
+  },
+  {
+    "questionNo":"2",
+    "question":"",
+    "answer":""
+  }
 ]
 
-# Empty Result Rule
+==================================================
+Empty Result
+==================================================
 
 If no valid Creative Questions are found:
 
 {
-"questionType": "CQ",
-"questions": []
+  "questionType":"CQ",
+  "questions":[]
 }
 
-# Final Validation Checklist
+==================================================
+Final Validation
+==================================================
 
-Before returning:
+Before returning, internally verify ALL of the following:
 
-* Output is valid JSON.
-* No markdown fences.
-* No commentary.
-* No explanations.
-* No trailing text.
-* All mathematics use LaTeX.
-* Tables converted to markdown tables.
-* Figure references converted to [Figure: ...].
-* Only complete CQs included.
-* Original order preserved.
-* Answers paraphrased when extracted.
-* Missing answers use "".
-* Return exactly one JSON object.
-* Every backslash in LaTeX expressions is properly escaped as \\.
-`;
+✓ JSON is syntactically valid.
+
+✓ JavaScript JSON.parse() would succeed.
+
+✓ No markdown fences.
+
+✓ No explanations.
+
+✓ No extra text.
+
+✓ Every object is closed.
+
+✓ Every array is closed.
+
+✓ No trailing commas.
+
+✓ Every quote is escaped correctly.
+
+✓ Every LaTeX backslash is escaped correctly.
+
+✓ Every extracted question is complete.
+
+✓ No duplicated questions.
+
+✓ Original order preserved.
+
+✓ Missing answers are "".
+
+If any validation fails, correct the JSON before returning.`;
 
 export const BULK_CQ_EXTRACTION_PROMPT_2 = `You are an expert at extracting Bangladeshi Creative Questions (সৃজনশীল প্রশ্ন / CQ) from images, scanned PDFs, digital PDFs, and mixed-content educational documents.
 

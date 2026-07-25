@@ -4,8 +4,6 @@ import { generateContent } from "../services/kie";
 import { buildParts } from "../utils/buildParts";
 
 import {
-  MCQ_EXTRACTION_PROMPT,
-  CQ_EXTRACTION_PROMPT,
   BULK_MCQ_EXTRACTION_PROMPT,
   BULK_CQ_EXTRACTION_PROMPT,
 } from "../prompts/extractionPrompt";
@@ -159,11 +157,17 @@ export const extractQuestionsHandler = [
 
       // console.log(response.raw);
 
-      const rawText = response.text.trim() || "{}";
+      if (!response.text) {
+        throw new Error("Empty response from Kie.");
+      }
 
-      console.log(rawText);
+      const rawText = response.text.trim();
+      const cleaned = rawText
+        .replace(/```json/g, "")
+        .replace(/```/g, "")
+        .trim();
 
-      const extracted = JSON.parse(rawText);
+      const extracted = JSON.parse(cleaned);
 
       const questions = Array.isArray(extracted.questions)
         ? extracted.questions
