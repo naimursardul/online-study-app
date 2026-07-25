@@ -1,8 +1,7 @@
-import { GoogleGenAI } from "@google/genai";
 import multer from "multer";
-import fs from "fs/promises";
-import path from "path";
-import os from "os";
+
+import { generateContent } from "../services/kie";
+import { buildParts } from "../utils/buildParts";
 
 import {
   MCQ_EXTRACTION_PROMPT,
@@ -70,42 +69,6 @@ type SupportedMime =
 type QuestionType = "MCQ" | "CQ";
 
 // ====================================================
-// Image Helper
-// ====================================================
-
-function buildImagePart(buffer: Buffer, mimeType: string) {
-  return {
-    inlineData: {
-      mimeType,
-      data: buffer.toString("base64"),
-    },
-  };
-}
-
-// ====================================================
-// PDF Upload Helper
-// ====================================================
-
-async function uploadPdfToGemini(ai: any, buffer: Buffer) {
-  const tempPath = path.join(os.tmpdir(), `pdf-${Date.now()}.pdf`);
-
-  await fs.writeFile(tempPath, buffer);
-
-  try {
-    const uploadedFile = await ai.files.upload({
-      file: tempPath,
-      config: {
-        mimeType: "application/pdf",
-      },
-    });
-
-    return uploadedFile;
-  } finally {
-    await fs.unlink(tempPath).catch(() => {});
-  }
-}
-
-// ====================================================
 // Route Handler
 // ====================================================
 
@@ -166,12 +129,7 @@ export const extractQuestionsHandler = [
         }
       }
 
-      const ai = new GoogleGenAI({
-        apiKey: process.env.GEMINI_API_KEY!,
-      });
-
       const questionType: QuestionType = req.body.questionType || "MCQ";
-      const extractAll = req.body.extractAll === "true";
 
       // ====================================================
       // Prompt Selection
@@ -179,128 +137,33 @@ export const extractQuestionsHandler = [
 
       const systemPrompt =
         questionType === "CQ"
-          ? extractAll
-            ? BULK_CQ_EXTRACTION_PROMPT
-            : CQ_EXTRACTION_PROMPT
-          : extractAll
-            ? BULK_MCQ_EXTRACTION_PROMPT
-            : MCQ_EXTRACTION_PROMPT;
+          ? BULK_CQ_EXTRACTION_PROMPT
+          : BULK_MCQ_EXTRACTION_PROMPT;
 
       const userText = isPDF
-        ? extractAll
-          ? `Extract ALL ${questionType} questions from this PDF. It contains at most ${LIMITS.pdf.maxPages} pages.`
-          : `Extract the ${questionType} question from page ${
-              req.body.page || 1
-            } of this PDF.`
-        : imageFiles.length > 1
-          ? `Extract the ${questionType} question(s) from these ${imageFiles.length} images. Treat them as parts of the same question set, in the order given.`
-          : `Extract the ${questionType} question from this image.`;
+        ? `Extract all ${questionType} questions from this PDF.`
+        : `Extract all ${questionType} questions from these ${imageFiles.length} image(s). Treat them as consecutive pages in the given order.`;
 
-      // ====================================================
-      // Choose Model
-      // ====================================================
+      const parts = buildParts({
+        systemPrompt,
+        userText,
 
-      //   const model = extractAll ? "gemini-2.5-pro" : "gemini-2.5-flash";
-      const model = "gemini-3.5-flash";
+        pdfFile: isPDF ? pdfFiles[0] : undefined,
 
-      let response;
-      let uploadedFile: any = null;
+        imageFiles: isPDF ? [] : imageFiles,
+      });
 
-      try {
-        // ====================================================
-        // PDF (single file)
-        // ====================================================
+      const response = await generateContent({
+        parts,
+      });
 
-        if (isPDF) {
-          uploadedFile = await uploadPdfToGemini(ai, pdfFiles[0].buffer);
+      console.log(response.raw);
 
-          response = await ai.models.generateContent({
-            model,
+      const rawText = response.text.trim() || "{}";
 
-            config: {
-              responseMimeType: "application/json",
-              temperature: 0,
-            },
-
-            contents: [
-              {
-                role: "user",
-
-                parts: [
-                  {
-                    text: `${systemPrompt}
-
-${userText}`,
-                  },
-
-                  {
-                    fileData: {
-                      mimeType: "application/pdf",
-
-                      fileUri: uploadedFile.uri,
-                    },
-                  },
-                ],
-              },
-            ],
-          });
-        }
-
-        // ====================================================
-        // Images (1 to 4 files, sent together in one request)
-        // ====================================================
-        else {
-          const imageParts = imageFiles.map((f) =>
-            buildImagePart(f.buffer, f.mimetype),
-          );
-
-          response = await ai.models.generateContent({
-            model,
-
-            config: {
-              responseMimeType: "application/json",
-              temperature: 0,
-            },
-
-            contents: [
-              {
-                role: "user",
-
-                parts: [
-                  {
-                    text: `${systemPrompt}
-
-${userText}`,
-                  },
-
-                  ...imageParts,
-                ],
-              },
-            ],
-          });
-        }
-      } finally {
-        // ====================================================
-        // Cleanup Uploaded PDF
-        // ====================================================
-
-        if (uploadedFile?.name) {
-          try {
-            await ai.files.delete({
-              name: uploadedFile.name,
-            });
-          } catch (err) {
-            console.error("Failed to delete Gemini file", err);
-          }
-        }
-      }
-
-      const rawText = response?.text?.trim() || "{}";
       console.log(rawText);
 
-      // console.log(rawText);
       const extracted = JSON.parse(rawText);
-      // console.log(extracted);
 
       const questions = Array.isArray(extracted.questions)
         ? extracted.questions
@@ -313,12 +176,15 @@ ${userText}`,
         fileCount: isPDF ? 1 : imageFiles.length,
         message: "Questions extracted successfully.",
       });
-    } catch (err: any) {
-      console.error(err);
+    } catch (error: any) {
+      console.error(error);
 
       return res.status(500).json({
         success: false,
-        message: err?.message || "Extraction failed.",
+        message:
+          error?.response?.data?.error?.message ||
+          error?.message ||
+          "Extraction failed.",
       });
     }
   },
