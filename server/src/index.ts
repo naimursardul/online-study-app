@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import dotenv from "dotenv";
+import helmet from "helmet";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import QuestionRouter from "./routes/question-routes";
@@ -16,18 +17,30 @@ import ExamRouter from "./routes/exam-routes";
 import AnalyticsRouter from "./routes/analytics-routes";
 import ExtractionRouter from "./routes/extraction-routes";
 import { errorHandler } from "./middlewares/errorHandler";
+import { generalLimiter } from "./middlewares/rate-limit";
 import ConnectDB from "./db/db";
 import ImgUploadRoutes from "./routes/imageUpload.routes";
 
 dotenv.config();
 const app = express();
 
+// Render sits exactly one proxy hop in front; needed so req.ip (and
+// rate limiting) sees the real client IP, not Render's proxy.
+app.set("trust proxy", 1);
+
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "same-site" },
+  }),
+);
+const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin:
-      process.env.NODE_ENV === "production"
-        ? process.env.FRONTEND_URL
-        : process.env.DEV_FRONTEND_URL,
+    origin: allowedOrigins,
     credentials: true,
   }),
 );
@@ -38,21 +51,24 @@ app.get("/", (req: Request, res: Response) => {
   res.json("Hello world! bro");
 });
 
+// Rate limit everything below (health route above stays unlimited)
+app.use(generalLimiter);
+
 // ROUTES
-app.use("/api/master-data", MasterDataRouter);
-app.use("/api/question", QuestionRouter);
-app.use("/api/level", LevelRouter);
-app.use("/api/background", BackgroundRouter);
-app.use("/api/subject", SubjectRouter);
-app.use("/api/chapter", ChapterRouter);
-app.use("/api/topic", TopicRouter);
-app.use("/api/record", RecordRouter);
-app.use("/api/collection", CollectionRouter);
-app.use("/api/auth", AuthRouter);
-app.use("/api/exam", ExamRouter);
-app.use("/api/analytics", AnalyticsRouter);
-app.use("/api/img-upload", ImgUploadRoutes);
-app.use("/api/extraction", ExtractionRouter);
+app.use("/master-data", MasterDataRouter);
+app.use("/question", QuestionRouter);
+app.use("/level", LevelRouter);
+app.use("/background", BackgroundRouter);
+app.use("/subject", SubjectRouter);
+app.use("/chapter", ChapterRouter);
+app.use("/topic", TopicRouter);
+app.use("/record", RecordRouter);
+app.use("/collection", CollectionRouter);
+app.use("/auth", AuthRouter);
+app.use("/exam", ExamRouter);
+app.use("/analytics", AnalyticsRouter);
+app.use("/img-upload", ImgUploadRoutes);
+app.use("/extraction", ExtractionRouter);
 
 // Global error handler (should be after routes)
 app.use(errorHandler);

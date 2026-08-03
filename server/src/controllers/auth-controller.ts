@@ -14,6 +14,7 @@ import { createJWT } from "../utils/jwt-token";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { IUser } from "../type/type";
 import mongoose from "mongoose";
+import { authCookieOptions } from "../config/cookie";
 
 // Send OTP to user through phone number
 export const sendOtp = async (req: Request, res: Response) => {
@@ -21,7 +22,7 @@ export const sendOtp = async (req: Request, res: Response) => {
 
   // Validate phone number
   if (!phone || phone.length !== 11) {
-    res.status(200).json({ success: false, message: "Invalid phone number" });
+    res.status(400).json({ success: false, message: "Invalid phone number" });
     return;
   }
 
@@ -29,7 +30,7 @@ export const sendOtp = async (req: Request, res: Response) => {
     // Check if user already exists
     const userExisted = await User.findOne({ phone });
     if (userExisted) {
-      res.status(200).json({ success: false, message: "User already exists" });
+      res.status(409).json({ success: false, message: "User already exists" });
       return;
     }
 
@@ -61,7 +62,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
   // Validate phone number
   if (!phone || phone.length !== 11) {
     res
-      .status(200)
+      .status(400)
       .json({ success: false, message: "Invalid phone number", data: null });
     return;
   }
@@ -71,7 +72,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
     const user = await User.findOne({ phone });
     if (!user) {
       res
-        .status(200)
+        .status(404)
         .json({ success: false, message: "User not found", data: null });
       return;
     }
@@ -83,7 +84,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
       (user.verificationTokenExpireAt &&
         Date.now() > user.verificationTokenExpireAt.getTime())
     ) {
-      res.status(200).json({
+      res.status(401).json({
         success: false,
         message: "Invalid or expired OTP",
         data: null,
@@ -125,7 +126,7 @@ export const createUser = async (req: Request, res: Response) => {
     !level ||
     !background
   ) {
-    res.status(200).json({
+    res.status(400).json({
       success: false,
       message: "All fields must be fillid in.",
       data: null,
@@ -151,7 +152,7 @@ export const createUser = async (req: Request, res: Response) => {
 
     if (!user) {
       res
-        .status(200)
+        .status(404)
         .json({ success: false, message: " User not found.", data: null });
       return;
     }
@@ -160,12 +161,7 @@ export const createUser = async (req: Request, res: Response) => {
     const token = createJWT(user);
 
     // 🔥 SET COOKIE
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
-    });
+    res.cookie("token", token, authCookieOptions);
     res.status(200).json({
       success: true,
       message: `User created successfully.`,
@@ -267,7 +263,7 @@ export const loginWithPhone = async (req: Request, res: Response) => {
 
   // ✅ Basic validation
   if (!phone || phone.length !== 11 || !password) {
-    res.status(200).json({
+    res.status(400).json({
       success: false,
       message: "Phone and password are required",
     });
@@ -293,7 +289,7 @@ export const loginWithPhone = async (req: Request, res: Response) => {
     }
 
     if (!user.password) {
-      res.status(200).json({
+      res.status(401).json({
         success: false,
         message: "Password not found. Please contact with admin.",
       });
@@ -317,13 +313,8 @@ export const loginWithPhone = async (req: Request, res: Response) => {
     // 🔥 Generate JWT
     const token = createJWT(user);
 
-    // 🔥 Set cookie (IMPORTANT for Vercel)
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
-    });
+    // 🔥 Set cookie
+    res.cookie("token", token, authCookieOptions);
 
     // ✅ Send response (never send password)
     res.status(200).json({
@@ -345,11 +336,7 @@ export const loginWithPhone = async (req: Request, res: Response) => {
 // LOGOUT
 export const logout = async (req: Request, res: Response) => {
   try {
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-    });
+    res.clearCookie("token", authCookieOptions);
 
     res.status(200).json({
       success: true,

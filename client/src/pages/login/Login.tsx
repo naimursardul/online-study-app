@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import axios from "axios";
 
 import { toast } from "sonner";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -64,7 +65,10 @@ export default function LoginForm() {
       return;
     } catch (error) {
       console.log(error);
-      toast.error("Problem with the server.");
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.message
+        : undefined;
+      toast.error(message || "Problem with the server.");
       return;
     }
   };

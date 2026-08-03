@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
+import axios from "axios";
 import {
   Form,
   FormControl,
@@ -158,7 +159,10 @@ export default function AfterOtpForm({
       return;
     } catch (error) {
       console.log(error);
-      toast.error("Problem with the server.");
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.message
+        : undefined;
+      toast.error(message || "Problem with the server.");
       return;
     }
   };
