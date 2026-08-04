@@ -8,7 +8,8 @@ import {
 
 const router = Router();
 
-// Limiter first so floods are cut off before the auth DB lookup
-router.post("/enhance", enhanceLimiter, requireAuth, enhanceImage);
+// Auth first: the limiter is keyed by user id, so it needs req.user.
+// Unauthenticated floods are absorbed by the global limiter in app.ts.
+router.post("/enhance", requireAuth, enhanceLimiter, enhanceImage);
 router.post("/generate-upload-url", requireAuth, generateUploadUrl);
 export default router;
