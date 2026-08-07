@@ -6,6 +6,11 @@ import {
   updateTopic,
   deleteTopic,
 } from "../controllers/topic-controller";
+import { validate } from "../middlewares/validate";
+import {
+  topicListSchema,
+  topicUpdateSchema,
+} from "../validations/crud.validation";
 
 const router = express.Router();
 
@@ -13,13 +18,13 @@ const router = express.Router();
 router.post("/create", createTopic);
 
 // Get all topics (with optional query filters)
-router.get("/", getAllTopics);
+router.get("/", validate(topicListSchema), getAllTopics);
 
 // Get a single topic by ID
 router.get("/:id", getSingleTopic);
 
 // Update a topic and sync related BaseQuestions
-router.put("/:id", updateTopic);
+router.put("/:id", validate(topicUpdateSchema), updateTopic);
 
 // Delete a topic
 router.delete("/:id", deleteTopic);

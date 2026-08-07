@@ -1,14 +1,19 @@
 import rateLimit, { ipKeyGenerator, Options } from "express-rate-limit";
 import { Request, RequestHandler, Response, NextFunction } from "express";
 import { RedisStore } from "rate-limit-redis";
-import { redisClient } from "../config/redis";
+import { redisClient, REDIS_COMMAND_TIMEOUT_MS } from "../config/redis";
 
 const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 
 function createStore(prefix: string) {
   return new RedisStore({
     prefix,
-    sendCommand: (...args: string[]) => redisClient.sendCommand(args),
+    // disableOfflineQueue only rejects once the socket is fully closed. While
+    // it's merely slow or mid-reconnect a command would otherwise hang for as
+    // long as the network takes (observed: 30s+ stalls on flapping DNS), which
+    // stalls the request instead of letting the fail-open/closed path run.
+    sendCommand: (...args: string[]) =>
+      redisClient.sendCommand(args, { timeout: REDIS_COMMAND_TIMEOUT_MS }),
   });
 }
 

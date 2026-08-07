@@ -6,6 +6,11 @@ import {
   updateSubject,
   deleteSubject,
 } from "../controllers/subject-controller";
+import { validate } from "../middlewares/validate";
+import {
+  subjectListSchema,
+  subjectUpdateSchema,
+} from "../validations/crud.validation";
 
 const router = express.Router();
 
@@ -13,13 +18,13 @@ const router = express.Router();
 router.post("/create", createSubject);
 
 // Route to get all subjects (with optional level or background filter)
-router.get("/", getAllSubjects);
+router.get("/", validate(subjectListSchema), getAllSubjects);
 
 // Route to get a single subject by its ID
 router.get("/:id", getSingleSubject);
 
 // Route to update an existing subject and related BaseQuestions
-router.put("/:id", updateSubject);
+router.put("/:id", validate(subjectUpdateSchema), updateSubject);
 
 // Route to delete a subject by its ID
 router.delete("/:id", deleteSubject);

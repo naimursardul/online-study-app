@@ -7,6 +7,11 @@ import {
   updateRecord,
   deleteRecord,
 } from "../controllers/record-controller";
+import { validate } from "../middlewares/validate";
+import {
+  recordListSchema,
+  recordUpdateSchema,
+} from "../validations/crud.validation";
 
 const router = express.Router();
 
@@ -14,13 +19,13 @@ const router = express.Router();
 router.post("/create", createRecord);
 
 // Get all records (with optional filters)
-router.get("/", getAllRecord);
+router.get("/", validate(recordListSchema), getAllRecord);
 
 // Get a single record by ID
 router.get("/:id", getSingleRecord);
 
 // Update an existing record by ID
-router.put("/:id", updateRecord);
+router.put("/:id", validate(recordUpdateSchema), updateRecord);
 
 // Delete a record by ID
 router.delete("/:id", deleteRecord);

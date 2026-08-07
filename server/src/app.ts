@@ -19,6 +19,8 @@ import ExtractionRouter from "./routes/extraction-routes";
 import ImgUploadRoutes from "./routes/imageUpload.routes";
 import { errorHandler } from "./middlewares/errorHandler";
 import { generalLimiter } from "./middlewares/rate-limit";
+import { sanitizeRequest } from "./middlewares/sanitize";
+import { httpsRedirect } from "./middlewares/https-redirect";
 
 dotenv.config();
 const app = express();
@@ -26,6 +28,9 @@ const app = express();
 // Render sits exactly one proxy hop in front; needed so req.ip (and
 // rate limiting) sees the real client IP, not Render's proxy.
 app.set("trust proxy", 1);
+
+// Before everything else, so nothing is served over plain http in production.
+app.use(httpsRedirect);
 
 app.use(
   helmet({
@@ -46,6 +51,11 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+// After the body parsers (needs a parsed body) and before the limiters, so
+// their keyGenerators read sanitized values.
+app.use(sanitizeRequest);
+
 app.get("/", (req: Request, res: Response) => {
   res.json("Hello world! bro");
 });

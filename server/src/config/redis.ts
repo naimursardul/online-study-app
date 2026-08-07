@@ -1,6 +1,10 @@
 import { createClient } from "redis";
 import { redisUrl } from "./env";
 
+// node-redis only honours `timeout` as a per-command option, not a client
+// default, so the rate-limit store passes this on every sendCommand.
+export const REDIS_COMMAND_TIMEOUT_MS = 1000;
+
 export const redisClient = createClient({
   url: redisUrl,
   // Reject commands immediately while disconnected instead of buffering them.
@@ -8,6 +12,7 @@ export const redisClient = createClient({
   // erroring, so passOnStoreError never gets a chance to fail open.
   disableOfflineQueue: true,
   socket: {
+    connectTimeout: 3000,
     reconnectStrategy: (retries) => Math.min(retries * 200, 5000),
   },
 });

@@ -68,8 +68,8 @@ export const verifyOtp = async (req: Request, res: Response) => {
   }
 
   try {
-    // Find user by phone number
-    const user = await User.findOne({ phone });
+    // verificationToken is select:false, but the OTP comparison below needs it.
+    const user = await User.findOne({ phone }).select("+verificationToken");
     if (!user) {
       res
         .status(404)
@@ -77,7 +77,6 @@ export const verifyOtp = async (req: Request, res: Response) => {
       return;
     }
 
-    console.log(user);
     // Check if OTP is valid and not expired
     if (
       user.verificationToken !== otp ||
@@ -101,7 +100,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
     res.status(200).json({
       success: true,
       message: "OTP verified successfully",
-      data: user,
+      data: null,
     });
     return;
   } catch (error) {
@@ -186,7 +185,7 @@ export const requireAuth = async (
   const token = req.cookies.token;
 
   if (!token) {
-    res.status(200).json({ success: false, message: "No token found!" });
+    res.status(401).json({ success: false, message: "No token found!" });
     return;
   }
 
@@ -205,7 +204,7 @@ export const requireAuth = async (
       .populate("background", "name");
 
     if (!data) {
-      res.status(200).json({
+      res.status(401).json({
         success: false,
         message: "Unauthorized! User not found.",
         user: null,
@@ -271,12 +270,13 @@ export const loginWithPhone = async (req: Request, res: Response) => {
   }
 
   try {
-    // ✅ Find user
+    // password is select:false; opt back in for the compare below.
     const user = await User.findOne({
       phone,
       isVerified: true,
       provider: "phone",
     })
+      .select("+password")
       .populate("level", "name")
       .populate("background", "name");
 
@@ -316,11 +316,14 @@ export const loginWithPhone = async (req: Request, res: Response) => {
     // 🔥 Set cookie
     res.cookie("token", token, authCookieOptions);
 
-    // ✅ Send response (never send password)
+    // The hash was explicitly selected for the compare above, so drop it before
+    // the document goes out over the wire.
+    const { password: _hash, ...safeUser } = user.toObject();
+
     res.status(200).json({
       success: true,
       message: "Login successful",
-      user,
+      user: safeUser,
     });
     return;
   } catch (error) {

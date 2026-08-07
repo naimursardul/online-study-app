@@ -19,7 +19,12 @@ const UserSchema = new Schema(
     img: { type: String },
     email: { type: String },
     phone: { type: String },
-    password: { type: String },
+    // Excluded by default so no query can accidentally serialize the hash.
+    // loginWithPhone opts back in with .select("+password") to run the compare.
+    password: { type: String, select: false },
+    // Same reasoning: these are credentials, not profile data.
+    verificationToken: { type: String, select: false },
+    resetToken: { type: String, select: false },
     level: {
       type: Schema.Types.ObjectId,
       ref: "Level",
@@ -28,9 +33,7 @@ const UserSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Background",
     },
-    verificationToken: { type: String },
     verificationTokenExpireAt: { type: Date },
-    resetToken: { type: String },
     resetTokenExpireAt: { type: Date },
     lastLogin: { type: Date },
   },

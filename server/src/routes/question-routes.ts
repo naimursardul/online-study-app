@@ -7,24 +7,35 @@ import {
   getSingleQuestion,
   updateSingleQuestion,
 } from "../controllers/question-controller";
+import { validate } from "../middlewares/validate";
+import {
+  bulkCreateQuestionSchema,
+  createQuestionSchema,
+  listQuestionSchema,
+  updateQuestionSchema,
+} from "../validations/question.validation";
 
 const router = Router();
 
 // Create question
-router.post("/create", createQuestion);
+router.post("/create", validate(createQuestionSchema), createQuestion);
 
 // Get all questions
-router.get("/", getAllQuestions);
+router.get("/", validate(listQuestionSchema), getAllQuestions);
 
 // Get single question by exam name
 router.get("/:id", getSingleQuestion);
 
 // // Update single question
-router.put("/:id", updateSingleQuestion);
+router.put("/:id", validate(updateQuestionSchema), updateSingleQuestion);
 
 // // Delete single question
 router.delete("/:id", deleteSingleQuestion);
 
-router.post("/bulk-create", bulkCreateQuestions);
+router.post(
+  "/bulk-create",
+  validate(bulkCreateQuestionSchema),
+  bulkCreateQuestions,
+);
 
 export default router;
