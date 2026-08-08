@@ -13,7 +13,7 @@ async function bootstrap() {
   const { default: app } = await import("./app");
 
   const server: Server = app.listen(process.env.PORT, () => {
-    console.log("Server started");
+    console.log("Server started on port : ", process.env.PORT);
   });
 
   // Render sends SIGTERM on every deploy; drain in-flight requests first.
