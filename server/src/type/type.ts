@@ -18,6 +18,7 @@ export interface IUser extends mongoose.Document {
   verificationTokenExpireAt?: Date;
   resetToken?: string;
   resetTokenExpireAt?: Date;
+  passwordChangedAt?: Date;
   lastLogin?: Date;
 }
 

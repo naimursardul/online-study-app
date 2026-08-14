@@ -121,6 +121,16 @@ export default function LoginForm() {
               />
             ))}
 
+            {/* 🔽 Password recovery */}
+            <div className="text-right">
+              <Link
+                to="/forgot-password"
+                className="text-sm text-primary underline hover:opacity-80"
+              >
+                Forgot password?
+              </Link>
+            </div>
+
             <SubmitBtn loading={form.formState.isSubmitting} />
 
             {/* 🔽 Signup link for new user */}

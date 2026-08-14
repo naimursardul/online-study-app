@@ -212,6 +212,22 @@ export const requireAuth = async (
       return;
     }
 
+    // Kill sessions issued before the last password reset. JWT iat is in
+    // seconds; passwordChangedAt in ms. A freshly-issued login token (iat set
+    // after the reset) passes, so the user who reset can log back in normally.
+    if (
+      data.passwordChangedAt &&
+      decoded.iat &&
+      decoded.iat * 1000 < new Date(data.passwordChangedAt).getTime()
+    ) {
+      res.status(401).json({
+        success: false,
+        message: "Session expired. Please log in again.",
+        user: null,
+      });
+      return;
+    }
+
     const userObj = { ...data, _id: String(data._id) } as IUser & {
       _id: string;
     };
@@ -351,6 +367,120 @@ export const logout = async (req: Request, res: Response) => {
       success: false,
       message: "Error in server",
     });
+    return;
+  }
+};
+
+// ============================================================
+// PASSWORD RESET FLOW (phone OTP) — three steps mirroring signup
+// ============================================================
+
+// Shared lookup for all three steps, so they can't drift on who is eligible:
+// only a verified, password-backed account can hold a reset token, which keeps
+// OAuth users from being pushed through a flow that would strand them.
+// resetToken is select:false — opt back in for the compares in steps 2 and 3.
+const findResettableUser = (phone: string) =>
+  User.findOne({ phone, isVerified: true, provider: "phone" }).select(
+    "+resetToken",
+  );
+
+// One message for every failed check — wrong digits, expired token, or no such
+// account. Distinguishing them would turn these endpoints into an oracle for
+// "is this number registered?".
+const INVALID_OTP = "Invalid or expired OTP";
+
+// True when `otp` matches the user's live, unexpired reset token.
+const resetOtpMatches = async (user: IUser, otp: string) => {
+  // Pulled into consts so TS keeps the non-null narrowing across the
+  // Date/getTime calls before bcryptjs.compare reads the hash.
+  const hashedOtp = user.resetToken;
+  const expiresAt = user.resetTokenExpireAt;
+  if (!hashedOtp || !expiresAt || Date.now() > expiresAt.getTime()) {
+    return false;
+  }
+  return bcryptjs.compare(otp, hashedOtp);
+};
+
+// Step 1: issue a reset OTP for a phone number
+export const forgotPassword = async (req: Request, res: Response) => {
+  const { phone } = req.body;
+
+  try {
+    const user = await findResettableUser(phone);
+
+    // Unknown numbers get the same 200 as real ones. A 404 here would confirm
+    // which phones have accounts; the per-phone rate limit is what bounds abuse.
+    if (user) {
+      // Static OTP until an SMS provider is chosen.
+      // TODO: generate a random 6-digit OTP and sendSms(phone, otp).
+      const otp = "123456";
+
+      // Hashed at rest so a DB leak can't expose a live reset code. resetToken
+      // is select:false; assigning + saving an unselected field still persists it.
+      user.resetToken = await bcryptjs.hash(otp, 10);
+      user.resetTokenExpireAt = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes
+      await user.save();
+    }
+
+    res.status(200).json({ success: true, message: "OTP sent successfully" });
+    return;
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ success: false, message: "Error in Server side." });
+    return;
+  }
+};
+
+// Step 2: verify the OTP without consuming it (step 3 re-checks it)
+export const verifyResetOtp = async (req: Request, res: Response) => {
+  const { phone, otp } = req.body;
+
+  try {
+    const user = await findResettableUser(phone);
+    if (!user || !(await resetOtpMatches(user, otp))) {
+      res.status(401).json({ success: false, message: INVALID_OTP });
+      return;
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "OTP verified successfully" });
+    return;
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ success: false, message: "Error in Server side." });
+    return;
+  }
+};
+
+// Step 3: re-check the OTP, set the new password, and kill old sessions
+export const resetPassword = async (req: Request, res: Response) => {
+  const { phone, otp, password } = req.body;
+
+  try {
+    const user = await findResettableUser(phone);
+    if (!user || !(await resetOtpMatches(user, otp))) {
+      res.status(401).json({ success: false, message: INVALID_OTP });
+      return;
+    }
+
+    user.password = await bcryptjs.hash(password, 10);
+    // Invalidates JWTs issued earlier. Backdated 1s because JWT iat is floored
+    // to whole seconds: a token minted in the same second as the reset would
+    // otherwise look "issued before" it and requireAuth would bounce the user
+    // straight back to login.
+    user.passwordChangedAt = new Date(Date.now() - 1000);
+    user.resetToken = undefined;
+    user.resetTokenExpireAt = undefined;
+    await user.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: "Password reset successfully" });
+    return;
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ success: false, message: "Error in Server side." });
     return;
   }
 };

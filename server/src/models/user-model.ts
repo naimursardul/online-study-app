@@ -35,6 +35,9 @@ const UserSchema = new Schema(
     },
     verificationTokenExpireAt: { type: Date },
     resetTokenExpireAt: { type: Date },
+    // Set on password reset; requireAuth rejects any JWT issued before this,
+    // so a reset kills sessions still holding the old credentials.
+    passwordChangedAt: { type: Date },
     lastLogin: { type: Date },
   },
   {

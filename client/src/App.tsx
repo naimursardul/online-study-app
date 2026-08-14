@@ -10,6 +10,7 @@ import Admin from "./pages/admin/Admin.tsx";
 import ProtectedRoute from "./lib/Protected-route.tsx";
 import HomeLayout from "./pages/Home-layout.tsx";
 import Signup from "./pages/signup/Signup.tsx";
+import ForgotPassword from "./pages/forgot-password/ForgotPassword.tsx";
 import NotFound from "./pages/not-found/Not-found.tsx";
 import InstitutionQuestionLayout from "./pages/service-pages/question-bank/slug-1/Institution-question-layout.tsx";
 import QuestionBankSlug2 from "./pages/service-pages/question-bank/slug-1/slug-2/Question-bank-slug2.tsx";
@@ -57,6 +58,7 @@ function App() {
             <Route path="contact" element={<Contact />} />
             <Route path="signup" element={<Signup />} />
             <Route path="login" element={<Login />} />
+            <Route path="forgot-password" element={<ForgotPassword />} />
           </Route>
 
           <Route path="/" element={<ServiceLayout />}>

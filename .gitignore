@@ -17,6 +17,10 @@ node_modules/
 client/.next/
 client/out/
 
+# build output
+client/dist/
+server/dist/
+
 # production
 /build
 

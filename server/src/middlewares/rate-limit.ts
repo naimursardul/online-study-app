@@ -132,6 +132,42 @@ export const createUserLimiter = failClosed(
   }),
 );
 
+// Password reset, keyed by phone like the other OTP routes. Successful sends
+// are counted (like sendOtp) so a phone can't be flooded with reset codes;
+// verify/reset skip successes so a legitimate reset isn't punished.
+export const forgotPasswordLimiter = failClosed(
+  rateLimit({
+    ...common,
+    store: createStore("forgotpw:"),
+
+    keyGenerator: phoneKey,
+    limit: 3,
+    passOnStoreError: false,
+  }),
+);
+
+export const verifyResetOtpLimiter = failClosed(
+  rateLimit({
+    ...common,
+    store: createStore("resetverify:"),
+    keyGenerator: phoneKey,
+    limit: 6,
+    skipSuccessfulRequests: true,
+    passOnStoreError: false,
+  }),
+);
+
+export const resetPasswordLimiter = failClosed(
+  rateLimit({
+    ...common,
+    store: createStore("resetpw:"),
+    keyGenerator: phoneKey,
+    limit: 6,
+    skipSuccessfulRequests: true,
+    passOnStoreError: false,
+  }),
+);
+
 // POST /img-upload/enhance triggers a paid kie.ai call per request. Keyed by
 // user id, so it must be mounted after requireAuth.
 export const enhanceLimiter = rateLimit({
