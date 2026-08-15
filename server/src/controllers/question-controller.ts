@@ -7,6 +7,8 @@
 
 import { Request, Response } from "express";
 import { MCQ, CQ, BaseQuestion } from "../models/question-model";
+// Aliased so it doesn't shadow TypeScript's built-in `Record<K, V>` utility type.
+import RecordModel from "../models/record-model";
 import { ICQ, IMCQ } from "../type/type";
 
 // CREATE QUESTION
@@ -173,6 +175,12 @@ async function createQuestion(req: Request, res: Response) {
 }
 
 // GET ALL QUESTIONS
+// Values arriving here have already been through `listQuestionSchema`, so the
+// list-shaped params (backgroundId, chapterId, topicId, recordId, institution,
+// year) are normalised arrays.
+const escapeRegex = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const getAllQuestions = async (req: Request, res: Response) => {
   try {
     const {
@@ -183,8 +191,13 @@ const getAllQuestions = async (req: Request, res: Response) => {
       chapterId,
       topicId,
       recordId,
+      institution,
+      year,
+      difficulty,
       search,
-    } = req.query;
+      page,
+      limit,
+    } = req.query as Record<string, any>;
     if (typeof questionType !== "string" || typeof levelId !== "string") {
       res.status(200).json({
         success: false,
@@ -193,42 +206,88 @@ const getAllQuestions = async (req: Request, res: Response) => {
       });
       return;
     }
-    const query: any = { questionType, levelId };
-    if (backgroundId)
-      query.background = Array.isArray(backgroundId)
-        ? [...backgroundId]
-        : [backgroundId];
-    if (typeof subjectId === "string") query.subjectId = subjectId;
-    if (typeof chapterId === "string") query.chapterId = chapterId;
-    if (typeof topicId === "string") query.topicId = topicId;
-    const recordIdArray = recordId
-      ? Array.isArray(recordId)
-        ? recordId
-        : [recordId]
-      : [];
 
-    if (recordIdArray.length > 0) query.recordId = { $in: recordIdArray };
+    const toArray = (value: unknown): string[] =>
+      value === undefined || value === null
+        ? []
+        : Array.isArray(value)
+          ? value.map(String)
+          : [String(value)];
+
+    const backgroundIds = toArray(backgroundId);
+    const chapterIds = toArray(chapterId);
+    const topicIds = toArray(topicId);
+    const recordIdArray = toArray(recordId);
+    const institutions = toArray(institution);
+    const years = toArray(year);
+
+    const query: Record<string, any> = { questionType, levelId };
+    // backgroundId/recordId are arrays on the document; $in matches a document
+    // whose array contains any of the listed values.
+    if (backgroundIds.length > 0) query.backgroundId = { $in: backgroundIds };
+    if (typeof subjectId === "string") query.subjectId = subjectId;
+    if (chapterIds.length > 0) query.chapterId = { $in: chapterIds };
+    if (topicIds.length > 0) query.topicId = { $in: topicIds };
+    if (typeof difficulty === "string") query.difficulty = difficulty;
+
+    // institution/year are stored on Record, not on the question, so resolve
+    // them to recordIds first. An empty resolution correctly yields no results.
+    if (institutions.length > 0 || years.length > 0) {
+      const recordFilter: Record<string, any> = {};
+      if (institutions.length > 0)
+        recordFilter.institution = { $in: institutions };
+      if (years.length > 0) recordFilter.year = { $in: years };
+
+      const matchedRecords = await RecordModel.find(recordFilter)
+        .select("_id")
+        .lean();
+      let resolvedIds = matchedRecords.map((record) => String(record._id));
+      // An explicit recordId narrows the resolution rather than widening it.
+      if (recordIdArray.length > 0)
+        resolvedIds = resolvedIds.filter((id) => recordIdArray.includes(id));
+
+      query.recordId = { $in: resolvedIds };
+    } else if (recordIdArray.length > 0) {
+      query.recordId = { $in: recordIdArray };
+    }
+
+    if (typeof search === "string") {
+      const searchRegex = { $regex: escapeRegex(search), $options: "i" };
+      if (questionType === "MCQ") query.question = searchRegex;
+      else query["subQuestions.question"] = searchRegex;
+    }
+
+    // Both discriminators live in the same collection; typed as the base model
+    // so the union of the two discriminator types doesn't break `find()`.
+    const Model = (
+      questionType === "MCQ" ? MCQ : CQ
+    ) as unknown as typeof BaseQuestion;
+    const pageSize = Number(limit) || 20;
+    const pageNumber = Number(page) || 0; // 0 => not paginated
 
     let allQuestions;
-    switch (questionType) {
-      case "MCQ":
-        if (typeof search === "string") {
-          query.question = { $regex: search, $options: "i" };
-        }
-        allQuestions = await MCQ.find(query);
-        break;
-      case "CQ":
-        if (questionType === "CQ" && typeof search === "string") {
-          query.subQuestions.question = { $regex: search, $options: "i" };
-        }
-        allQuestions = await CQ.find(query);
-        break;
+    let pagination;
+    if (pageNumber > 0) {
+      const total = await Model.countDocuments(query);
+      allQuestions = await Model.find(query)
+        .sort({ createdAt: -1 })
+        .skip((pageNumber - 1) * pageSize)
+        .limit(pageSize);
+      pagination = {
+        page: pageNumber,
+        limit: pageSize,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+      };
+    } else {
+      allQuestions = await Model.find(query);
     }
 
     res.status(200).json({
       success: true,
       message: "Questions retrieved successfully.",
       data: allQuestions,
+      ...(pagination && { pagination }),
     });
     return;
   } catch (error) {

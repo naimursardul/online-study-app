@@ -63,13 +63,12 @@ export default function ComboboxMulti<T>({
           ...prev,
           [fieldName]: ids,
         };
-        // cascade reset dependents
+        // cascade reset dependents, preserving each field's shape (some pages
+        // hold list-shaped filters, e.g. topicId as an array)
         (DEPENDENT_RESETS[String(fieldName)] as string[])?.forEach((dep) => {
-          if (dep === "backgroundId") {
-            updated["backgroundId" as keyof T] = [] as T[keyof T];
-          } else {
-            updated[dep as keyof T] = "" as T[keyof T];
-          }
+          updated[dep as keyof T] = (
+            Array.isArray(prev[dep as keyof T]) ? [] : ""
+          ) as T[keyof T];
         });
         return updated as T;
       }

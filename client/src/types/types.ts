@@ -317,6 +317,27 @@ export interface IQueryFormData {
   search?: string;
 }
 
+// Server-side pagination envelope (question list, collection questions)
+export interface IPagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+// Question Explorer filter state. Level and background are not here — they are
+// always taken from the signed-in user's profile.
+export interface IExplorerFilters {
+  questionType: "" | "MCQ" | "CQ";
+  subjectId: string;
+  institution: string[];
+  year: string[];
+  chapterId: string[];
+  topicId: string[];
+  difficulty: "" | "Easy" | "Medium" | "Hard";
+  search: string;
+}
+
 export interface IExtractedMcqQuestion {
   questionType: "MCQ";
   question: string;

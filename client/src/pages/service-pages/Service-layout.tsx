@@ -4,7 +4,14 @@ import SidebarTemplate from "@/components/sidebar-template/SidebarTemplate";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useMasterData } from "@/lib/MasterData-context";
 import type { SidebarItemType } from "@/types/types";
-import { Calendar, Home, Inbox, LayoutDashboard, Library } from "lucide-react";
+import {
+  Calendar,
+  Home,
+  Inbox,
+  LayoutDashboard,
+  Library,
+  Search,
+} from "lucide-react";
 import { Outlet } from "react-router-dom";
 
 export default function ServiceLayout() {
@@ -14,6 +21,12 @@ export default function ServiceLayout() {
       title: "Question-bank",
       url: "/question-bank",
       icon: <Home />,
+    },
+    {
+      title: "Question Explorer",
+      url: "/question-explorer",
+      icon: <Search />,
+      role: ["user", "admin", "super-admin"],
     },
     {
       title: "Exam",

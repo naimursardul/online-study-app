@@ -69,6 +69,21 @@ const baseQuestionSchema = new Schema<IBaseQuestion>(
 );
 
 // -----------------------
+// Indexes
+// -----------------------
+
+// Covers the taxonomy filters used by the question list endpoint; without it a
+// filtered skip/limit + countDocuments collection-scans on every page turn.
+baseQuestionSchema.index({
+  questionType: 1,
+  levelId: 1,
+  subjectId: 1,
+  chapterId: 1,
+  topicId: 1,
+});
+baseQuestionSchema.index({ recordId: 1 });
+
+// -----------------------
 // Models
 // -----------------------
 

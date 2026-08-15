@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { objectId, objectIdList, safeSearch } from "./common";
+import { objectId, objectIdList, safeSearch, safeStringList } from "./common";
 
 const baseQuestion = {
   levelId: objectId,
@@ -94,10 +94,19 @@ export const listQuestionSchema = z.object({
       levelId: objectId,
       backgroundId: objectIdList.optional(),
       subjectId: objectId.optional(),
-      chapterId: objectId.optional(),
-      topicId: objectId.optional(),
+      chapterId: objectIdList.optional(),
+      topicId: objectIdList.optional(),
       recordId: objectIdList.optional(),
+      // institution/year live on the Record model as free-form strings, so they
+      // are resolved to recordIds in the controller.
+      institution: safeStringList.optional(),
+      year: safeStringList.optional(),
+      difficulty: z.enum(["Easy", "Medium", "Hard"]).optional(),
       search: safeSearch.optional(),
+      // Pagination is opt-in: without `page` the whole result set is returned,
+      // which existing callers (board papers, exam generation) depend on.
+      page: z.coerce.number().int().positive().optional(),
+      limit: z.coerce.number().int().positive().max(50).optional(),
     })
     .strict(),
 });

@@ -23,3 +23,10 @@ export const phone = z
 export const objectIdList = z
   .union([objectId, z.array(objectId)])
   .transform((v) => (Array.isArray(v) ? v : [v]));
+
+// Same idea as objectIdList, but for free-form strings that are not ids
+// (institution/year on the Record model). Bounded like safeSearch because these
+// end up inside a Mongo $in, and capped so one request can't send a huge list.
+export const safeStringList = z
+  .union([safeSearch, z.array(safeSearch).max(50)])
+  .transform((v) => (Array.isArray(v) ? v : [v]));

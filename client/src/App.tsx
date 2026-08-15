@@ -29,6 +29,7 @@ import Collection from "./pages/collection/Collection.tsx";
 import SingleCollectionPage from "./pages/collection/slug-1/SingleCollectionPage.tsx";
 import SingleExamPage from "./pages/service-pages/exam/slug-1/SingleExamPage.tsx";
 import AiExtractor from "./pages/admin/(allUploadPages)/ai-extractor/ai-extractor.tsx";
+import QuestionExplorer from "./pages/service-pages/question-explorer/Question-explorer.tsx";
 
 function App() {
   return (
@@ -70,6 +71,15 @@ function App() {
               <Route index element={<QuestionBankSlug1 />} />
               <Route path=":slug2" element={<QuestionBankSlug2 />} />
             </Route>
+            <Route
+              path="question-explorer"
+              element={
+                <ProtectedRoute
+                  roles={["user", "admin", "super-admin"]}
+                  element={<QuestionExplorer />}
+                />
+              }
+            />
             <Route
               path="exam"
               element={<ProtectedRoute roles={["user"]} element={<Exam />} />}

@@ -14,6 +14,7 @@ import {
   BookOpen,
   FileText,
   CircleHelp,
+  Search as SearchIcon,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -25,6 +26,7 @@ export default function NavBar() {
 
   const serviceActive =
     pathname.startsWith("/question-bank") ||
+    pathname.startsWith("/question-explorer") ||
     pathname.startsWith("/exam") ||
     pathname.startsWith("/doubt");
 
@@ -56,6 +58,10 @@ export default function NavBar() {
                 <ul className="w-96 p-2">
                   <ListItem href="/question-bank" title="Question Bank">
                     Browse practice questions and prepare efficiently.
+                  </ListItem>
+
+                  <ListItem href="/question-explorer" title="Question Explorer">
+                    Filter questions by institution, year, chapter and topic.
                   </ListItem>
 
                   <ListItem href="/exam" title="Exam">
@@ -125,6 +131,12 @@ export default function NavBar() {
                 to="/question-bank"
                 title="Question Bank"
                 icon={<BookOpen size={16} />}
+              />
+
+              <PopupItem
+                to="/question-explorer"
+                title="Question Explorer"
+                icon={<SearchIcon size={16} />}
               />
 
               <PopupItem

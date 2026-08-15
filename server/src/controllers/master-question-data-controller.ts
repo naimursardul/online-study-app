@@ -32,8 +32,8 @@ export const getMasterQuestionData = async (req: Request, res: Response) => {
       Level.find().select("name"),
       Background.find().select("name levelId"),
       Subject.find().select("name levelId backgroundId"),
-      Chapter.find().select("name subjectId"),
-      Topic.find().select("name chapterId"),
+      Chapter.find().select("name subjectId levelId backgroundId"),
+      Topic.find().select("name chapterId subjectId"),
       Record.find().select("institution year recordType"),
       Collection.find(collectionFilter),
     ]);
