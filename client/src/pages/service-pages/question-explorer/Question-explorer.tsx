@@ -7,7 +7,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { client } from "@/utils/utils";
 import { useAuth } from "@/lib/Auth-context";
@@ -28,6 +28,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import type {
   ICQ,
   IExplorerFilters,
@@ -64,6 +73,8 @@ export default function QuestionExplorer() {
   const [isLoading, setIsLoading] = useState(false);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  // Below `lg` the filters live in a sheet instead of on the page.
+  const [filterOpen, setFilterOpen] = useState(false);
 
   // ── The URL is the single source of truth for every filter ──────
   const filters: IExplorerFilters = useMemo(
@@ -317,12 +328,122 @@ export default function QuestionExplorer() {
     filters.chapterId.length > 0 ||
     filters.topicId.length > 0;
 
+  // Shown on the collapsed Filter button so the count is visible without
+  // opening the sheet. Each selected item in a multi-select counts once.
+  const activeFilterCount =
+    [filters.questionType, filters.subjectId, filters.difficulty, filters.search]
+      .filter(Boolean).length +
+    filters.institution.length +
+    filters.year.length +
+    filters.chapterId.length +
+    filters.topicId.length;
+
   const questionNo = (index: number) => (page - 1) * PAGE_SIZE + index + 1;
+
+  // One element tree rendered in two places: inline from `lg` up, and inside the
+  // filter sheet below that. Deliberately a variable and not a nested component —
+  // a component declared here would be a new type on every render and would
+  // remount the search box, dropping focus on each keystroke.
+  const filterFields = (
+    <>
+      <Select
+        value={filters.questionType || ALL}
+        onValueChange={handleQuestionTypeChange}
+      >
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Question type" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={ALL}>Select question type</SelectItem>
+          <SelectItem value="MCQ">MCQ</SelectItem>
+          <SelectItem value="CQ">CQ</SelectItem>
+        </SelectContent>
+      </Select>
+
+      <Select
+        value={filters.subjectId || ALL}
+        onValueChange={handleSubjectChange}
+      >
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Subject" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={ALL}>Select subject</SelectItem>
+          {subjectOptions.map((subject) => (
+            <SelectItem key={subject._id} value={subject._id}>
+              {subject.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <ComboboxMulti<IExplorerFilters>
+        field={comboField("institution", "Institution", institutionOptions)}
+        formData={filters}
+        setFormData={setFilters}
+      />
+
+      <ComboboxMulti<IExplorerFilters>
+        field={comboField("year", "Year", yearOptions)}
+        formData={filters}
+        setFormData={setFilters}
+      />
+
+      <ComboboxMulti<IExplorerFilters>
+        field={comboField("chapterId", "Chapter", chapterOptions)}
+        formData={filters}
+        setFormData={setFilters}
+      />
+
+      <ComboboxMulti<IExplorerFilters>
+        field={comboField("topicId", "Topic", topicOptions)}
+        formData={filters}
+        setFormData={setFilters}
+      />
+
+      <Select
+        value={filters.difficulty || ALL}
+        onValueChange={handleDifficultyChange}
+      >
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Difficulty" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={ALL}>Any difficulty</SelectItem>
+          <SelectItem value="Easy">Easy</SelectItem>
+          <SelectItem value="Medium">Medium</SelectItem>
+          <SelectItem value="Hard">Hard</SelectItem>
+        </SelectContent>
+      </Select>
+
+      <Select
+        value={viewMode}
+        onValueChange={(value) => writeUrl(filters, page, value as ViewModeType)}
+        disabled={filters.questionType === "CQ"}
+      >
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="View mode" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="viewOnly">View only</SelectItem>
+          <SelectItem value="showAns">Show answer</SelectItem>
+        </SelectContent>
+      </Select>
+
+      <Input
+        value={searchInput}
+        onChange={(e) => setSearchInput(e.target.value)}
+        placeholder="Search question text…"
+        className="w-full"
+      />
+    </>
+  );
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Filter bar */}
-      <div className="flex flex-col gap-3 border-b border-sidebar-border pb-4">
+      {/* Filter bar — a card so it stays legible on the page background in both
+          themes. */}
+      <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm text-muted-foreground">Your profile:</span>
           <Badge variant="secondary">{user?.level?.name ?? "No level"}</Badge>
@@ -331,99 +452,57 @@ export default function QuestionExplorer() {
           </Badge>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Select
-            value={filters.questionType || ALL}
-            onValueChange={handleQuestionTypeChange}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Question type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>Select question type</SelectItem>
-              <SelectItem value="MCQ">MCQ</SelectItem>
-              <SelectItem value="CQ">CQ</SelectItem>
-            </SelectContent>
-          </Select>
+        {/* lg and up: every control inline */}
+        <div className="hidden gap-3 lg:grid lg:grid-cols-4">{filterFields}</div>
 
-          <Select
-            value={filters.subjectId || ALL}
-            onValueChange={handleSubjectChange}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Subject" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>Select subject</SelectItem>
-              {subjectOptions.map((subject) => (
-                <SelectItem key={subject._id} value={subject._id}>
-                  {subject.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <ComboboxMulti<IExplorerFilters>
-            field={comboField("institution", "Institution", institutionOptions)}
-            formData={filters}
-            setFormData={setFilters}
-          />
-
-          <ComboboxMulti<IExplorerFilters>
-            field={comboField("year", "Year", yearOptions)}
-            formData={filters}
-            setFormData={setFilters}
-          />
-
-          <ComboboxMulti<IExplorerFilters>
-            field={comboField("chapterId", "Chapter", chapterOptions)}
-            formData={filters}
-            setFormData={setFilters}
-          />
-
-          <ComboboxMulti<IExplorerFilters>
-            field={comboField("topicId", "Topic", topicOptions)}
-            formData={filters}
-            setFormData={setFilters}
-          />
-
-          <Select
-            value={filters.difficulty || ALL}
-            onValueChange={handleDifficultyChange}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Difficulty" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>Any difficulty</SelectItem>
-              <SelectItem value="Easy">Easy</SelectItem>
-              <SelectItem value="Medium">Medium</SelectItem>
-              <SelectItem value="Hard">Hard</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={viewMode}
-            onValueChange={(value) =>
-              writeUrl(filters, page, value as ViewModeType)
-            }
-            disabled={filters.questionType === "CQ"}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="View mode" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="viewOnly">View only</SelectItem>
-              <SelectItem value="showAns">Show answer</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Input
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search question text…"
-            className="w-full"
-          />
+        {/* below lg: one button, controls in a bottom sheet */}
+        <div className="lg:hidden">
+          <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full justify-between"
+              >
+                <span className="flex items-center gap-2">
+                  <SlidersHorizontal className="size-4" />
+                  Filters
+                </span>
+                {activeFilterCount > 0 && (
+                  <Badge variant="secondary">{activeFilterCount}</Badge>
+                )}
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
+              <SheetHeader>
+                <SheetTitle>Filters</SheetTitle>
+                <SheetDescription>
+                  {user?.level?.name ?? "No level"} ·{" "}
+                  {user?.background?.name ?? "No background"}
+                </SheetDescription>
+              </SheetHeader>
+              <div className="grid gap-3 px-4 sm:grid-cols-2">
+                {filterFields}
+              </div>
+              <SheetFooter className="flex-row gap-2">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="flex-1"
+                  onClick={handleClearFilters}
+                >
+                  Clear
+                </Button>
+                <Button
+                  size="lg"
+                  className="flex-1"
+                  onClick={() => setFilterOpen(false)}
+                >
+                  {isReady ? `Show ${total}` : "Done"}
+                </Button>
+              </SheetFooter>
+            </SheetContent>
+          </Sheet>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3">

@@ -139,7 +139,9 @@
   --destructive: #f87171;
 
   --border: #404040;
-  --input: #3d3d3d;
+  /* Light enough to stay visible on --background, --card and --sidebar-accent;
+     every form control draws its edge with border-input. */
+  --input: #525252;
   --ring: #8c8c8c;
 
   --chart-1: #dedede;

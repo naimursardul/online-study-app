@@ -89,20 +89,26 @@ function App() {
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute roles={["user"]} element={<Dashboard />} />
+                <ProtectedRoute
+                  roles={["user", "admin", "super-admin"]}
+                  element={<Dashboard />}
+                />
               }
             />
             <Route
               path="/collection"
               element={
-                <ProtectedRoute roles={["user"]} element={<Collection />} />
+                <ProtectedRoute
+                  roles={["user", "admin", "super-admin"]}
+                  element={<Collection />}
+                />
               }
             />
             <Route
               path="/collections/:id"
               element={
                 <ProtectedRoute
-                  roles={["user"]}
+                  roles={["user", "admin", "super-admin"]}
                   element={<SingleCollectionPage />}
                 />
               }

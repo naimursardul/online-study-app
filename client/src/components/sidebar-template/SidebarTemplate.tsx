@@ -14,12 +14,10 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import type { SidebarItemType } from "@/types/types";
-import { useAuth } from "@/lib/Auth-context";
 
 function SidebarTemplate({ items }: { items: SidebarItemType[] }) {
   const location = useLocation();
   const pathname = location.pathname;
-  const { user } = useAuth();
   return (
     <Sidebar collapsible="icon" className="w-50">
       <SidebarHeader className="mt-3">
@@ -38,42 +36,39 @@ function SidebarTemplate({ items }: { items: SidebarItemType[] }) {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => {
-                if (
-                  !item.role ||
-                  (item.role && user && item.role.includes(user.role))
-                )
-                  return (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton
-                        isActive={pathname.includes(item.url)}
-                        tooltip={item.title}
-                        asChild
-                      >
-                        <Link to={item.url}>
-                          {item.icon}
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                      {item?.subItem &&
-                        item.subItem.length > 0 &&
-                        item.subItem.map((subItem) => (
-                          <SidebarMenuSub key={subItem.title}>
-                            <SidebarMenuSubItem>
-                              <SidebarMenuSubButton
-                                isActive={subItem.url === pathname}
-                                asChild
-                              >
-                                <Link className="w-full" to={subItem.url}>
-                                  {subItem.title}
-                                </Link>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          </SidebarMenuSub>
-                        ))}
-                    </SidebarMenuItem>
-                  );
-              })}
+              {/* Every item is shown to every visitor: `item.role` is not a
+                  visibility gate. ProtectedRoute sends guests to /login, which
+                  is the discovery path we want. */}
+              {items.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    isActive={pathname.includes(item.url)}
+                    tooltip={item.title}
+                    asChild
+                  >
+                    <Link to={item.url}>
+                      {item.icon}
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                  {item?.subItem &&
+                    item.subItem.length > 0 &&
+                    item.subItem.map((subItem) => (
+                      <SidebarMenuSub key={subItem.title}>
+                        <SidebarMenuSubItem>
+                          <SidebarMenuSubButton
+                            isActive={subItem.url === pathname}
+                            asChild
+                          >
+                            <Link className="w-full" to={subItem.url}>
+                              {subItem.title}
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      </SidebarMenuSub>
+                    ))}
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
