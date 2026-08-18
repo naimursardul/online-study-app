@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/lib/Auth-context";
-import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, BookmarkX } from "lucide-react";
 import { client } from "@/utils/utils";
 import { toast } from "sonner";
 import { useMasterData } from "@/lib/MasterData-context";
@@ -15,7 +15,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import SingleCqQuestion from "@/components/qb/institution-question/single-question/single-cq-queston";
-import type { ICollection, ICQ, IMCQ } from "@/types/types";
+import type { IBaseQuestion, ICollection, ICQ, IMCQ } from "@/types/types";
+
+// A saved question whose underlying question no longer exists — deleted with its
+// taxonomy, or from the admin question list. The server sends this placeholder in
+// its place so the page still shows as many rows as the collection claims to hold.
+type UnavailableQuestion = {
+  _id: string;
+  questionType: IBaseQuestion["questionType"];
+  unavailable: true;
+};
+
+type CollectionQuestion =
+  | ((ICQ | IMCQ) & { _id: string; unavailable?: false })
+  | UnavailableQuestion;
 
 export default function SingleCollectionPage() {
   const { id: collectionId } = useParams<{ id: string }>();
@@ -29,12 +42,13 @@ export default function SingleCollectionPage() {
     })[]
   >([]);
 
-  const [questions, setQuestions] = useState<
-    ((ICQ & { _id: string }) | (IMCQ & { _id: string }))[]
-  >([]);
+  const [questions, setQuestions] = useState<CollectionQuestion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  // Bumped after a dead bookmark is cleared, to re-run the questions fetch.
+  const [reloadToken, setReloadToken] = useState(0);
+  const [removingId, setRemovingId] = useState<string | null>(null);
 
   const [selectedSubject, setSelectedSubject] = useState<string>("");
   const [selectedChapter, setSelectedChapter] = useState<string>("");
@@ -105,7 +119,35 @@ export default function SingleCollectionPage() {
     }
 
     fetchQuestions();
-  }, [collectionId, page, selectedSubject, selectedChapter]);
+  }, [collectionId, page, selectedSubject, selectedChapter, reloadToken]);
+
+  // =========================================
+  // CLEAR A DEAD BOOKMARK
+  // =========================================
+  // The toggle endpoint deletes the SavedQuestion row when one exists, so it works
+  // as an unsave even though the question itself is gone.
+  async function removeSavedQuestion(q: UnavailableQuestion) {
+    setRemovingId(q._id);
+
+    try {
+      const res = await client.post("/collection/saved-question/toggle", {
+        collectionId,
+        questionId: q._id,
+        questionType: q.questionType,
+      });
+
+      if (res.data.success) {
+        setReloadToken((t) => t + 1);
+      } else {
+        toast.error(res.data.message || "Failed to remove question");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to remove question");
+    } finally {
+      setRemovingId(null);
+    }
+  }
 
   function handleSubjectChange(value: string) {
     const actualValue = value === "all" ? "" : value;
@@ -204,7 +246,38 @@ export default function SingleCollectionPage() {
       ) : (
         <div className="flex flex-col gap-4">
           {questions.map((q, i) =>
-            q.questionType === "CQ" ? (
+            q.unavailable ? (
+              <div
+                key={q._id}
+                className="flex items-start justify-between gap-3 rounded-xl border border-dashed border-sidebar-border p-5 max-sm:p-4"
+              >
+                <div className="flex gap-2">
+                  <p className="bg-input size-6 flex justify-center items-center text-xs rounded shrink-0">
+                    {(page - 1) * 20 + i + 1}
+                  </p>
+                  <p className="text-muted-foreground text-sm max-sm:text-xs">
+                    This question is no longer available — it was deleted after
+                    you saved it.
+                  </p>
+                </div>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="cursor-pointer shrink-0"
+                  disabled={removingId === q._id}
+                  onClick={() => removeSavedQuestion(q)}
+                  aria-label="Remove from collection"
+                  title="Remove from collection"
+                >
+                  {removingId === q._id ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <BookmarkX className="size-4 text-destructive" />
+                  )}
+                </Button>
+              </div>
+            ) : q.questionType === "CQ" ? (
               <SingleCqQuestion
                 key={q._id}
                 q={q as ICQ & { _id: string }}

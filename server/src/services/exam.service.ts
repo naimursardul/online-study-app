@@ -207,13 +207,26 @@ export const getExamById = async (u_id: string, examId: string) => {
   const answer = await Answer.findById(exam.answerId).lean();
   const review = (answer?.answerScript || []).map((a: any) => {
     const q = qMap[String(a.questionId)];
+    // The question may have been deleted after this exam was taken (a taxonomy
+    // cascade, or a plain question delete). The score is history, so the row still
+    // reports what was answered — the client renders it as unavailable. No `marks`:
+    // the answer script does not store per-question marks, and the question that
+    // held them is gone, so a number here would be invented.
+    if (!q) {
+      return {
+        questionId: String(a.questionId),
+        unavailable: true,
+        givenAns: a.givenAns,
+        isCorrect: a.isCorrect,
+      };
+    }
     return {
       questionId: String(a.questionId),
-      question: q?.question,
-      options: q?.options,
-      correctAnswer: q?.correctAnswer,
-      explanation: q?.explanation,
-      marks: q?.marks,
+      question: q.question,
+      options: q.options,
+      correctAnswer: q.correctAnswer,
+      explanation: q.explanation,
+      marks: q.marks,
       givenAns: a.givenAns,
       isCorrect: a.isCorrect,
     };

@@ -5,10 +5,16 @@ const name = z.string().trim().min(1).max(200);
 
 // The update controllers pass their whole body to findByIdAndUpdate, so these
 // schemas double as the field whitelist — anything not listed is stripped.
+// Must be .strip() (Zod's default), NOT .strict(): the admin edit form's
+// dependent-reset cascade injects child-id keys the shape omits (changing a
+// topic's chapterId also sets topicId:"", changing a chapter's subjectId sets
+// chapterId:"" + topicId:"", …). .strict() would reject the whole request with a
+// 400 "Unrecognized key", breaking every re-parent; .strip() drops them, which
+// is the whitelist behavior this comment always claimed.
 const updateBody = <T extends z.ZodRawShape>(shape: T) =>
   z.object({
     params: z.object({ id: objectId }),
-    body: z.object(shape).partial().strict(),
+    body: z.object(shape).partial().strip(),
   });
 
 export const backgroundUpdateSchema = updateBody({

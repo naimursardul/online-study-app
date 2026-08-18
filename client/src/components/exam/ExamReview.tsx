@@ -66,11 +66,44 @@ function ReviewQuestion({
   index: number;
 }) {
   const [open, setOpen] = useState(false);
-  const correctIdx = Number(item.correctAnswer);
   const givenIdx =
     item.givenAns === undefined || item.givenAns === null
       ? null
       : Number(item.givenAns);
+
+  const statusBadge = item.isCorrect ? (
+    <Badge className="bg-green-400 gap-1">
+      <Check className="size-3" /> Correct
+    </Badge>
+  ) : (
+    <Badge variant="destructive" className="gap-1">
+      <X className="size-3" />
+      {givenIdx === null ? "Not answered" : "Wrong"}
+    </Badge>
+  );
+
+  // The question is gone but the score it contributed is not, so the badge and the
+  // marks stay and only the body is replaced.
+  if (item.unavailable) {
+    return (
+      <div className="bg-background rounded-xl p-5 max-sm:p-4 border border-dashed border-sidebar-border">
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <p className="bg-input size-6 flex justify-center items-center text-xs rounded">
+              {index}
+            </p>
+            {statusBadge}
+          </div>
+          <p className="text-muted-foreground text-sm max-sm:text-xs">
+            This question is no longer available — it was removed after you took
+            this exam. Your answer still counts towards the result above.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const correctIdx = Number(item.correctAnswer);
 
   const optionBg = (j: number) => {
     if (j === correctIdx) return "bg-green-400 text-white border-none";
@@ -87,16 +120,7 @@ function ReviewQuestion({
           <p className="bg-input size-6 flex justify-center items-center text-xs rounded">
             {index}
           </p>
-          {item.isCorrect ? (
-            <Badge className="bg-green-400 gap-1">
-              <Check className="size-3" /> Correct
-            </Badge>
-          ) : (
-            <Badge variant="destructive" className="gap-1">
-              <X className="size-3" />
-              {givenIdx === null ? "Not answered" : "Wrong"}
-            </Badge>
-          )}
+          {statusBadge}
         </div>
 
         {/* QUESTION */}

@@ -17,7 +17,6 @@ export function validate(schema: ZodType<ValidatedRequest>): RequestHandler {
       query: req.query,
       params: req.params,
     });
-
     if (!result.success) {
       res.status(400).json({
         success: false,

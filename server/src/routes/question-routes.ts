@@ -8,6 +8,7 @@ import {
   updateSingleQuestion,
 } from "../controllers/question-controller";
 import { validate } from "../middlewares/validate";
+import { adminOnly } from "../middlewares/require-role";
 import {
   bulkCreateQuestionSchema,
   createQuestionSchema,
@@ -17,8 +18,11 @@ import {
 
 const router = Router();
 
+// Reads stay public — the question bank is browsable without an account. Writing
+// questions is admin-only.
+
 // Create question
-router.post("/create", validate(createQuestionSchema), createQuestion);
+router.post("/create", ...adminOnly, validate(createQuestionSchema), createQuestion);
 
 // Get all questions
 router.get("/", validate(listQuestionSchema), getAllQuestions);
@@ -27,13 +31,19 @@ router.get("/", validate(listQuestionSchema), getAllQuestions);
 router.get("/:id", getSingleQuestion);
 
 // // Update single question
-router.put("/:id", validate(updateQuestionSchema), updateSingleQuestion);
+router.put(
+  "/:id",
+  ...adminOnly,
+  validate(updateQuestionSchema),
+  updateSingleQuestion,
+);
 
 // // Delete single question
-router.delete("/:id", deleteSingleQuestion);
+router.delete("/:id", ...adminOnly, deleteSingleQuestion);
 
 router.post(
   "/bulk-create",
+  ...adminOnly,
   validate(bulkCreateQuestionSchema),
   bulkCreateQuestions,
 );

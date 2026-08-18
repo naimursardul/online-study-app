@@ -119,9 +119,18 @@ export async function getQuestionsInCollection(req: Request, res: Response) {
       }
     }
 
-    const result = savedQuestions
-      .map((sq) => questionsById[sq.questionId.toString()] || null)
-      .filter((q) => q !== null);
+    // A bookmark can outlive its question (taxonomy cascade, or a question deleted
+    // from the admin panel). Dropping the row here would make the page show fewer
+    // rows than `total` promises, so it goes out as a placeholder instead.
+    const result = savedQuestions.map((sq) => {
+      const q = questionsById[sq.questionId.toString()];
+      if (q) return q;
+      return {
+        _id: sq.questionId,
+        questionType: sq.questionType,
+        unavailable: true,
+      };
+    });
 
     res.status(200).json({
       success: true,

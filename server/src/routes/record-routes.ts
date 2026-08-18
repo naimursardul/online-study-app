@@ -8,6 +8,8 @@ import {
   deleteRecord,
 } from "../controllers/record-controller";
 import { validate } from "../middlewares/validate";
+import { adminOnly } from "../middlewares/require-role";
+import { objectIdParam } from "../validations/common";
 import {
   recordListSchema,
   recordUpdateSchema,
@@ -15,8 +17,11 @@ import {
 
 const router = express.Router();
 
+// Reads stay public (the client's master-data cache is unauthenticated); writes
+// are admin-only.
+
 // Create a new record
-router.post("/create", createRecord);
+router.post("/create", ...adminOnly, createRecord);
 
 // Get all records (with optional filters)
 router.get("/", validate(recordListSchema), getAllRecord);
@@ -25,9 +30,9 @@ router.get("/", validate(recordListSchema), getAllRecord);
 router.get("/:id", getSingleRecord);
 
 // Update an existing record by ID
-router.put("/:id", validate(recordUpdateSchema), updateRecord);
+router.put("/:id", ...adminOnly, validate(recordUpdateSchema), updateRecord);
 
-// Delete a record by ID
-router.delete("/:id", deleteRecord);
+// Delete a record by ID, pulling it out of every question that cited it
+router.delete("/:id", ...adminOnly, validate(objectIdParam), deleteRecord);
 
 export default router;

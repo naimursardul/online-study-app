@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
 import Level from "../models/level-model";
-import { BaseQuestion } from "../models/question-model";
+import {
+  deleteTaxonomy,
+  impactTaxonomy,
+  updateTaxonomy,
+} from "./taxonomy-write-controller";
 
 // CREATE a new level
 export const createLevel = async (req: Request, res: Response) => {
@@ -106,69 +110,13 @@ export const getSingleLevel = async (req: Request, res: Response) => {
   }
 };
 
-// UPDATE level by name
-export const updateLevel = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const updated = await Level.findByIdAndUpdate(id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+// UPDATE level — a level has no parent, so there is nothing to derive and nothing
+// below it goes stale: name and details only.
+export const updateLevel = updateTaxonomy("level");
 
-    if (!updated) {
-      res.status(404).json({
-        success: false,
-        message: "Level not found.",
-        data: null,
-      });
-      return;
-    }
+// DELETE level — takes its whole tree, and unsets the level on every profile that
+// pointed at it.
+export const deleteLevel = deleteTaxonomy("level");
 
-    res.status(200).json({
-      success: true,
-      message: "Level updated successfully.",
-      data: updated,
-    });
-    return;
-  } catch (error) {
-    console.error("Update Level Error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error.",
-      data: null,
-    });
-    return;
-  }
-};
-
-// DELETE level by name
-export const deleteLevel = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const deleted = await Level.findByIdAndDelete(id);
-
-    if (!deleted) {
-      res.status(404).json({
-        success: false,
-        message: "Level not found.",
-        data: null,
-      });
-      return;
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Level deleted successfully.",
-      data: null,
-    });
-    return;
-  } catch (error) {
-    console.error("Delete Level Error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error.",
-      data: null,
-    });
-    return;
-  }
-};
+// What that delete would take with it, for the confirm dialog.
+export const getLevelImpact = impactTaxonomy("level");

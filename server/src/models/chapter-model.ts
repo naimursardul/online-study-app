@@ -1,6 +1,5 @@
 import mongoose, { Schema } from "mongoose";
 import { IChapter } from "../type/type";
-import { BaseQuestion } from "./question-model";
 
 const chapterSchema = new Schema<IChapter>(
   {
@@ -32,12 +31,9 @@ const chapterSchema = new Schema<IChapter>(
   },
 );
 
-// Cascade delete: Delete all questions when chapter is deleted
-(chapterSchema as any).post("deleteOne", async function (doc: any) {
-  if (doc?._id) {
-    await BaseQuestion.deleteMany({ chapterId: doc._id });
-  }
-});
+// The cascade lives in services/taxonomy-integrity.service.ts, not in a hook: it
+// has to run inside the caller's transaction and it deletes far more than
+// questions. A schema hook here would be a second, transaction-less code path.
 
 const Chapter = mongoose.model<IChapter>("Chapter", chapterSchema);
 export default Chapter;

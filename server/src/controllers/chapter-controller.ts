@@ -1,7 +1,10 @@
 import { Request, Response } from "express";
 import Chapter from "../models/chapter-model";
-import { BaseQuestion } from "../models/question-model";
-import { IPopulatedData } from "../type/type";
+import {
+  deleteTaxonomy,
+  impactTaxonomy,
+  updateTaxonomy,
+} from "./taxonomy-write-controller";
 
 // Create Chapter
 export const createChapter = async (req: Request, res: Response) => {
@@ -139,75 +142,13 @@ export const getSingleChapter = async (req: Request, res: Response) => {
   }
 };
 
-// Update Chapter + sync questions
-export const updateChapter = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const updatedData = req.body;
+// Update Chapter + sync questions — moving a chapter to another subject rewrites
+// its own level/background from that subject and pushes them onto its topics and
+// every question below it.
+export const updateChapter = updateTaxonomy("chapter");
 
-    const chapter = await Chapter.findByIdAndUpdate(id, updatedData, {
-      new: true,
-      runValidators: true,
-    })
-      .populate("levelId", "name")
-      .populate("backgroundId", "name")
-      .populate("subjectId", "name");
+// Delete Chapter — cascades to topics, questions, saved questions, unfinished exams.
+export const deleteChapter = deleteTaxonomy("chapter");
 
-    if (!chapter) {
-      res.status(404).json({
-        success: false,
-        message: "Chapter not found.",
-        data: null,
-      });
-      return;
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Chapter updated successfully.",
-      data: chapter,
-    });
-    return;
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "Server error.",
-      data: null,
-    });
-    return;
-  }
-};
-
-// Delete Chapter
-export const deleteChapter = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-
-    const deleted = await Chapter.findByIdAndDelete(id);
-
-    if (!deleted) {
-      res.status(404).json({
-        success: false,
-        message: "Chapter not found.",
-        data: null,
-      });
-      return;
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Chapter deleted successfully.",
-      data: deleted,
-    });
-    return;
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "Server error.",
-      data: null,
-    });
-    return;
-  }
-};
+// What that delete would take with it, for the confirm dialog.
+export const getChapterImpact = impactTaxonomy("chapter");

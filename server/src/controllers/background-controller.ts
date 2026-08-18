@@ -1,7 +1,10 @@
 import { Request, Response } from "express";
 import Background from "../models/background-model";
-import { BaseQuestion } from "../models/question-model";
-import { IPopulatedData } from "../type/type";
+import {
+  deleteTaxonomy,
+  impactTaxonomy,
+  updateTaxonomy,
+} from "./taxonomy-write-controller";
 
 // Create Background
 export const createBackground = async (req: Request, res: Response) => {
@@ -126,72 +129,14 @@ export const getSingleBackground = async (req: Request, res: Response) => {
   }
 };
 
-// Update Background
-export const updateBackground = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const updatedData = req.body;
+// Update Background — a rename is always fine; moving one to another level is
+// refused with 409 while any subject, chapter or topic still lists it, because
+// every one of those would then straddle two levels.
+export const updateBackground = updateTaxonomy("background");
 
-    const background = await Background.findByIdAndUpdate(id, updatedData, {
-      new: true,
-      runValidators: true,
-    }).populate("levelId", "name");
+// Delete Background — docs that listed only this background die with it; docs that
+// list others survive with it pulled out of their array.
+export const deleteBackground = deleteTaxonomy("background");
 
-    if (!background) {
-      res.status(200).json({
-        success: false,
-        message: "Background not found.",
-        data: null,
-      });
-      return;
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Background updated successfully.",
-      data: background,
-    });
-    return;
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "Server error.",
-      data: null,
-    });
-    return;
-  }
-};
-
-// Delete Background
-export const deleteBackground = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-
-    const deleted = await Background.findByIdAndDelete(id);
-
-    if (!deleted) {
-      res.status(200).json({
-        success: false,
-        message: "Background not found.",
-        data: null,
-      });
-      return;
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Background deleted successfully.",
-      data: deleted,
-    });
-    return;
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "Server error.",
-      data: null,
-    });
-    return;
-  }
-};
+// What that delete would take with it, for the confirm dialog.
+export const getBackgroundImpact = impactTaxonomy("background");

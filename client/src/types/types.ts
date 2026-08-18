@@ -266,7 +266,8 @@ export interface ExamListItemType {
   createdAt?: string;
 }
 
-export interface ExamReviewItemType {
+// A review row for a question that still exists.
+interface ExamReviewAnsweredItem {
   questionId: string;
   question: string;
   options: string[];
@@ -275,7 +276,22 @@ export interface ExamReviewItemType {
   marks: number;
   givenAns: string | undefined;
   isCorrect: boolean;
+  unavailable?: false;
 }
+
+// The question was deleted after the exam was taken. The stored result is history,
+// so the row still carries what was answered — but not marks, which lived on the
+// question and are no longer knowable.
+interface ExamReviewUnavailableItem {
+  questionId: string;
+  unavailable: true;
+  givenAns: string | undefined;
+  isCorrect: boolean;
+}
+
+export type ExamReviewItemType =
+  | ExamReviewAnsweredItem
+  | ExamReviewUnavailableItem;
 
 export interface IMasterData {
   levels: { _id: string; name: string }[];

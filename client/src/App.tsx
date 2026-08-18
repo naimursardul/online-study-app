@@ -39,7 +39,11 @@ function App() {
           <Route
             path="/admin"
             element={
-              <ProtectedRoute roles={["user"]} element={<AdminLayout />} />
+              // Matches the server-side gate on every taxonomy/question write.
+              <ProtectedRoute
+                roles={["admin", "super-admin"]}
+                element={<AdminLayout />}
+              />
             }
           >
             <Route index element={<Admin />} />

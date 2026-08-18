@@ -1,7 +1,10 @@
 import { Request, Response } from "express";
 import Topic from "../models/topic-model";
-import { BaseQuestion } from "../models/question-model";
-import { IPopulatedData } from "../type/type";
+import {
+  deleteTaxonomy,
+  impactTaxonomy,
+  updateTaxonomy,
+} from "./taxonomy-write-controller";
 
 // Create Topic
 export const createTopic = async (req: Request, res: Response) => {
@@ -141,76 +144,12 @@ export const getSingleTopic = async (req: Request, res: Response) => {
   }
 };
 
-// Update Topic
-export const updateTopic = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const updatedData = req.body;
+// Update Topic — re-parenting rewrites the topic's own ancestors from its new
+// chapter and pushes them down onto every question that names it.
+export const updateTopic = updateTaxonomy("topic");
 
-    const topic = await Topic.findByIdAndUpdate(id, updatedData, {
-      new: true,
-      runValidators: true,
-    })
-      .populate("levelId", "name")
-      .populate("backgroundId", "name")
-      .populate("subjectId", "name")
-      .populate("chapterId", "name");
+// Delete Topic — cascades to questions, saved questions and unfinished exams.
+export const deleteTopic = deleteTaxonomy("topic");
 
-    if (!topic) {
-      res.status(404).json({
-        success: false,
-        message: "Topic not found.",
-        data: null,
-      });
-      return;
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Topic updated successfully.",
-      data: topic,
-    });
-    return;
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "Server error.",
-      data: null,
-    });
-    return;
-  }
-};
-
-// Delete Topic
-export const deleteTopic = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-
-    const deleted = await Topic.findByIdAndDelete(id);
-
-    if (!deleted) {
-      res.status(404).json({
-        success: false,
-        message: "Topic not found.",
-        data: null,
-      });
-      return;
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Topic deleted successfully.",
-      data: deleted,
-    });
-    return;
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "Server error.",
-      data: null,
-    });
-    return;
-  }
-};
+// What that delete would take with it, for the confirm dialog.
+export const getTopicImpact = impactTaxonomy("topic");

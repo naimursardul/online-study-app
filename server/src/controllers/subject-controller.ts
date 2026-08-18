@@ -1,7 +1,10 @@
 import { Request, Response } from "express";
 import Subject from "../models/subject-model";
-import { BaseQuestion } from "../models/question-model";
-import { IPopulatedData } from "../type/type";
+import {
+  deleteTaxonomy,
+  impactTaxonomy,
+  updateTaxonomy,
+} from "./taxonomy-write-controller";
 
 // Create Subject
 export const createSubject = async (req: Request, res: Response) => {
@@ -131,74 +134,13 @@ export const getSingleSubject = async (req: Request, res: Response) => {
   }
 };
 
-// Update Subject
-export const updateSubject = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const updatedData = req.body;
+// Update Subject — a new level or background list is pushed down onto every
+// chapter, topic and question filed under this subject.
+export const updateSubject = updateTaxonomy("subject");
 
-    const subject = await Subject.findByIdAndUpdate(id, updatedData, {
-      new: true,
-      runValidators: true,
-    })
-      .populate("levelId", "name")
-      .populate("backgroundId", "name");
+// Delete Subject — the deepest cascade: chapters, topics, questions, saved
+// questions and unfinished exams all go in one transaction.
+export const deleteSubject = deleteTaxonomy("subject");
 
-    if (!subject) {
-      res.status(200).json({
-        success: false,
-        message: "Subject not found.",
-        data: null,
-      });
-      return;
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Subject updated successfully.",
-      data: subject,
-    });
-    return;
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "Server error.",
-      data: null,
-    });
-    return;
-  }
-};
-
-// Delete Subject
-export const deleteSubject = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-
-    const deleted = await Subject.findByIdAndDelete(id);
-
-    if (!deleted) {
-      res.status(200).json({
-        success: false,
-        message: "Subject not found.",
-        data: null,
-      });
-      return;
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Subject deleted successfully.",
-      data: deleted,
-    });
-    return;
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "Server error.",
-      data: null,
-    });
-    return;
-  }
-};
+// What that delete would take with it, for the confirm dialog.
+export const getSubjectImpact = impactTaxonomy("subject");

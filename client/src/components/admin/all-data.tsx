@@ -55,6 +55,229 @@ type DataType = (
 ) & {
   _id: string;
 };
+
+// Routes whose DELETE cascades, and therefore expose GET /:id/impact. Records carry
+// no taxonomy ids, so deleting one only unlinks it from questions and there is
+// nothing to preview.
+const IMPACT_ROUTES = ["/level", "/background", "/subject", "/chapter", "/topic"];
+
+type ImpactReport = {
+  kind: string;
+  name: string;
+  descendants: {
+    backgrounds: number;
+    subjects: number;
+    chapters: number;
+    topics: number;
+  };
+  questions: number;
+  cqViaSubQuestions: number;
+  savedQuestions: number;
+  generatedExams: { pruned: number; deleted: number };
+  affectedUsers: number;
+  detached: {
+    subjects: number;
+    chapters: number;
+    topics: number;
+    questions: number;
+  };
+  preserved: {
+    submittedExams: number;
+    answerScripts: number;
+    analyticsRows: number;
+  };
+};
+
+// Declared at module level on purpose: nested inside AllData it would be a new
+// component type on every render, remounting the dialog and losing its state.
+function DeleteRowDialog({
+  heading,
+  route,
+  id,
+  name,
+  onConfirm,
+}: {
+  heading: string;
+  route: string;
+  id: string;
+  name: string;
+  onConfirm: (id: string) => Promise<boolean>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [impact, setImpact] = useState<ImpactReport | null>(null);
+  const [loadingImpact, setLoadingImpact] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const hasImpactEndpoint = IMPACT_ROUTES.includes(route);
+
+  // Fetched on open rather than with the table: one request per row up front would
+  // be six aggregate walks for a page nobody may delete from.
+  useEffect(() => {
+    if (!open || !hasImpactEndpoint) return;
+
+    let cancelled = false;
+    setLoadingImpact(true);
+    setImpact(null);
+
+    client
+      .get(`${route}/${id}/impact`)
+      .then((res) => {
+        if (cancelled) return;
+        if (res.data.success) setImpact(res.data.data);
+        else toast.error(res.data.message || "Failed to load delete impact.");
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        console.error(error);
+        toast.error("Failed to load delete impact.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingImpact(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, hasImpactEndpoint, route, id]);
+
+  async function handleDelete() {
+    setDeleting(true);
+    try {
+      // Stays open on failure so the error toast has something to point at.
+      if (await onConfirm(id)) setOpen(false);
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  const removed: string[] = [];
+  if (impact) {
+    const d = impact.descendants;
+    if (d.backgrounds) removed.push(`${d.backgrounds} background(s)`);
+    if (d.subjects) removed.push(`${d.subjects} subject(s)`);
+    if (d.chapters) removed.push(`${d.chapters} chapter(s)`);
+    if (d.topics) removed.push(`${d.topics} topic(s)`);
+    if (impact.questions)
+      removed.push(
+        impact.cqViaSubQuestions
+          ? `${impact.questions} question(s), incl. ${impact.cqViaSubQuestions} CQ(s) matched through a sub-question`
+          : `${impact.questions} question(s)`,
+      );
+    if (impact.savedQuestions)
+      removed.push(`${impact.savedQuestions} saved question(s)`);
+    if (impact.generatedExams.deleted)
+      removed.push(`${impact.generatedExams.deleted} unfinished exam(s)`);
+    if (impact.affectedUsers)
+      removed.push(`cleared from ${impact.affectedUsers} user profile(s)`);
+  }
+
+  const adjusted: string[] = [];
+  if (impact) {
+    if (impact.generatedExams.pruned)
+      adjusted.push(
+        `${impact.generatedExams.pruned} unfinished exam(s) shrunk to their surviving questions`,
+      );
+    const dt = impact.detached;
+    if (dt.subjects) adjusted.push(`${dt.subjects} subject(s) detached`);
+    if (dt.chapters) adjusted.push(`${dt.chapters} chapter(s) detached`);
+    if (dt.topics) adjusted.push(`${dt.topics} topic(s) detached`);
+    if (dt.questions) adjusted.push(`${dt.questions} question(s) detached`);
+  }
+
+  const preservedTotal = impact
+    ? impact.preserved.submittedExams +
+      impact.preserved.answerScripts +
+      impact.preserved.analyticsRows
+    : 0;
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+          aria-label="Delete"
+        >
+          <ArchiveX className="h-4 w-4" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md w-[95vw]">
+        <DialogHeader>
+          <DialogTitle>Delete {heading}</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete <strong>"{name}"</strong>? This
+            action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+
+        {hasImpactEndpoint && (
+          <div className="space-y-3 text-sm">
+            {loadingImpact ? (
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-40 bg-muted" />
+                <Skeleton className="h-4 w-full bg-muted" />
+                <Skeleton className="h-4 w-2/3 bg-muted" />
+              </div>
+            ) : !impact ? null : removed.length === 0 && adjusted.length === 0 ? (
+              <p className="text-muted-foreground">
+                Nothing else references this {heading.toLowerCase()}.
+              </p>
+            ) : (
+              <>
+                {removed.length > 0 && (
+                  <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+                    <p className="font-medium text-destructive">
+                      This will also delete
+                    </p>
+                    <ul className="mt-1 list-disc pl-5 space-y-0.5">
+                      {removed.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {adjusted.length > 0 && (
+                  <div className="rounded-lg border p-3">
+                    <p className="font-medium">Kept, but changed</p>
+                    <ul className="mt-1 list-disc pl-5 space-y-0.5 text-muted-foreground">
+                      {adjusted.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {preservedTotal > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Results are kept: {impact.preserved.submittedExams} submitted
+                    exam(s), {impact.preserved.answerScripts} answer script(s)
+                    and {impact.preserved.analyticsRows} analytics row(s) stay as
+                    they are.
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        <div className="flex gap-2 justify-end pt-2">
+          <Button
+            size="sm"
+            variant="destructive"
+            className="cursor-pointer"
+            disabled={loadingImpact || deleting}
+            onClick={handleDelete}
+          >
+            {deleting ? "Deleting…" : "Delete"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function AllData({
   heading,
   route,
@@ -116,15 +339,15 @@ export default function AllData({
       const res = await client.delete(`${route}/${id}`);
       const { data } = res;
       if (data.success) {
-        closeRef.current?.click();
-        closeRef.current = null;
         setAllData((prev) => prev.filter((d) => d._id !== id));
         toast.success(data.message);
-        return;
+        return true;
       }
       toast.error(data.message);
+      return false;
     } catch {
       toast.error("Server Error!");
+      return false;
     }
   }
 
@@ -356,41 +579,13 @@ export default function AllData({
                         </Dialog>
 
                         {/* Delete */}
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
-                              ref={closeRef}
-                              aria-label="Delete"
-                            >
-                              <ArchiveX className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="sm:max-w-md w-[95vw]">
-                            <DialogHeader>
-                              <DialogTitle>Delete {heading}</DialogTitle>
-                              <DialogDescription>
-                                Are you sure you want to delete{" "}
-                                <strong>
-                                  "{data["name" as keyof DataType]}"
-                                </strong>
-                                ? This action cannot be undone.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="flex gap-2 justify-end pt-2">
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                className="cursor-pointer"
-                                onClick={() => deleteData(data?._id)}
-                              >
-                                Delete
-                              </Button>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
+                        <DeleteRowDialog
+                          heading={heading}
+                          route={route}
+                          id={data._id}
+                          name={String(data["name" as keyof DataType] ?? "")}
+                          onConfirm={deleteData}
+                        />
                       </div>
                     </TableCell>
                   </TableRow>
