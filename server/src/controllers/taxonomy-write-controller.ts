@@ -107,7 +107,7 @@ const deleteMessage = (kind: TaxonomyKind, report: ImpactReport) => {
 // ancestors from its new parent and pushes them down, all in one transaction.
 export const updateTaxonomy =
   (kind: TaxonomyKind) => async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
     const body = (req.body ?? {}) as Record<string, unknown>;
     try {
       if (!isReparent(kind, body)) {
@@ -165,7 +165,7 @@ export const updateTaxonomy =
 // numbers reported back are the numbers that were written.
 export const deleteTaxonomy =
   (kind: TaxonomyKind) => async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
     const session = await mongoose.startSession();
 
     try {
@@ -189,8 +189,9 @@ export const deleteTaxonomy =
 // GET /:id/impact — the same walk, read-only, for the confirm dialog.
 export const impactTaxonomy =
   (kind: TaxonomyKind) => async (req: Request, res: Response) => {
+    const { id } = req.params as { id: string };
     try {
-      const { report } = await collectImpact(kind, req.params.id);
+      const { report } = await collectImpact(kind, id);
       res.status(200).json({
         success: true,
         message: "Impact calculated.",

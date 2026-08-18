@@ -833,12 +833,77 @@ And the preview handler is the same walk with no writes:
 
 ```ts
 export const impactTaxonomy = (kind: TaxonomyKind) => async (req, res) => {
+  const { id } = req.params as { id: string };
   try {
-    const { report } = await collectImpact(kind, req.params.id);
+    const { report } = await collectImpact(kind, id);
     res.status(200).json({ success: true, message: "Impact calculated.", data: report });
   } catch (error) { fail(res, error); }
 };
 ```
+
+### Why `req.params` is cast to `{ id: string }`
+
+All three handlers pull the id out the same way — `const { id } = req.params as { id: string }`
+— and that cast is **not** decoration. It is what lets the file build on Render.
+
+`req.params` is typed by `@types/express-serve-static-core`, and Express 5 changed what a
+param can be: a repeated segment (`/:id+`) can now match **several** parts of the URL, so the
+newer type says every param is `string | string[]`, not just `string`. Our service functions
+(`collectImpact`, `cascadeDelete`, `resyncSubtree`, `populated`) all take `id: string`, so
+handing them a `string | string[]` is a compile error — *"Type 'string[]' is not assignable to
+type 'string'."*
+
+The trap is that it only shows up **sometimes**. That types package is pulled in through a
+`^` (caret) range, and `server/` has no lockfile of its own, so:
+
+- **Locally** an older copy is already installed, where a param is still plain `string`. The
+  cast looks pointless and `npx tsc --noEmit` passes.
+- **On Render** a clean install resolves the newer copy, the param becomes `string | string[]`,
+  and without the cast the build fails on five lines at once.
+
+The `/:id` routes here never use `+` or `*`, so a request always carries exactly one id string.
+Casting to `{ id: string }` states that fact once, and it compiles under **both** versions of the
+type. **Do not "simplify" it away** — it will pass on your machine and break the deploy.
+
+> Sturdier fix if this keeps biting: commit a lockfile for `server/` (or pin the exact
+> `@types/express` version) so local and Render install the identical types instead of drifting
+> apart across a caret range.
+
+### The update body must strip unknown keys, not reject them
+
+`validate(topicUpdateSchema)` runs in front of this handler (see §12) and fixes what
+`req.body` contains before `isReparent` ever reads it. Those schemas come from one helper in
+`server/src/validations/crud.validation.ts`:
+
+```ts
+const updateBody = <T extends z.ZodRawShape>(shape: T) =>
+  z.object({
+    params: z.object({ id: objectId }),
+    body: z.object(shape).partial().strip(),   // strip, NOT strict
+  });
+```
+
+- `.partial()` makes every field optional, so a rename can send just `{ name }`.
+- `.strip()` — Zod's default — **drops** any key the shape does not list. It must **not** be
+  `.strict()`, which instead **rejects** the whole request with a `400`.
+
+That one word caused a real, confusing bug. The admin edit form
+(`client/src/components/admin/data-field.tsx`) runs a **dependent-reset cascade**: changing a
+parent dropdown clears every field below it. So editing a topic and choosing a new chapter
+also writes `topicId: ""` into the form; changing a chapter's subject writes `chapterId: ""`
+and `topicId: ""`; and so on. The form then submits the whole object, stray keys included.
+
+But `topicUpdateSchema` has no `topicId` (a topic's own id is in the URL, not the body). Under
+`.strict()`, that injected `topicId` made `safeParse` fail with *"Unrecognized key(s):
+'topicId'"* — a `400` returned before this handler ever ran. The symptom was exact:
+
+> **renaming a taxonomy document worked, but re-parenting one always failed.**
+
+A rename touches no dropdown, so nothing is injected and the body is clean. A re-parent always
+fires the cascade, so it always carried a key the strict schema refused. `.strip()` removes
+those extras, the body validates, and the re-parent flow above finally runs. And because the
+derived-ancestors rule (§4) already ignores whatever the body claims about ancestor fields,
+dropping the extra keys is not just safe — it is exactly the whitelist behaviour we want.
 
 ---
 
@@ -1462,6 +1527,7 @@ curl localhost:<port>/topic                             # still public   → 200
 | `models/{subject,chapter,topic}-model.ts` | dead `post("deleteOne")` hooks removed |
 | `services/exam.service.ts` | review rows report `unavailable` |
 | `controllers/saved-question-controller.ts` | dead bookmarks become placeholders instead of vanishing |
+| `validations/crud.validation.ts` | `updateBody` uses `.strip()` (not `.strict()`) so the admin form's reset-injected keys don't `400` a re-parent — see §9 |
 
 **Changed — client**
 
