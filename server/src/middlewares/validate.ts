@@ -12,12 +12,14 @@ type ValidatedRequest = {
 // data rather than the raw input.
 export function validate(schema: ZodType<ValidatedRequest>): RequestHandler {
   return (req: Request, res: Response, next: NextFunction) => {
+    console.log(req.body);
     const result = schema.safeParse({
       body: req.body,
       query: req.query,
       params: req.params,
     });
     if (!result.success) {
+      console.log(result.error.issues[0]);
       res.status(400).json({
         success: false,
         message: "Validation failed",

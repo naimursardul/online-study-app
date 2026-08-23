@@ -12,6 +12,9 @@ const envSchema = z
     R2_BUCKET_NAME: z.string(),
     R2_ENDPOINT: z.string(),
     CDN_BASE_URL: z.string(),
+    RESEND_API_KEY: z.string(),
+    CONTACT_TO_EMAIL: z.email().default("contact@poruya.com"),
+    CONTACT_FROM_EMAIL: z.email().default("contact@poruya.com"),
     REDIS_URL: z.string().optional(),
     DEV_REDIS_URL: z.string().optional(),
   })

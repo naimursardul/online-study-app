@@ -17,6 +17,7 @@ import ExamRouter from "./routes/exam-routes";
 import AnalyticsRouter from "./routes/analytics-routes";
 import ExtractionRouter from "./routes/extraction-routes";
 import ImgUploadRoutes from "./routes/imageUpload.routes";
+import ContactRouter from "./routes/contact-routes";
 import { errorHandler } from "./middlewares/errorHandler";
 import { generalLimiter } from "./middlewares/rate-limit";
 import { sanitizeRequest } from "./middlewares/sanitize";
@@ -78,6 +79,7 @@ app.use("/exam", ExamRouter);
 app.use("/analytics", AnalyticsRouter);
 app.use("/img-upload", ImgUploadRoutes);
 app.use("/extraction", ExtractionRouter);
+app.use("/contact", ContactRouter);
 
 // Global error handler (should be after routes)
 app.use(errorHandler);

@@ -19,6 +19,7 @@ import Exam from "../models/exam-model";
 // GENERATE EXAM
 // =========================================
 export const createExam = async (req: Request, res: Response) => {
+  console.log(req?.body);
   try {
     const u_id = String(req.user?._id);
     const {

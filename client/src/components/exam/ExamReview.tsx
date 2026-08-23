@@ -67,7 +67,9 @@ function ReviewQuestion({
 }) {
   const [open, setOpen] = useState(false);
   const givenIdx =
-    item.givenAns === undefined || item.givenAns === null
+    item.givenAns === undefined ||
+    item.givenAns === null ||
+    item.givenAns === ""
       ? null
       : Number(item.givenAns);
 

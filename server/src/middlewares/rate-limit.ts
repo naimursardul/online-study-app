@@ -72,6 +72,17 @@ export const generalLimiter = rateLimit({
   passOnStoreError: true,
 });
 
+// Public contact form. Fails OPEN like generalLimiter — a Redis blip must not
+// block a visitor's message. IP-keyed, tight enough to curb spam and protect
+// Resend's free-tier quota.
+export const contactLimiter = rateLimit({
+  ...common,
+  store: createStore("contact:"),
+  keyGenerator: ipKey,
+  limit: 5,
+  passOnStoreError: true,
+});
+
 // Auth limiters fail CLOSED — a Redis outage must not become an open door for
 // credential brute-forcing.
 

@@ -70,7 +70,7 @@ function SingleExamPage() {
           setQuestions(qs);
           const initial = qs.map((q) => ({
             questionId: q._id,
-            givenAns: undefined,
+            givenAns: "",
           }));
           setAnswerScript(initial);
           answerScriptRef.current = initial;
@@ -124,6 +124,12 @@ function SingleExamPage() {
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
     try {
+      console.log({
+        u_id: user?._id,
+        examId,
+        answers: answerScriptRef.current,
+        timeTaken: totalTime - timeRemaining / 1000,
+      });
       clearTimer();
       const res = await client.post("/exam/create-answer", {
         u_id: user?._id,
@@ -148,9 +154,12 @@ function SingleExamPage() {
       });
       setTakeState("finished");
       toast.success("Exam submitted successfully!");
-    } catch (error) {
-      console.error(error);
-      toast.error("An error occurred while submitting the exam.");
+    } catch (error: any) {
+      console.error(error?.response?.data?.message);
+      toast.error(
+        error?.response?.data?.message ||
+          "An error occurred while submitting the exam.",
+      );
     } finally {
       isSubmittingRef.current = false;
     }
