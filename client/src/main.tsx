@@ -7,7 +7,7 @@ import { AuthProvider } from "./lib/Auth-context.tsx";
 import { MasterDataProvider } from "./lib/MasterData-context.tsx";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "./components/theme/ThemeProvider.tsx";
-import { Analytics } from "@vercel/analytics/next";
+import { Analytics } from "@vercel/analytics/react";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
