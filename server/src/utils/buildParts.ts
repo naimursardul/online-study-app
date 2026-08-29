@@ -1,5 +1,3 @@
-import { Express } from "express";
-
 interface BuildPartsOptions {
   systemPrompt: string;
   userText: string;

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const KIE_API_URL =
-  "https://api.kie.ai/gemini/v1/models/gemini-3-5-flash:streamGenerateContent";
+  "https://api.kie.ai/gemini/v1/models/gemini-3-7-flash:streamGenerateContent";
 
 interface GenerateContentOptions {
   parts: any[];
