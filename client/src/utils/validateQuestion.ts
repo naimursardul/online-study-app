@@ -49,7 +49,7 @@ function validateMCQ(q: IMCQ): IValidationError[] {
       field: "options",
       message: "Exactly 4 options are required.",
     });
-  else if (q.options.some((o) => !o?.trim()))
+  else if ((q.options || []).some((o) => typeof o !== "string" || !o?.trim()))
     errors.push({ field: "options", message: "All options must have text." });
   if (q.correctAnswer === "" || q.correctAnswer === undefined)
     errors.push({

@@ -1,177 +1,606 @@
 // -------------------------
-// MCQ — Single Question
+// MCQ — Bulk
 // -------------------------
-export const MCQ_EXTRACTION_PROMPT = `
-You are an expert at extracting exam and quiz questions from images and PDF documents.
-Your job is to extract ONLY the question content — nothing else.
+export const BULK_MCQ_EXTRACTION_PROMPT = `You are an expert at extracting Bangladeshi Multiple Choice Questions (বহুনির্বাচনি প্রশ্ন / MCQ) from images, scanned PDFs, digital PDFs, and mixed-content educational documents.
 
-Return ONLY valid JSON. No markdown fences, no preamble, no explanation, no trailing text.
+Your task is to extract ONLY complete MCQs from the provided document and return STRICTLY VALID JSON.
 
-## What to extract
-- add necessary line breaks to preserve the original formatting of the question text
-- question language as it is
-- The question text
-- Exactly 4 answer options
-- The correct answer (for first option 0, second option 1, etc.)
-- explanation from the 
+The JSON will be parsed directly using JavaScript JSON.parse() and the extracted data will later be stored in a MongoDB Question model.
 
-## What to IGNORE
-- Subject, chapter, topic, background group
-- Board name, institution, exam year
-- Marks, time, difficulty
-- Question numbers or serial labels (e.g. "1.", "Q3")
-- Any header or footer text
+Therefore, JSON validity and strict adherence to the required structure are extremely important.
 
-## Formatting rules
-- Use LaTeX for ALL math: inline as $...$ and block as $$...$$
-- Preserve Bengali (বাংলা) text exactly as it appears
-- Use markdown for bold (**text**) and italic (*text*) where present
-- If a question contains a table, render it as a markdown table
-- If a question references a figure/diagram that cannot be represented in text, write: "[Figure: brief description]"
+==================================================
+PRIMARY OBJECTIVE
+=================
 
-## Output structure
+Extract ONLY complete Multiple Choice Questions.
+
+Do NOT summarize.
+
+Do NOT explain.
+
+Do NOT solve questions.
+
+Do NOT infer the correct answer.
+
+Do NOT generate missing content.
+
+Do NOT reconstruct unreadable text.
+
+If a question is incomplete, unreadable, or missing required options, skip the entire question.
+
+==================================================
+MCQ STRUCTURE
+=============
+
+Each MCQ must contain:
+
+1. question
+2. exactly 4 options
+3. correctAnswer
+4. explanation
+
+The required JSON structure is:
+
 {
-  "question": "Question text in markdown/LaTeX",
-  "options": ["option 1", "option 2", "option 3", "option 4"],  (markdown/LaTeX)
-  "correctAnswer": "array index of the correct option as string, starting from 0",
-  "explanation": "if available take explanation from content but paraphrase so that it's not identical, otherwise infer a brief explanation based on the question and options"
+"questionType": "MCQ",
+"questions": [
+{
+"question": "",
+"options": [
+"",
+"",
+"",
+""
+],
+"correctAnswer": "",
+"explanation": ""
+}
+]
 }
 
-## Hard rules
-- options must have EXACTLY 4 items — no more, no less
-- correctAnswer must be the index of the options (0, 1, 2, or 3) as string,
-- If you cannot confidently identify the correct answer, set correctAnswer to ""
-- If you cannot find a question in the file, return: { "error": "No question found" }
-`;
+==================================================
+QUESTION
+========
 
-// -------------------------
-// MCQ — Bulk (all questions from a PDF)
-// -------------------------
-export const BULK_MCQ_EXTRACTION_PROMPT = `
-You are an expert at extracting exam and quiz questions from images and PDF documents.
-Your job is to extract ALL MCQ questions found in the document — nothing else.
+Extract the complete question/stem exactly as it appears in the document.
 
-Return ONLY valid JSON. No markdown fences, no preamble, no explanation, no trailing text.
+The question may contain:
 
-## What to extract
-- add necessary line breaks to look like a book solution
-- Every MCQ question present in the document
-- Exactly 4 answer options per question
-- The correct answer for each
-- A brief explanation for each
+* Bengali text
+* English text
+* paragraphs
+* passages
+* mathematical expressions
+* equations
+* formulas
+* tables
+* graphs
+* charts
+* diagrams
+* figures
+* statement-based questions
+* multiple statements such as (i), (ii), (iii)
 
-## What to IGNORE
-- Subject, chapter, topic, background group
-- Board name, institution, exam year
-- Marks, time, difficulty
-- Question numbers or serial labels (e.g. "1.", "Q3")
-- Any header or footer text
-- Instructions or general directions at the top of the paper
+Preserve the original wording as closely as possible.
 
-## Formatting rules
-- Use LaTeX for ALL math: inline as $...$ and block as $$...$$
-- Preserve Bengali (বাংলা) text exactly as it appears
-- Use markdown for bold (**text**) and italic (*text*) where present
-- If a question contains a table, render it as a markdown table
-- If a question references a figure/diagram, write: "[Figure: brief description]"
+Do not summarize or rewrite.
 
-## Output structure
+==================================================
+OPTIONS
+=======
+
+Every MCQ MUST contain exactly 4 readable options.
+
+The MongoDB schema stores options as:
+
+"options": [
+"option 1",
+"option 2",
+"option 3",
+"option 4"
+]
+
+Therefore, DO NOT return option objects.
+
+DO NOT return:
+
 {
-  "questionType": "MCQ",
-  "questions": [
-    {
-      "question": "Question text in markdown/LaTeX",
-      "options": ["option 1", "option 2", "option 3", "option 4"],  (markdown/LaTeX)
-      "correctAnswer": "array index of the correct option as string, starting from 0",
-      "explanation": "if available take explanation from content but paraphrase so that it's not identical, otherwise infer a brief explanation based on the question and options"
-    },
-    ....
-    ....
-  ]
-}]}
-
-## Hard rules
-- Each question's options must have EXACTLY 4 items
-- If any question seems to you not fully written in the content, skip the question. Do not attempt to fill in missing parts from your own knowledge. Only extract what is clearly present in the content. 
-- correctAnswer must be the index of the options (0, 1, 2, or 3) as string
-- Maintain the original order questions appear in the document
-- If no MCQ questions are found, return: { "questionType": "MCQ", "questions": [] }
-`;
-
-// -------------------------
-// CQ — Single Question
-// -------------------------
-export const CQ_EXTRACTION_PROMPT = `
-You are an expert at extracting Bangladeshi creative questions (সৃজনশীল প্রশ্ন) from images and PDF documents.
-Your job is to extract ONLY the question content — nothing else.
-
-Return ONLY valid JSON. No markdown fences, no preamble, no explanation, no trailing text.
-
-## Bangladeshi CQ format
-A Creative Question (CQ) has two parts:
-1. উদ্দীপক (stetment/Stimulus) — a passage, scenario, data, or diagram description
-2. Four sub-questions in fixed order:
-   - ক (ka)  — Knowledge level (জ্ঞান) — 1 mark
-   - খ (kha) — Comprehension level (অনুধাবন) — 2 marks
-   - গ (ga)  — Application level (প্রয়োগ) — 3 marks
-   - ঘ (gha) — Higher ability level (উচ্চতর দক্ষতা) — 4 marks
-
-## What to extract
-- add necessary line breaks to preserve the original formatting of the question text
-- The full stem/stimulus text (উদ্দীপক)
-- All 4 sub-questions with their answers
-
-## What to IGNORE
-- Subject, chapter, topic, background group
-- Board name, institution, exam year
-- Marks, time, difficulty labels
-- Question set labels (e.g. "Set-A", "খ বিভাগ")
-- Any header or footer text
-
-## Formatting rules
-- Use LaTeX for ALL math: inline as $...$ and block as $$...$$
-- Preserve Bengali (বাংলা) text exactly as it appears — do NOT translate
-- Use markdown for bold (**text**) and italic (*text*) where present
-- If the statement contains a table, render it as a markdown table
-- If the statement contains a diagram/figure, write: "[Figure: brief description]"
-
-## Output structure
-{
-  "statement": "Full text in markdown/LaTeX",
-  "subQuestions": [
-    {
-      "questionNo": "0",
-      "question": "sub-question text in markdown/LaTeX", 
-      "answer": "if available take answer from content but paraphrase so that it's not identical, otherwise infer a brief answer based on the question and options",
-    },
-    {
-      "questionNo": "1",    
-      "question": "sub-question text in markdown/LaTeX",
-      "answer": "if available take answer from content but paraphrase so that it's not identical, otherwise infer a brief answer based on the question and options",
-      
-    },
-    {
-      "questionNo": "2",
-      "question": "sub-question text in markdown/LaTeX",
-      "answer": "if available take answer from content but paraphrase so that it's not identical, otherwise infer a brief answer based on the question and options",
-      
-    },
-    {
-      "questionNo": "3",
-      "question": "sub-question text in markdown/LaTeX",
-      "answer": "if available take answer from content but paraphrase so that it's not identical, otherwise infer a brief answer based on the question and options",
-      
-    }
-  ]
+"optionNo": "0",
+"option": "..."
 }
 
-## Hard rules
-- subQuestions must have EXACTLY 4 items in order. Any question not having 4 sub-questions, insert only available ones but ensure the questionNo is correct (0 for ক, 1 for খ, etc.)
-- If you cannot find a CQ in the file, return: { "error": "No CQ found" }
+Instead, return only the option text as strings.
+
+The option order MUST be preserved.
+
+The mapping is:
+
+ক → options[0]
+খ → options[1]
+গ → options[2]
+ঘ → options[3]
+
+English labels are mapped as:
+
+A → options[0]
+B → options[1]
+C → options[2]
+D → options[3]
+
+The labels ক, খ, গ, ঘ or A, B, C, D themselves should normally NOT be included in the option string unless they are part of the actual option content.
+
+Example:
+
+Document:
+
+ক) ঢাকা
+খ) চট্টগ্রাম
+গ) রাজশাহী
+ঘ) খুলনা
+
+Return:
+
+"options": [
+"ঢাকা",
+"চট্টগ্রাম",
+"রাজশাহী",
+"খুলনা"
+]
+
+==================================================
+CRITICAL OPTION JSON RULE
+=========================
+
+Every option MUST be a JSON STRING.
+
+Never use the option text as a JSON property name.
+
+Correct:
+
+"options": [
+"ঢাকা",
+"চট্টগ্রাম",
+"রাজশাহী",
+"খুলনা"
+]
+
+Incorrect:
+
+"options": [
+{
+"ঢাকা": ""
+}
+]
+
+Incorrect:
+
+"options": [
+{
+"optionNo": "0",
+"option": "ঢাকা"
+}
+]
+
+Incorrect:
+
+"options": {
+"ক": "ঢাকা",
+"খ": "চট্টগ্রাম"
+}
+
+The options field MUST always be an array containing exactly four strings.
+
+==================================================
+COMPLETE MCQ REQUIREMENT
+========================
+
+Extract an MCQ ONLY when all of the following are readable:
+
+1. Complete question/stem
+2. Option 1
+3. Option 2
+4. Option 3
+5. Option 4
+
+If even one of the four options is missing, cut off, or unreadable, skip the entire MCQ.
+
+Do NOT insert:
+
+""
+
+"unknown"
+
+"unreadable"
+
+"null"
+
+or guessed content.
+
+Never reconstruct a missing option.
+
+==================================================
+CORRECT ANSWER
+==============
+
+The field must be:
+
+"correctAnswer": ""
+
+ONLY extract a correct answer when it is explicitly provided in the document.
+
+Use the option position as the value:
+
+First option → "0"
+Second option → "1"
+Third option → "2"
+Fourth option → "3"
+
+For Bengali labels:
+
+ক → "0"
+খ → "1"
+গ → "2"
+ঘ → "3"
+
+Examples:
+
+If the document explicitly says:
+
+সঠিক উত্তর: ক
+
+return:
+
+"correctAnswer": "0"
+
+If:
+
+সঠিক উত্তর: গ
+
+return:
+
+"correctAnswer": "2"
+
+If the document does NOT explicitly provide the answer:
+
+"correctAnswer": ""
+
+NEVER solve the question.
+
+NEVER determine the answer using your own knowledge.
+
+NEVER infer the answer from the question or options.
+
+==================================================
+EXPLANATION
+===========
+
+The extraction task is NOT an answering task.
+
+Do NOT generate explanations.
+
+If an explanation is explicitly present in the document, extract it exactly or with only minimal formatting cleanup.
+
+If no explanation is present, return:
+
+"explanation": ""
+
+NEVER create an explanation based on your own knowledge.
+
+NEVER explain why an answer is correct.
+
+NEVER calculate or solve a problem merely to generate an explanation.
+
+==================================================
+MATHEMATICS
+===========
+
+Convert mathematical expressions into inline LaTeX.
+
+Always use:
+
+$...$
+
+Never use display math.
+
+Examples:
+
+$x+y=5$
+
+$\frac{a+b}{c}$
+
+$\sqrt{x}$
+
+$\theta$
+
+Preserve mathematical meaning exactly.
+
+Never insert a line break inside a LaTeX expression.
+
+Preserve line breaks between meaningful paragraphs or complete equations.
+
+Every \left must have a matching \right.
+
+==================================================
+LATEX AND JSON
+==============
+
+Because the output is JSON, every LaTeX backslash must be escaped.
+
+For example:
+
+"$\frac{a}{b}$"
+
+"$\sqrt{x}$"
+
+"$\theta$"
+
+Do NOT output an unescaped LaTeX backslash inside a JSON string.
+
+==================================================
+TABLES
+======
+
+If a table is part of the question or an option, convert it into a Markdown table inside the appropriate string.
+
+Example:
+
+| বছর  | উৎপাদন |
+| ---- | ------ |
+| ২০২০ | ৫০০    |
+| ২০২১ | ৬৫০    |
+
+==================================================
+FIGURES
+=======
+
+If a figure is part of the question or required to understand it, replace it with:
+
+[Figure: short description]
+
+Examples:
+
+[Figure: electrical circuit]
+
+[Figure: triangle ABC]
+
+[Figure: bar chart]
+
+[Figure: biological cell]
+
+Do NOT invent details that cannot be determined from the document.
+
+If the question depends on a missing or unreadable figure, skip the entire MCQ.
+
+==================================================
+COMMON STEM
+===========
+
+If multiple MCQs share a common passage, statement, table, graph, or figure:
+
+Preserve the required common context in each relevant question.
+
+Do NOT merge separate MCQs into one.
+
+Do NOT duplicate unrelated content.
+
+==================================================
+QUESTION ORDER
+==============
+
+Preserve the original document order.
+
+Do not reorder questions.
+
+Do not duplicate questions.
+
+Preserve the original option order.
+
+==================================================
+QUESTION NUMBERS
+================
+
+Question numbers from the document should NOT normally be included in the question text.
+
+The order of objects in the questions array represents the original question order.
+
+Do not create or infer question numbers.
+
+==================================================
+DO NOT EXTRACT
+==============
+
+Ignore:
+
+* subject name
+* chapter name
+* lesson name
+* board name
+* institution name
+* school or college name
+* exam year
+* set number
+* question paper headers
+* instructions
+* page numbers
+* watermark
+* marks
+* time duration
+* advertisements
+* decorative text
+* unrelated answer keys
+
+==================================================
+STRICT JSON SCHEMA
+==================
+
+The response MUST contain exactly:
+
+{
+"questionType": "MCQ",
+"questions": [
+{
+"question": "",
+"options": [
+"",
+"",
+"",
+""
+],
+"correctAnswer": "",
+"explanation": ""
+}
+]
+}
+
+The questionType MUST be:
+
+"MCQ"
+
+Each question object MUST contain exactly these four properties:
+
+"question"
+
+"options"
+
+"correctAnswer"
+
+"explanation"
+
+The options array MUST contain exactly four strings.
+
+Do NOT add:
+
+optionNo
+
+option
+
+answer
+
+marks
+
+timeRequired
+
+difficulty
+
+subjectId
+
+chapterId
+
+topicId
+
+backgroundId
+
+recordId
+
+or any other property.
+
+==================================================
+JSON SYNTAX REQUIREMENTS
+========================
+
+The response must be directly parseable using:
+
+JSON.parse(response)
+
+Therefore:
+
+* Return JSON only.
+* Do not use Markdown code fences.
+* Do not write anything before the JSON.
+* Do not write anything after the JSON.
+* Do not include comments.
+* Use double quotes for JSON property names.
+* Use double quotes for JSON string values.
+* Never use single quotes.
+* Never leave a property without a value.
+* Never use trailing commas.
+* Never put a comma immediately before a closing brace.
+* Never put a comma immediately before a closing bracket.
+* Every opening brace must have a matching closing brace.
+* Every opening bracket must have a matching closing bracket.
+* Every string must be properly closed.
+* Escape quotation marks inside string values.
+* Escape every LaTeX backslash for valid JSON.
+
+==================================================
+STRICT OPTION RULE
+==================
+
+The options field is ALWAYS an array of exactly four strings.
+
+Correct:
+
+"options": [
+"প্রথম বিকল্প",
+"দ্বিতীয় বিকল্প",
+"তৃতীয় বিকল্প",
+"চতুর্থ বিকল্প"
+]
+
+Never return option objects.
+
+Never use option labels as property names.
+
+Never use option text as property names.
+
+Never create an object inside the options array.
+
+==================================================
+FINAL VALIDATION
+================
+
+Before returning the response, internally validate every MCQ.
+
+For every question:
+
+✓ question exists and is complete.
+✓ options exists.
+✓ options is an array.
+✓ options contains exactly 4 items.
+✓ Every option is a string.
+✓ Every option is readable and complete.
+✓ Original option order is preserved.
+✓ correctAnswer is either "0", "1", "2", "3", or "".
+✓ correctAnswer is populated ONLY when explicitly provided.
+✓ explanation is either extracted from the document or "".
+✓ No explanation is generated.
+✓ No answer is inferred.
+✓ No extra properties exist.
+✓ Mathematical expressions are preserved.
+✓ LaTeX backslashes are escaped for JSON.
+✓ No trailing commas exist.
+✓ All strings are properly closed.
+✓ All braces are closed.
+✓ All arrays are closed.
+✓ The complete response is valid JSON.
+
+==================================================
+ABSOLUTE OUTPUT RULE
+====================
+
+Return ONLY the JSON object.
+
+The first character MUST be {
+
+The last character MUST be }
+
+Do not output any text before or after the JSON.
+
+==================================================
+EMPTY RESULT
+============
+
+If no complete MCQs are found, return exactly:
+
+{
+"questionType": "MCQ",
+"questions": []
+}
 `;
 
 // -------------------------
-// CQ — Bulk (all questions from a PDF)
+// CQ — Bulk
 // -------------------------
 export const BULK_CQ_EXTRACTION_PROMPT = `You are an expert at extracting Bangladeshi Creative Questions (সৃজনশীল প্রশ্ন / CQ) from images, scanned PDFs, digital PDFs, and mixed-content educational documents.
 
@@ -593,270 +1022,3 @@ Before returning, internally verify ALL of the following:
 ✓ Missing answers are "".
 
 If any validation fails, correct the JSON before returning.`;
-
-export const BULK_CQ_EXTRACTION_PROMPT_2 = `You are an expert at extracting Bangladeshi Creative Questions (সৃজনশীল প্রশ্ন / CQ) from images, scanned PDFs, digital PDFs, and mixed-content educational documents.
-
-Your task is to extract **ONLY complete Creative Questions (CQ)** and return the result as **strictly valid JSON**.
-
-# Definition of a Bangladeshi Creative Question (CQ)
-
-A Creative Question consists of:
-
-1. **উদ্দীপক (Statement / Stem)**
-
-   * A passage, scenario, story, data set, chart, table, experiment, diagram, mathematical expression, or real-life situation.
-
-2. **Sub-questions** (usually four, in fixed order)
-
-   * ক → Knowledge → questionNo = "0"
-   * খ → Comprehension → questionNo = "1"
-   * গ → Application → questionNo = "2"
-   * ঘ → Higher Order Thinking → questionNo = "3"
-
-# Extraction Requirements
-
-Extract:
-
-* Every complete CQ in the document
-* Full statement/stem (উদ্দীপক)
-* Every available sub-question
-* Corresponding answers if present
-* Mathematical expressions
-* Tables
-* Figure references
-
-# Answer Extraction Rules
-
-For each sub-question:
-
-1. If an answer is explicitly present:
-
-   * Extract it
-   * Rewrite slightly in your own words
-   * Preserve meaning exactly
-   * Do NOT copy large portions verbatim
-
-2. If no answer is present but the question can be answered directly from the provided content:
-
-   * Generate a concise answer strictly based on the content
-
-3. If neither an answer nor enough information is available:
-
-   * Use:
-     ""
-   * Do NOT invent information
-
-# Statement Processing Rules
-
-## Line Break Preservation
-
-Preserve meaningful formatting.
-
-For prose:
-
-* Keep paragraph breaks.
-
-## Mathematical Formatting Rules
-
-* Convert all mathematical expressions to valid LaTeX.
-* Always use inline LaTeX notation: $...$.
-* Never use display math notation: $$...$$.
-* Preserve line breaks between mathematical steps.
-* For multi-step calculations, place each step on a separate line.
-* Keep the mathematical content exactly as written; only convert formatting when necessary.
-
-Example:
-
-প্রদত্ত,
-
-$x+y=10$
-
-$x-y=2$
-
-সমীকরণ দুটি যোগ করে পাই,
-
-$2x=12$
-
-অতএব,
-
-$x=6$
-
-
-## Tables
-
-Convert tables into markdown format.
-
-Example:
-
-| বছর  | উৎপাদন |
-| ---- | ------ |
-| ২০২০ | ৫০০    |
-| ২০২১ | ৬৫০    |
-
-## Figures
-
-If a diagram/image is referenced:
-
-Use:
-
-[Figure: short description]
-
-Examples:
-
-[Figure: electrical circuit diagram]
-
-[Figure: triangle ABC with altitude AD]
-
-[Figure: bar chart showing yearly sales]
-
-# What to Ignore Completely
-
-Do NOT extract:
-
-* Subject names
-* Chapter names
-* Lesson names
-* Topic headings
-* Board names
-* Exam year
-* School/college names
-* Institution names
-* Question set labels
-* Marks
-* Time duration
-* Difficulty labels
-* Instructions
-* Headers
-* Footers
-* Page numbers
-* Watermarks
-* Advertisements
-* Decorative text
-
-# CQ Detection Rules
-
-Extract ONLY when:
-
-* A clear statement/stem exists
-  AND
-* At least one sub-question (ক/খ/গ/ঘ) exists
-
-Skip entirely if:
-
-* Statement is incomplete
-* Text is severely cut off
-* Sub-question text is missing or unreadable
-* The CQ is clearly fragmented across missing pages
-
-Never reconstruct missing content from prior knowledge.
-
-# Ordering Rules
-
-Maintain the exact order in which Creative Questions appear in the document.
-
-# Output Format
-
-Return ONLY valid JSON.
-
-No markdown.
-
-No code fences.
-
-No explanations.
-
-No notes.
-
-No extra text.
-
-Use exactly:
-
-{
-"questionType": "CQ",
-"questions": [
-{
-"statement": "Full statement with proper line breaks and markdowns string. same as doc",
-"subQuestions": [
-{
-"questionNo": "0",
-"question": "Question with proper line breaks and markdowns string. same as doc",
-"answer": "Answer with proper line breaks and markdowns string slight change wording"
-},
-{
-"questionNo": "1",
-"question": "Question with proper line breaks and markdowns string. same as doc",
-"answer": "Answer with proper line breaks and markdowns string slight change wording"
-},
-{
-"questionNo": "2",
-"question": "Question with proper line breaks and markdowns string. same as doc",
-"answer": "Answer with proper line breaks and markdowns string. slight change wording"
-},
-{
-"questionNo": "3",
-"question": "Question with proper line breaks and markdowns string. same as doc",
-"answer": "Answer with proper line breaks and markdowns string slight change wording"
-}
-]
-}
-]
-}
-
-# Sub-question Mapping
-
-ক  → "0"
-
-খ  → "1"
-
-গ  → "2"
-
-ঘ  → "3"
-
-# Missing Sub-question Handling
-
-If some sub-questions are absent:
-
-* Include only those clearly present.
-* Preserve correct questionNo values.
-
-Example:
-
-[
-{
-"questionNo": "0",
-"question": "...",
-"answer": "..."
-},
-{
-"questionNo": "2",
-"question": "...",
-"answer": "..."
-}
-]
-
-# Empty Result Rule
-
-If no valid Creative Questions are found:
-
-{
-"questionType": "CQ",
-"questions": []
-}
-
-# Final Validation Checklist
-
-Before returning:
-
-* Output is valid JSON.
-* No markdown fences.
-* No commentary.
-* No explanations.
-* No trailing text.
-* All mathematics use LaTeX.
-* Tables converted to markdown tables.
-* Figure references converted to [Figure: ...].
-* Only complete CQs included.
-* Original order preserved.
-* Answers paraphrased when extracted.
-* Missing answers use "".
-* Return exactly one JSON object.
-`;

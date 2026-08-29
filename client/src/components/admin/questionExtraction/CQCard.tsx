@@ -61,7 +61,7 @@ export default function CQCard({
   // Per-subquestion topic options driven by each sq's chapterId
   const topicOptionsMap = useMemo(
     () =>
-      question.subQuestions.map((sq) =>
+      (question.subQuestions || []).map((sq) =>
         masterData.topics.filter((topic) => topic.chapterId === sq.chapterId),
       ),
     [masterData.topics, question.subQuestions],
@@ -167,7 +167,7 @@ export default function CQCard({
       <div className="space-y-6">
         <Label>Sub Questions</Label>
 
-        {question.subQuestions.map((sq, i) => (
+        {(question.subQuestions || []).map((sq, i) => (
           <Card key={i} className="p-4 space-y-4">
             {/* Sub question label */}
             <Label>

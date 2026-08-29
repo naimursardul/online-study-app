@@ -151,6 +151,7 @@ export const extractQuestionsHandler = [
         imageFiles: isPDF ? [] : imageFiles,
       });
 
+      console.log("test");
       const response = await generateContent({
         parts,
       });
@@ -175,6 +176,7 @@ export const extractQuestionsHandler = [
 
       return res.json({
         success: true,
+        questionType: extracted.questionType || questionType,
         questions,
         fileType: isPDF ? "application/pdf" : "image",
         fileCount: isPDF ? 1 : imageFiles.length,

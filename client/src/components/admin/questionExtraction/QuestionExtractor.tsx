@@ -64,7 +64,7 @@ function enrichQuestions(
       ...cq,
       ...meta,
       questionType: "CQ" as const,
-      subQuestions: cq.subQuestions.map((sq) => ({
+      subQuestions: cq.subQuestions?.map((sq) => ({
         ...sq,
         chapterId: meta.chapterId ?? "",
         topicId: meta.topicId ?? "",
@@ -246,13 +246,13 @@ export default function QuestionExtractor() {
 
       const res = await client.post("/extraction/extract-questions", formData);
 
-      // console.log(res);
+      console.log(res);
       if (!res.data.success) {
         toast.error(res.data.message || "Failed to extract questions");
         return;
       }
-
       const response: IExtractionResponse = res.data;
+      console.log(response);
       setExtractedQuestionType(response.questionType);
       setQuestions(enrichQuestions(response, meta));
     } catch (err: any) {
@@ -375,7 +375,7 @@ export default function QuestionExtractor() {
       setUploadLoading(false);
     }
   }
-
+  console.log(questions);
   // const allValid = validationResults.every((r) => r.valid);
   return (
     <div className=" py-10 space-y-8">

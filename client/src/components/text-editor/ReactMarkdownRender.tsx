@@ -6,7 +6,10 @@ import remarkMath from "remark-math";
 import "katex/dist/katex.min.css";
 
 export default function ReactMarkdownRender({ text }: { text: string }) {
-  text = text?.replace("CDN_BASE_URL", import.meta.env.VITE_CDN_BASE_URL);
+  text =
+    typeof text === "string"
+      ? text.replace("CDN_BASE_URL", import.meta.env.VITE_CDN_BASE_URL)
+      : "";
   return (
     <Markdown
       remarkPlugins={[remarkGfm, remarkMath, remarkBreaks]}

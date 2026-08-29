@@ -154,7 +154,9 @@ export default function SingleMcqQuestion({
                       value={String(j)}
                     />
                     {/* OPTION DETAILS */}
-                    <p className="max-sm:text-sm ">{o}</p>
+                    <p className="max-sm:text-sm text-sm">
+                      <ReactMarkdownRender text={o} />
+                    </p>
                   </div>
                 ))}
             </form>
