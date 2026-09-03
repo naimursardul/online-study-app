@@ -16,6 +16,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import ComboboxMulti from "@/components/comboboxMulti/ComboboxMulti";
 import SingleMcqQuestion from "@/components/qb/institution-question/single-question/single-mcq-question";
 import SingleCqQuestion from "@/components/qb/institution-question/single-question/single-cq-queston";
+import SingleWrittenQuestion from "@/components/qb/institution-question/single-question/single-written-question";
 import { McqQuestionSkeleton } from "@/components/skeleton/McqQuestionSkeleton";
 import { CqQuestionSkeleton } from "@/components/skeleton/CqQuestionSkeleton";
 import { Badge } from "@/components/ui/badge";
@@ -42,8 +43,10 @@ import type {
   IExplorerFilters,
   IField,
   IMCQ,
+  IWritten,
   ViewModeType,
 } from "@/types/types";
+import { familyOf, typesForSubject } from "@/utils/questionTypes";
 
 const PAGE_SIZE = 20;
 
@@ -62,7 +65,7 @@ const EMPTY_FILTERS: IExplorerFilters = {
 // filter" — same convention as SingleCollectionPage.
 const ALL = "all";
 
-type ExplorerQuestion = (IMCQ | ICQ) & { _id: string };
+type ExplorerQuestion = (IMCQ | ICQ | IWritten) & { _id: string };
 
 export default function QuestionExplorer() {
   const { user } = useAuth();
@@ -159,6 +162,15 @@ export default function QuestionExplorer() {
       ),
     [masterData.subjects, levelId, backgroundId],
   );
+
+  // The selected subject decides which types are offered; before a subject is
+  // picked (or when it has none configured) every type is offered.
+  const questionTypeOptions = useMemo(() => {
+    const subject = subjectOptions.find(
+      (option) => option._id === filters.subjectId,
+    );
+    return typesForSubject(subject?.questionTypes);
+  }, [subjectOptions, filters.subjectId]);
 
   // institution and year narrow each other, so impossible pairs never show up.
   // ComboboxMulti keys off `_id`, and the API wants the literal string, so the
@@ -289,10 +301,24 @@ export default function QuestionExplorer() {
   }
 
   function handleSubjectChange(value: string) {
+    const nextSubjectId = value === ALL ? "" : value;
+    const nextSubject = subjectOptions.find(
+      (option) => option._id === nextSubjectId,
+    );
+    // A subject that does not offer the current type clears it, so the filters
+    // can never ask for a type this subject has nothing under.
+    const offered = typesForSubject(nextSubject?.questionTypes);
+    const questionType = offered.some(
+      (type) => type.code === filters.questionType,
+    )
+      ? filters.questionType
+      : "";
+
     writeUrl(
       {
         ...filters,
-        subjectId: value === ALL ? "" : value,
+        questionType,
+        subjectId: nextSubjectId,
         chapterId: [],
         topicId: [],
       },
@@ -355,8 +381,11 @@ export default function QuestionExplorer() {
         </SelectTrigger>
         <SelectContent>
           <SelectItem value={ALL}>Select question type</SelectItem>
-          <SelectItem value="MCQ">MCQ</SelectItem>
-          <SelectItem value="CQ">CQ</SelectItem>
+          {questionTypeOptions.map((type) => (
+            <SelectItem key={type.code} value={type.code}>
+              {type.label}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
 
@@ -419,7 +448,12 @@ export default function QuestionExplorer() {
       <Select
         value={viewMode}
         onValueChange={(value) => writeUrl(filters, page, value as ViewModeType)}
-        disabled={filters.questionType === "CQ"}
+        // Only MCQ hides its answer behind the view mode; the other families
+        // carry their own answer toggle.
+        disabled={
+          Boolean(filters.questionType) &&
+          familyOf(filters.questionType) !== "mcq"
+        }
       >
         <SelectTrigger className="w-full">
           <SelectValue placeholder="View mode" />
@@ -528,7 +562,7 @@ export default function QuestionExplorer() {
       ) : isLoading ? (
         <div className="flex flex-col gap-4">
           {Array.from({ length: 4 }).map((_, i) =>
-            filters.questionType === "CQ" ? (
+            familyOf(filters.questionType) === "cq" ? (
               <CqQuestionSkeleton key={i} />
             ) : (
               <McqQuestionSkeleton key={i} />
@@ -541,22 +575,36 @@ export default function QuestionExplorer() {
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {questions.map((q, i) =>
-            q.questionType === "CQ" ? (
-              <SingleCqQuestion
-                key={q._id}
-                q={q as ICQ & { _id: string }}
-                i={questionNo(i)}
-              />
-            ) : (
+          {questions.map((q, i) => {
+            const family = familyOf(q.questionType);
+
+            if (family === "cq")
+              return (
+                <SingleCqQuestion
+                  key={q._id}
+                  q={q as ICQ & { _id: string }}
+                  i={questionNo(i)}
+                />
+              );
+
+            if (family === "simple")
+              return (
+                <SingleWrittenQuestion
+                  key={q._id}
+                  q={q as IWritten & { _id: string }}
+                  i={questionNo(i)}
+                />
+              );
+
+            return (
               <SingleMcqQuestion
                 key={q._id}
                 q={q as IMCQ & { _id: string }}
                 i={questionNo(i)}
                 viewMode={viewMode}
               />
-            ),
-          )}
+            );
+          })}
         </div>
       )}
 

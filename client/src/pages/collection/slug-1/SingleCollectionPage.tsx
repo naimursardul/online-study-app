@@ -15,7 +15,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import SingleCqQuestion from "@/components/qb/institution-question/single-question/single-cq-queston";
-import type { IBaseQuestion, ICollection, ICQ, IMCQ } from "@/types/types";
+import SingleWrittenQuestion from "@/components/qb/institution-question/single-question/single-written-question";
+import type {
+  IBaseQuestion,
+  ICollection,
+  ICQ,
+  IMCQ,
+  IWritten,
+} from "@/types/types";
+import { familyOf } from "@/utils/questionTypes";
 
 // A saved question whose underlying question no longer exists — deleted with its
 // taxonomy, or from the admin question list. The server sends this placeholder in
@@ -27,7 +35,7 @@ type UnavailableQuestion = {
 };
 
 type CollectionQuestion =
-  | ((ICQ | IMCQ) & { _id: string; unavailable?: false })
+  | ((ICQ | IMCQ | IWritten) & { _id: string; unavailable?: false })
   | UnavailableQuestion;
 
 export default function SingleCollectionPage() {
@@ -277,11 +285,18 @@ export default function SingleCollectionPage() {
                   )}
                 </Button>
               </div>
-            ) : q.questionType === "CQ" ? (
+            ) : familyOf(q.questionType) === "cq" ? (
               <SingleCqQuestion
                 key={q._id}
                 q={q as ICQ & { _id: string }}
                 i={(page - 1) * 20 + i + 1}
+              />
+            ) : familyOf(q.questionType) === "simple" ? (
+              <SingleWrittenQuestion
+                key={q._id}
+                q={q as IWritten & { _id: string }}
+                i={(page - 1) * 20 + i + 1}
+                showTypeBadge
               />
             ) : (
               <SingleMcqQuestion

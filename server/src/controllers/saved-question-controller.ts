@@ -1,12 +1,13 @@
 import { Request, Response } from "express";
 import { SavedQuestion } from "../models/saved-question-model";
 import mongoose from "mongoose";
-import { CQ, MCQ } from "../models/question-model";
+import { questionModels } from "../models/question-model";
 
-const questionModelMap: Record<string, mongoose.Model<any>> = {
-  CQ: CQ,
-  MCQ: MCQ,
-};
+// Bookmarks resolve their full question from the registry, so every supported
+// question type is fetchable without touching this file again. Widened to a
+// string key because the lookup value comes from stored bookmark rows.
+const questionModelMap: Record<string, mongoose.Model<any> | undefined> =
+  questionModels;
 
 // TOGGLE save/unsave a question in a collection
 export async function toggleSavedQuestion(req: Request, res: Response) {

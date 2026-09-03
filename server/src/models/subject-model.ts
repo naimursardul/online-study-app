@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import { ISubject } from "../type/type";
+import { QUESTION_TYPE_CODES } from "../utils/question-types";
 
 const subjectSchema = new Schema<ISubject>(
   {
@@ -20,6 +21,13 @@ const subjectSchema = new Schema<ISubject>(
         required: true,
       },
     ],
+    // Which question types this subject offers. An empty array means the admin
+    // hasn't configured it yet, and readers fall back to offering every type.
+    questionTypes: {
+      type: [String],
+      enum: QUESTION_TYPE_CODES,
+      default: [],
+    },
   },
   {
     timestamps: true,

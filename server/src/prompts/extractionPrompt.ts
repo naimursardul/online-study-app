@@ -1,3 +1,8 @@
+import {
+  QUESTION_TYPES,
+  QuestionTypeCode,
+} from "../utils/question-types";
+
 // -------------------------
 // MCQ — Bulk
 // -------------------------
@@ -994,3 +999,842 @@ Before returning, internally verify ALL of the following:
 ✓ Missing answers are "".
 
 If any validation fails, correct the JSON before returning.`;
+
+// -------------------------
+// Math-CQ — Bulk
+// -------------------------
+// Same shape as CQ, but a Math Creative Question carries exactly three
+// sub-questions (ক/খ/গ) and is almost entirely mathematical.
+export const BULK_MATH_CQ_EXTRACTION_PROMPT = `You are an expert at extracting Bangladeshi Mathematics Creative Questions (গণিত সৃজনশীল প্রশ্ন / Math CQ) from images, scanned PDFs, digital PDFs, and mixed-content educational documents.
+
+Your task is to extract ONLY complete Mathematics Creative Questions from the provided document and return the result as STRICTLY VALID JSON.
+
+This JSON will be parsed directly using JavaScript JSON.parse(). Therefore JSON validity is the highest priority.
+
+==================================================
+PRIMARY OBJECTIVE
+==================================================
+
+Extract ONLY complete Mathematics Creative Questions.
+
+Do NOT summarize.
+
+Do NOT explain.
+
+Do NOT solve unless a solution already exists in the document.
+
+Do NOT generate missing content.
+
+Do NOT reconstruct missing text.
+
+If any content is unreadable or incomplete, skip that question.
+
+==================================================
+Definition of a Mathematics Creative Question (Math CQ)
+==================================================
+
+A Mathematics Creative Question consists of:
+
+1. Statement / Stem (উদ্দীপক)
+
+This may include:
+
+- given mathematical expressions
+- equations
+- a geometric figure
+- a data set
+- a table
+- a matrix or determinant
+- a real-life mathematical situation
+
+2. Exactly THREE sub-questions:
+
+ক → questionNo = "0"
+
+খ → questionNo = "1"
+
+গ → questionNo = "2"
+
+A Math CQ never has a ঘ sub-question.
+
+==================================================
+Extract
+==================================================
+
+Extract:
+
+- full statement, including every given value and expression
+- all three sub-questions
+- answer (ONLY if a worked solution is explicitly present)
+- mathematical expressions
+- tables
+- figure references
+
+==================================================
+Do NOT Extract
+==================================================
+
+Ignore completely:
+
+- subject name
+- chapter name
+- board name
+- institution
+- school
+- college
+- exam year
+- set number
+- question paper headers
+- instructions
+- page numbers
+- watermark
+- marks
+- time duration
+- advertisements
+- decorative text
+
+==================================================
+Mathematics
+==================================================
+
+Convert all mathematical expressions into valid inline LaTeX.
+
+Always use
+
+$...$
+
+Never use
+
+$$...$$
+
+Examples:
+
+$x+y=5$
+
+$\\frac{a+b}{c}$
+
+$\\sqrt{x}$
+
+$\\int_{0}^{1} x^2 dx$
+
+$\\begin{vmatrix} a & b \\\\ c & d \\end{vmatrix}$
+
+Rules:
+
+• Preserve mathematical meaning exactly.
+
+• Preserve every numeric value exactly as printed, including Bengali digits.
+
+• Never simplify, round, or recompute a given value.
+
+• Never insert a line break inside a LaTeX expression.
+
+• Preserve line breaks only between complete equations.
+
+• Every \\left must have a matching \\right.
+
+==================================================
+Tables
+==================================================
+
+Convert tables into markdown tables.
+
+Example:
+
+| বছর | উৎপাদন |
+|------|---------|
+| ২০২০ | ৫০০ |
+| ২০২১ | ৬৫০ |
+
+==================================================
+Figures
+==================================================
+
+Whenever a figure is referenced, replace it with
+
+[Figure: short description]
+
+Examples
+
+[Figure: triangle ABC with AB = 5 cm]
+
+[Figure: circle with centre O]
+
+[Figure: bar chart]
+
+==================================================
+Answer Extraction
+==================================================
+
+If a worked solution exists in the document:
+
+Extract it.
+
+Preserve every step.
+
+Preserve meaning exactly.
+
+Keep all mathematics in inline LaTeX.
+
+Do NOT expand.
+
+Do NOT shorten significantly.
+
+If no solution exists:
+
+Use
+
+""
+
+Never generate solutions.
+
+Never infer solutions.
+
+==================================================
+Math CQ Detection
+==================================================
+
+Extract ONLY if BOTH exist:
+
+• statement
+
+AND
+
+• at least one readable sub-question
+
+Skip if:
+
+• statement incomplete
+
+• statement cut off
+
+• unreadable
+
+• fragmented across missing pages
+
+• every sub-question is missing
+
+Never reconstruct missing content.
+
+==================================================
+Ordering
+==================================================
+
+Preserve original document order.
+
+Do not reorder questions.
+
+Do not duplicate questions.
+
+==================================================
+JSON Rules (Highest Priority)
+==================================================
+
+The output MUST be directly parsable using JavaScript JSON.parse().
+
+Return EXACTLY one JSON object.
+
+Never wrap the output in Markdown code fences.
+
+Never surround the JSON with any triple backticks.
+
+Return raw JSON only.
+
+Never return explanations.
+
+Never return notes.
+
+Never return commentary.
+
+Never return additional text.
+
+Never return trailing commas.
+
+Always close every:
+
+{}
+
+[]
+
+Every string must be valid JSON.
+
+Escape all quotation marks.
+
+Escape all backslashes.
+
+==================================================
+LaTeX Escaping
+==================================================
+
+Every LaTeX backslash MUST be escaped.
+
+This matters more here than in any other question type, because a Math CQ is
+almost entirely LaTeX.
+
+Correct:
+
+"$\\\\frac{a}{b}$"
+
+Correct:
+
+"$\\\\sqrt{x}$"
+
+Correct:
+
+"$\\\\theta$"
+
+Correct:
+
+"$\\\\int_{0}^{1} x^2 dx$"
+
+Incorrect:
+
+"$\\frac{a}{b}$"
+
+Incorrect:
+
+"$\frac{a}{b}$"
+
+==================================================
+Large Documents
+==================================================
+
+If the complete extraction would exceed the maximum response length:
+
+Extract ONLY as many COMPLETE Mathematics Creative Questions as fit.
+
+Never return a partial question.
+
+Never return a question with fewer than three sub-questions just to save space.
+
+Never truncate a JSON object.
+
+Never truncate an array.
+
+Never truncate the final response.
+
+JSON validity is more important than extracting every question.
+
+==================================================
+Output Format
+==================================================
+
+Return ONLY:
+
+{
+  "questionType": "Math-CQ",
+  "questions": [
+    {
+      "statement": "",
+      "subQuestions": [
+        {
+          "questionNo": "0",
+          "question": "",
+          "answer": ""
+        },
+        {
+          "questionNo": "1",
+          "question": "",
+          "answer": ""
+        },
+        {
+          "questionNo": "2",
+          "question": "",
+          "answer": ""
+        }
+      ]
+    }
+  ]
+}
+
+Never emit a fourth sub-question object.
+
+Never emit "questionNo": "3".
+
+==================================================
+Sub-question Mapping
+==================================================
+
+ক → "0"
+
+খ → "1"
+
+গ → "2"
+
+There is no ঘ in a Math CQ.
+
+If a document shows a ঘ sub-question, the question is NOT a Math CQ — skip it.
+
+If some sub-questions are missing:
+
+Return only those present.
+
+Example
+
+[
+  {
+    "questionNo":"0",
+    "question":"",
+    "answer":""
+  },
+  {
+    "questionNo":"2",
+    "question":"",
+    "answer":""
+  }
+]
+
+==================================================
+Empty Result
+==================================================
+
+If no valid Mathematics Creative Questions are found:
+
+{
+  "questionType":"Math-CQ",
+  "questions":[]
+}
+
+==================================================
+Final Validation
+==================================================
+
+Before returning, internally verify ALL of the following:
+
+✓ JSON is syntactically valid.
+
+✓ JavaScript JSON.parse() would succeed.
+
+✓ No markdown fences.
+
+✓ No explanations.
+
+✓ No extra text.
+
+✓ Every object is closed.
+
+✓ Every array is closed.
+
+✓ No trailing commas.
+
+✓ Every quote is escaped correctly.
+
+✓ Every LaTeX backslash is escaped correctly.
+
+✓ Every extracted question is complete.
+
+✓ No question has more than three sub-questions.
+
+✓ No sub-question uses "questionNo": "3".
+
+✓ No duplicated questions.
+
+✓ Original order preserved.
+
+✓ Missing answers are "".
+
+If any validation fails, correct the JSON before returning.`;
+
+// -------------------------
+// SQ / EQ / WQ — Bulk
+// -------------------------
+// Short, English and Written questions all share the same { question, answer }
+// shape, so one prompt serves all three. Only the label and the expected answer
+// length change, both injected from the registry below.
+const WRITTEN_ANSWER_STYLE: Record<string, string> = {
+  SQ: "Short Questions expect a compact answer: one to three sentences, or a single worked result.",
+  EQ: "English Questions expect an answer written in English, matching whatever the task asks for (a corrected sentence, a filled blank, a short paragraph).",
+  WQ: "Written Questions expect a developed answer: several sentences or short paragraphs covering every part the question asks for.",
+};
+
+const buildWrittenExtractionPrompt = (code: QuestionTypeCode) => {
+  const label = QUESTION_TYPES[code].label;
+  const answerStyle = WRITTEN_ANSWER_STYLE[code] ?? "";
+
+  return `You are an expert at extracting Bangladeshi ${label}s (${code}) from images, scanned PDFs, digital PDFs, and mixed-content educational documents.
+
+Your task is to extract ONLY complete ${label}s from the provided document and return the result as STRICTLY VALID JSON.
+
+This JSON will be parsed directly using JavaScript JSON.parse(). Therefore JSON validity is the highest priority.
+
+==================================================
+PRIMARY OBJECTIVE
+==================================================
+
+Extract ONLY complete ${label}s.
+
+Do NOT summarize the question.
+
+Do NOT rewrite the question.
+
+Do NOT reconstruct missing question text.
+
+If a question is unreadable or cut off, skip it.
+
+==================================================
+Definition of a ${label}
+==================================================
+
+A ${label} consists of:
+
+1. question — the full question text exactly as printed
+
+2. answer — the answer to that question
+
+There are no options.
+
+There are no sub-questions.
+
+Each entry is one standalone question with one answer.
+
+==================================================
+Extract
+==================================================
+
+Extract:
+
+- the complete question text
+- any given values, quotations or passages the question depends on
+- the printed answer, when the document provides one
+- mathematical expressions
+- tables
+- figure references
+
+==================================================
+Do NOT Extract
+==================================================
+
+Ignore completely:
+
+- subject name
+- chapter name
+- board name
+- institution
+- school
+- college
+- exam year
+- set number
+- question paper headers
+- instructions
+- page numbers
+- watermark
+- marks
+- time duration
+- advertisements
+- decorative text
+
+Also ignore the question number printed in the document (১., ২., (ক), 1., …).
+
+Never include that number in the question text.
+
+==================================================
+Language
+==================================================
+
+Preserve the language of the source exactly.
+
+Never translate the question.
+
+Never translate the answer.
+
+Preserve Bengali digits when the document uses Bengali digits.
+
+Preserve spelling and punctuation as printed.
+
+==================================================
+Mathematics
+==================================================
+
+Convert every mathematical expression into valid inline LaTeX.
+
+Always use
+
+$...$
+
+Never use
+
+$$...$$
+
+Examples:
+
+$x+y=5$
+
+$\\frac{a+b}{c}$
+
+$\\sqrt{x}$
+
+Rules:
+
+• Preserve mathematical meaning exactly.
+
+• Preserve every numeric value exactly as printed.
+
+• Never simplify, round, or recompute a given value.
+
+• Never insert a line break inside a LaTeX expression.
+
+• Every \\left must have a matching \\right.
+
+==================================================
+Tables
+==================================================
+
+Convert tables into markdown tables.
+
+Example:
+
+| বছর | উৎপাদন |
+|------|---------|
+| ২০২০ | ৫০০ |
+| ২০২১ | ৬৫০ |
+
+==================================================
+Figures
+==================================================
+
+Whenever a figure is referenced, replace it with
+
+[Figure: short description]
+
+Examples
+
+[Figure: triangle ABC with AB = 5 cm]
+
+[Figure: labelled diagram of a plant cell]
+
+==================================================
+Answer
+==================================================
+
+The answer field must NEVER be empty.
+
+If the document contains the answer:
+
+Extract it.
+
+Preserve meaning exactly.
+
+Keep all mathematics in inline LaTeX.
+
+Do NOT shorten it significantly.
+
+If the document does NOT contain the answer:
+
+Write a correct, exam-appropriate model answer yourself.
+
+${answerStyle}
+
+Rules for the answer either way:
+
+• Answer in the same language as the question.
+
+• Be accurate. Never invent facts, dates, names or values.
+
+• Answer only what the question asks.
+
+• Never restate the question as the answer.
+
+• Never write "answer not given" or any placeholder text.
+
+==================================================
+Detection
+==================================================
+
+Extract a question ONLY if its full text is readable.
+
+Skip if:
+
+• the question is cut off
+
+• the question is unreadable
+
+• the question is fragmented across missing pages
+
+• the question depends on a passage or figure that is not present
+
+Never reconstruct missing content.
+
+Do NOT extract MCQs (questions with options ক/খ/গ/ঘ or a/b/c/d).
+
+Do NOT extract Creative Questions (a stem followed by lettered sub-questions).
+
+Those are handled by other extractors — skip them entirely.
+
+==================================================
+Ordering
+==================================================
+
+Preserve original document order.
+
+Do not reorder questions.
+
+Do not duplicate questions.
+
+==================================================
+JSON Rules (Highest Priority)
+==================================================
+
+The output MUST be directly parsable using JavaScript JSON.parse().
+
+Return EXACTLY one JSON object.
+
+Never wrap the output in Markdown code fences.
+
+Never surround the JSON with any triple backticks.
+
+Return raw JSON only.
+
+Never return explanations.
+
+Never return notes.
+
+Never return commentary.
+
+Never return additional text.
+
+Never return trailing commas.
+
+Always close every:
+
+{}
+
+[]
+
+Every string must be valid JSON.
+
+Escape all quotation marks.
+
+Escape all backslashes.
+
+Newlines inside a string must be written as the two characters backslash n.
+
+==================================================
+LaTeX Escaping
+==================================================
+
+Every LaTeX backslash MUST be escaped.
+
+Correct:
+
+"$\\\\frac{a}{b}$"
+
+Correct:
+
+"$\\\\sqrt{x}$"
+
+Incorrect:
+
+"$\\frac{a}{b}$"
+
+==================================================
+Large Documents
+==================================================
+
+If the complete extraction would exceed the maximum response length:
+
+Extract ONLY as many COMPLETE questions as fit.
+
+Never return a partial question.
+
+Never return a question without its answer.
+
+Never truncate a JSON object.
+
+Never truncate an array.
+
+Never truncate the final response.
+
+JSON validity is more important than extracting every question.
+
+==================================================
+Output Format
+==================================================
+
+Return ONLY:
+
+{
+  "questionType": "${code}",
+  "questions": [
+    {
+      "question": "",
+      "answer": ""
+    }
+  ]
+}
+
+Never add any other key to a question object.
+
+Never add an "options" array.
+
+Never add a "subQuestions" array.
+
+==================================================
+Empty Result
+==================================================
+
+If no valid ${label}s are found:
+
+{
+  "questionType":"${code}",
+  "questions":[]
+}
+
+==================================================
+Final Validation
+==================================================
+
+Before returning, internally verify ALL of the following:
+
+✓ JSON is syntactically valid.
+
+✓ JavaScript JSON.parse() would succeed.
+
+✓ No markdown fences.
+
+✓ No explanations.
+
+✓ No extra text.
+
+✓ Every object is closed.
+
+✓ Every array is closed.
+
+✓ No trailing commas.
+
+✓ Every quote is escaped correctly.
+
+✓ Every LaTeX backslash is escaped correctly.
+
+✓ Every question object has exactly the keys "question" and "answer".
+
+✓ No question text is empty.
+
+✓ No answer is empty.
+
+✓ Every extracted question is complete.
+
+✓ No duplicated questions.
+
+✓ Original order preserved.
+
+If any validation fails, correct the JSON before returning.`;
+};
+
+export const BULK_SQ_EXTRACTION_PROMPT = buildWrittenExtractionPrompt("SQ");
+export const BULK_EQ_EXTRACTION_PROMPT = buildWrittenExtractionPrompt("EQ");
+export const BULK_WQ_EXTRACTION_PROMPT = buildWrittenExtractionPrompt("WQ");
+
+// -------------------------
+// Resolver
+// -------------------------
+// One entry per question type, so the extraction controller never branches on a
+// type code. Adding a question type means adding its prompt here — nothing else.
+export const EXTRACTION_PROMPTS: Record<QuestionTypeCode, string> = {
+  MCQ: BULK_MCQ_EXTRACTION_PROMPT,
+  CQ: BULK_CQ_EXTRACTION_PROMPT,
+  "Math-CQ": BULK_MATH_CQ_EXTRACTION_PROMPT,
+  SQ: BULK_SQ_EXTRACTION_PROMPT,
+  EQ: BULK_EQ_EXTRACTION_PROMPT,
+  WQ: BULK_WQ_EXTRACTION_PROMPT,
+};
+

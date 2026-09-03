@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import type { QuestionTypeCode } from "@/utils/questionTypes";
 
 export interface ScriptResType {
   correct: number;
@@ -71,7 +72,7 @@ export interface IRecord {
 
 // Base Question
 export interface IBaseQuestion {
-  questionType: "MCQ" | "CQ";
+  questionType: QuestionTypeCode;
   levelId: string;
   backgroundId: string[];
   subjectId: string;
@@ -101,10 +102,16 @@ export interface ISubQuestions {
   topicId: string;
 }
 
-// CQ
+// CQ — also the shape of Math-CQ, which differs only in sub-question count.
 export interface ICQ extends IBaseQuestion {
   statement: string;
   subQuestions: ISubQuestions[];
+}
+
+// SQ / EQ / WQ — the `simple` family. Identical shapes, different names.
+export interface IWritten extends IBaseQuestion {
+  question: string;
+  answer: string;
 }
 
 // Populated Type
@@ -130,6 +137,11 @@ export interface ISubject {
   name: string;
   levelId: string | IPopulatedData;
   backgroundId: string[] | IPopulatedData[];
+  // Which question types this subject offers. Empty means "not configured yet",
+  // and every reader falls back to offering all types. Kept as plain strings
+  // because it arrives unvalidated from the API; readers narrow it through
+  // `typesForSubject`.
+  questionTypes: string[];
 }
 
 // Chapter
@@ -304,6 +316,8 @@ export interface IMasterData {
     name: string;
     backgroundId: string[];
     levelId: string;
+    // Codes only — the raw master-data payload is stored as-is.
+    questionTypes: string[];
   }[];
   chapters: {
     _id: string;
@@ -344,7 +358,7 @@ export interface IPagination {
 // Question Explorer filter state. Level and background are not here — they are
 // always taken from the signed-in user's profile.
 export interface IExplorerFilters {
-  questionType: "" | "MCQ" | "CQ";
+  questionType: "" | QuestionTypeCode;
   subjectId: string;
   institution: string[];
   year: string[];
@@ -354,6 +368,10 @@ export interface IExplorerFilters {
   search: string;
 }
 
+// -------------------------
+// Extracted (raw API response shapes)
+// -------------------------
+
 export interface IExtractedMcqQuestion {
   questionType: "MCQ";
   question: string;
@@ -362,8 +380,9 @@ export interface IExtractedMcqQuestion {
   explanation: string;
 }
 
+// CQ and Math-CQ share this shape; only the sub-question count differs.
 export interface IExtractedCQQuestion {
-  questionType: "CQ";
+  questionType: "CQ" | "Math-CQ";
   statement: string;
   subQuestions: {
     questionNo: string;
@@ -371,20 +390,20 @@ export interface IExtractedCQQuestion {
     answer: string;
   }[];
 }
-// -------------------------
-// Extracted (raw API response shapes)
-// -------------------------
 
-export interface IExtractedMcqQuestion {
+// SQ / EQ / WQ
+export interface IExtractedWrittenQuestion {
+  questionType: "SQ" | "EQ" | "WQ";
   question: string;
-  options: string[];
-  correctAnswer: string;
-  explanation: string;
+  answer: string;
 }
 
 export interface IExtractionResponse {
-  questionType: "MCQ" | "CQ";
-  questions: IExtractedMcqQuestion[] | IExtractedCQQuestion[];
+  questionType: QuestionTypeCode;
+  questions:
+    | IExtractedMcqQuestion[]
+    | IExtractedCQQuestion[]
+    | IExtractedWrittenQuestion[];
 }
 
 // -------------------------

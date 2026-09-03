@@ -1,8 +1,10 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { client } from "@/utils/utils";
+import { client, getBoardQusetonDetails } from "@/utils/utils";
 import type { IRecord } from "@/types/types";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useMasterData } from "@/lib/MasterData-context";
+import { typesForSubject } from "@/utils/questionTypes";
 
 export default function SingleQuestionBankSidebar({
   slug,
@@ -12,6 +14,16 @@ export default function SingleQuestionBankSidebar({
   const [allData, setAllData] = useState<(IRecord & { _id: string })[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const { pathname } = useLocation();
+  const { masterData } = useMasterData();
+
+  // One link per type the slug's subject offers, so a subject that only has
+  // MCQ and SQ never advertises a CQ paper.
+  const questionTypes = useMemo(() => {
+    const subjectId = getBoardQusetonDetails(masterData, slug ?? "")?.withId
+      ?.subjectId;
+    const subject = masterData.subjects.find((s) => s._id === subjectId);
+    return typesForSubject(subject?.questionTypes);
+  }, [masterData, slug]);
 
   useEffect(() => {
     async function getAllData() {
@@ -48,28 +60,23 @@ export default function SingleQuestionBankSidebar({
         (loading && Array.isArray(allData) && allData.length > 0)
           ? allData.map((d, i) => (
               <div key={i} className="flex md:flex-col gap-2">
-                <Link
-                  className={
-                    `/question-bank/${slug}/MCQ_${d?.institution}_${d?.year}` ===
-                    pathname
-                      ? "bg-muted px-3 py-2 rounded-lg border-none outline-none"
-                      : "hover:bg-muted px-3 py-2 rounded-lg border-none outline-none "
-                  }
-                  to={`/question-bank/${slug}/MCQ_${d?.institution}_${d?.year}`}
-                >
-                  {`${d?.institution}-${d?.year} (MCQ)`}
-                </Link>
-                <Link
-                  className={
-                    `/question-bank/${slug}/CQ_${d?.institution}_${d?.year}` ===
-                    pathname
-                      ? "bg-muted px-3 py-2 rounded-lg border-none outline-none"
-                      : "hover:bg-muted px-3 py-2 rounded-lg border-none outline-none "
-                  }
-                  to={`/question-bank/${slug}/CQ_${d?.institution}_${d?.year}`}
-                >
-                  {`${d?.institution}-${d?.year} (CQ)`}
-                </Link>
+                {questionTypes.map((type) => {
+                  const to = `/question-bank/${slug}/${type.code}_${d?.institution}_${d?.year}`;
+
+                  return (
+                    <Link
+                      key={type.code}
+                      className={
+                        to === pathname
+                          ? "bg-muted px-3 py-2 rounded-lg border-none outline-none"
+                          : "hover:bg-muted px-3 py-2 rounded-lg border-none outline-none "
+                      }
+                      to={to}
+                    >
+                      {`${d?.institution}-${d?.year} (${type.label})`}
+                    </Link>
+                  );
+                })}
               </div>
             ))
           : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (

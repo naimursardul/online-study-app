@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { objectId, objectIdList, safeSearch } from "./common";
+import { QUESTION_TYPE_CODES } from "../utils/question-types";
 
 const name = z.string().trim().min(1).max(200);
 
@@ -37,6 +38,7 @@ export const subjectUpdateSchema = updateBody({
   name,
   levelId: objectId,
   backgroundId: objectIdList,
+  questionTypes: z.array(z.enum(QUESTION_TYPE_CODES)),
 });
 
 export const chapterUpdateSchema = updateBody({

@@ -14,15 +14,33 @@ import { client } from "@/utils/utils";
 import { toast } from "sonner";
 import MCQCard from "./MCQCard";
 import CQCard from "./CQCard";
+import WrittenCard from "./WrittenCard";
 import GlobalMetadataPanel from "./GlobalMetadataPanel";
 import type {
   IBaseQuestion,
   ICQ,
   IExtractionResponse,
   IMCQ,
+  IWritten,
 } from "@/types/types";
 import { validateAll } from "@/utils/validateQuestion";
 import BulkUploadButton from "./BulkUploadButton";
+import {
+  familyOf,
+  QUESTION_TYPE_LIST,
+  type QuestionTypeCode,
+} from "@/utils/questionTypes";
+
+// Any extracted question, whatever its shape family.
+type ExtractedQuestion = IMCQ | ICQ | IWritten;
+
+// Axios puts the server's own message on the response body.
+function errorMessage(err: unknown, fallback: string): string {
+  const data = (
+    err as { response?: { data?: { error?: string; message?: string } } }
+  )?.response?.data;
+  return data?.error || data?.message || fallback;
+}
 
 // -------------------------
 // Default meta state
@@ -42,34 +60,37 @@ const defaultMeta: IBaseQuestion = {
 };
 
 // -------------------------
-// Map raw API response → IMCQ | ICQ[]
+// Map raw API response → questions carrying the global metadata
 // -------------------------
 function enrichQuestions(
   response: IExtractionResponse,
   meta: IBaseQuestion,
-): IMCQ[] | ICQ[] {
-  if (response.questionType === "MCQ") {
-    return (response.questions as IExtractionResponse["questions"]).map(
-      (q) => ({
-        ...(q as IMCQ),
-        ...meta,
-        questionType: "MCQ" as const,
-      }),
-    );
-  }
+): ExtractedQuestion[] {
+  const questionType = response.questionType;
 
-  return (response.questions as IExtractionResponse["questions"]).map((q) => {
-    const cq = q as ICQ;
-    return {
-      ...cq,
+  return (response.questions as unknown[]).map((raw) => {
+    const enriched = {
+      ...(raw as ExtractedQuestion),
       ...meta,
-      questionType: "CQ" as const,
-      subQuestions: cq.subQuestions?.map((sq) => ({
-        ...sq,
-        chapterId: meta.chapterId ?? "",
-        topicId: meta.topicId ?? "",
-      })),
+      // The extracted type wins over the meta panel's default.
+      questionType,
     };
+
+    // cq-family questions carry per-sub-question chapter/topic, seeded from the
+    // global metadata so the admin only overrides where they differ.
+    if (familyOf(questionType) === "cq") {
+      const cq = raw as ICQ;
+      return {
+        ...enriched,
+        subQuestions: (cq.subQuestions ?? []).map((sq) => ({
+          ...sq,
+          chapterId: meta.chapterId ?? "",
+          topicId: meta.topicId ?? "",
+        })),
+      } as ICQ;
+    }
+
+    return enriched as ExtractedQuestion;
   });
 }
 
@@ -181,8 +202,7 @@ function enrichQuestions(
 
 export default function QuestionExtractor() {
   const [files, setFiles] = useState<File[] | null>(null);
-  const [questionType, setQuestionType] =
-    useState<IBaseQuestion["questionType"]>("MCQ");
+  const [questionType, setQuestionType] = useState<QuestionTypeCode>("MCQ");
   const [extractAll, setExtractAll] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -190,14 +210,14 @@ export default function QuestionExtractor() {
   const [meta, setMeta] = useState<IBaseQuestion>(defaultMeta);
 
   // Enriched questions state
-  const [questions, setQuestions] = useState<(IMCQ | ICQ)[]>([]);
+  const [questions, setQuestions] = useState<ExtractedQuestion[]>([]);
 
-  // console.log(questions);
   // Extracted question type — drives which card to render
   const [extractedQuestionType, setExtractedQuestionType] =
-    useState<IBaseQuestion["questionType"]>("CQ");
+    useState<QuestionTypeCode>("MCQ");
 
-  console.log(questions);
+  const extractedFamily = familyOf(extractedQuestionType);
+
   const [uploadLoading, setUploadLoading] = useState(false);
   const validationResults = useMemo(() => validateAll(questions), [questions]);
   const allValid = validationResults?.every((r) => r.valid);
@@ -213,15 +233,15 @@ export default function QuestionExtractor() {
           ...q,
           ...updatedMeta,
           questionType: q.questionType,
-          // preserve CQ subQuestions chapter/topic overrides
-          ...(q.questionType === "CQ" && {
-            subQuestions: (q as ICQ).subQuestions.map((sq) => ({
+          // preserve cq-family subQuestions chapter/topic overrides
+          ...(familyOf(q.questionType) === "cq" && {
+            subQuestions: ((q as ICQ).subQuestions ?? []).map((sq) => ({
               ...sq,
               chapterId: updatedMeta.chapterId || sq.chapterId,
               topicId: updatedMeta.topicId || sq.topicId,
             })),
           }),
-        } as IMCQ | ICQ;
+        } as ExtractedQuestion;
       }),
     );
   }
@@ -246,18 +266,16 @@ export default function QuestionExtractor() {
 
       const res = await client.post("/extraction/extract-questions", formData);
 
-      console.log(res);
       if (!res.data.success) {
         toast.error(res.data.message || "Failed to extract questions");
         return;
       }
       const response: IExtractionResponse = res.data;
-      console.log(response);
       setExtractedQuestionType(response.questionType);
       setQuestions(enrichQuestions(response, meta));
-    } catch (err: any) {
-      console.log(err);
-      toast.error(err.response?.data?.error || "Failed to extract questions");
+    } catch (err) {
+      console.error(err);
+      toast.error(errorMessage(err, "Failed to extract questions"));
     } finally {
       setLoading(false);
     }
@@ -272,15 +290,15 @@ export default function QuestionExtractor() {
             ...q,
             ...defaultMeta,
             questionType: q.questionType,
-            ...(q.questionType === "CQ" && {
+            ...(familyOf(q.questionType) === "cq" && {
               statement: (q as ICQ).statement,
-              subQuestions: (q as ICQ).subQuestions.map((sq) => ({
+              subQuestions: ((q as ICQ).subQuestions ?? []).map((sq) => ({
                 ...sq,
                 chapterId: "",
                 topicId: "",
               })),
             }),
-          }) as IMCQ | ICQ,
+          }) as ExtractedQuestion,
       ),
     );
   }
@@ -288,49 +306,55 @@ export default function QuestionExtractor() {
   // -------------------------
   // Build upload payload
   // -------------------------
-  function buildPayload(q: IMCQ | ICQ) {
-    if (q.questionType === "MCQ") {
-      const mcq = q as IMCQ;
+  function buildPayload(q: ExtractedQuestion) {
+    // Base metadata is shared; only the type-specific half differs per family.
+    const base = {
+      questionType: q.questionType,
+      levelId: q.levelId,
+      backgroundId: q.backgroundId,
+      subjectId: q.subjectId,
+      chapterId: q.chapterId,
+      topicId: q.topicId,
+      record: q.record,
+      recordId: q.recordId,
+      marks: q.marks,
+      timeRequired: q.timeRequired,
+      difficulty: q.difficulty,
+    };
+
+    const family = familyOf(q.questionType);
+
+    if (family === "cq") {
+      const cq = q as ICQ;
       return {
-        questionType: "MCQ",
-        levelId: mcq.levelId,
-        backgroundId: mcq.backgroundId,
-        subjectId: mcq.subjectId,
-        chapterId: mcq.chapterId,
-        topicId: mcq.topicId,
-        record: mcq.record,
-        recordId: mcq.recordId,
-        marks: mcq.marks,
-        timeRequired: mcq.timeRequired,
-        difficulty: mcq.difficulty,
-        question: mcq.question,
-        options: mcq.options,
-        correctAnswer: mcq.correctAnswer,
-        explanation: mcq.explanation,
+        ...base,
+        statement: cq.statement,
+        subQuestions: (cq.subQuestions ?? []).map((sq) => ({
+          questionNo: sq.questionNo,
+          question: sq.question,
+          answer: sq.answer,
+          chapterId: sq.chapterId,
+          topicId: sq.topicId,
+        })),
       };
     }
 
-    const cq = q as ICQ;
+    if (family === "simple") {
+      const written = q as IWritten;
+      return {
+        ...base,
+        question: written.question,
+        answer: written.answer,
+      };
+    }
+
+    const mcq = q as IMCQ;
     return {
-      questionType: "CQ",
-      levelId: cq.levelId,
-      backgroundId: cq.backgroundId,
-      subjectId: cq.subjectId,
-      chapterId: cq.chapterId,
-      topicId: cq.topicId,
-      record: cq.record,
-      recordId: cq.recordId,
-      marks: cq.marks,
-      timeRequired: cq.timeRequired,
-      difficulty: cq.difficulty,
-      statement: cq.statement,
-      subQuestions: cq.subQuestions.map((sq) => ({
-        questionNo: sq.questionNo,
-        question: sq.question,
-        answer: sq.answer,
-        chapterId: sq.chapterId,
-        topicId: sq.topicId,
-      })),
+      ...base,
+      question: mcq.question,
+      options: mcq.options,
+      correctAnswer: mcq.correctAnswer,
+      explanation: mcq.explanation,
     };
   }
 
@@ -369,14 +393,13 @@ export default function QuestionExtractor() {
       if (failed === 0) {
         setQuestions([]);
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || "Bulk upload failed.");
+    } catch (err) {
+      toast.error(errorMessage(err, "Bulk upload failed."));
     } finally {
       setUploadLoading(false);
     }
   }
-  console.log(questions);
-  // const allValid = validationResults.every((r) => r.valid);
+
   return (
     <div className=" py-10 space-y-8">
       {/* Header */}
@@ -385,7 +408,7 @@ export default function QuestionExtractor() {
         <div>
           <h1 className="text-3xl font-bold">Question Extractor</h1>
           <p className="text-muted-foreground">
-            Extract MCQ & CQ from images and PDFs
+            Extract questions from images and PDFs
           </p>
         </div>
       </div>
@@ -401,16 +424,19 @@ export default function QuestionExtractor() {
         <div className="grid md:grid-cols-2 gap-4">
           <Select
             value={questionType}
-            onValueChange={
-              setQuestionType as React.Dispatch<React.SetStateAction<string>>
+            onValueChange={(value) =>
+              setQuestionType(value as QuestionTypeCode)
             }
           >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="MCQ">MCQ</SelectItem>
-              <SelectItem value="CQ">CQ</SelectItem>
+              {QUESTION_TYPE_LIST.map((type) => (
+                <SelectItem key={type.code} value={type.code}>
+                  {type.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
 
@@ -447,24 +473,42 @@ export default function QuestionExtractor() {
       {questions.length > 0 && (
         <div className="space-y-6">
           {questions.map((q, i) => {
-            return extractedQuestionType === "MCQ" ? (
+            if (extractedFamily === "cq")
+              return (
+                <CQCard
+                  key={i}
+                  setQuestions={
+                    setQuestions as React.Dispatch<React.SetStateAction<ICQ[]>>
+                  }
+                  index={i}
+                  question={q as ICQ}
+                  validationResult={validationResults[i]}
+                />
+              );
+
+            if (extractedFamily === "simple")
+              return (
+                <WrittenCard
+                  key={i}
+                  setQuestions={
+                    setQuestions as React.Dispatch<
+                      React.SetStateAction<IWritten[]>
+                    >
+                  }
+                  index={i}
+                  question={q as IWritten}
+                  validationResult={validationResults[i]}
+                />
+              );
+
+            return (
               <MCQCard
-                key={crypto.randomUUID()}
+                key={i}
                 setQuestions={
                   setQuestions as React.Dispatch<React.SetStateAction<IMCQ[]>>
                 }
                 index={i}
                 question={q as IMCQ}
-                validationResult={validationResults[i]}
-              />
-            ) : (
-              <CQCard
-                key={crypto.randomUUID()}
-                setQuestions={
-                  setQuestions as React.Dispatch<React.SetStateAction<ICQ[]>>
-                }
-                index={i}
-                question={q as ICQ}
                 validationResult={validationResults[i]}
               />
             );

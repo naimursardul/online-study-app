@@ -1,10 +1,11 @@
 import { Schema, model, Document, Types } from "mongoose";
+import { QUESTION_TYPE_CODES } from "../utils/question-types";
 
 export interface ISavedQuestion extends Document {
   userId: Types.ObjectId;
   collectionId: Types.ObjectId;
   questionId: Types.ObjectId;
-  questionType: string; // "CQ", "MCQ", "SQ" - tells which model to fetch full details from
+  questionType: string; // "MCQ", "CQ", "SQ" … - tells which model to fetch full details from
   subjectId: Types.ObjectId;
   chapterId: Types.ObjectId;
   topicId: Types.ObjectId;
@@ -30,7 +31,7 @@ const savedQuestionSchema = new Schema<ISavedQuestion>(
     questionType: {
       type: String,
       required: true,
-      enum: ["CQ", "MCQ"],
+      enum: QUESTION_TYPE_CODES,
     },
     subjectId: {
       type: Schema.Types.ObjectId,

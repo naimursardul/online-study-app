@@ -186,7 +186,10 @@ export default function CQCard({
                     value={sq.chapterId || ""}
                     onValueChange={(val) =>
                       setQuestions((prev) => {
-                        prev[index].chapterId = val;
+                        // Per-sub-question, not the parent: a CQ's sub-questions
+                        // can each sit in a different chapter.
+                        prev[index].subQuestions[i].chapterId = val;
+                        prev[index].subQuestions[i].topicId = "";
                         return [...prev];
                       })
                     }
@@ -224,7 +227,7 @@ export default function CQCard({
                     value={sq.topicId || ""}
                     onValueChange={(val) =>
                       setQuestions((prev) => {
-                        prev[index].levelId = val;
+                        prev[index].subQuestions[i].topicId = val;
                         return [...prev];
                       })
                     }

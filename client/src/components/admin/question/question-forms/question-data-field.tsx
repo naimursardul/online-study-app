@@ -15,6 +15,7 @@ import type {
 } from "@/types/types";
 import ComboboxMulti from "@/components/comboboxMulti/ComboboxMulti";
 import { Label } from "@/components/ui/label";
+import { familyOf } from "@/utils/questionTypes";
 
 export default function QuestionDataField({
   formData,
@@ -93,9 +94,13 @@ export default function QuestionDataField({
                 {},
               ) ?? {};
 
-            // Reset CQ subquestions if applicable
+            // Reset per-sub-question chapter/topic on any cq-family question
+            // (CQ and Math CQ), since they hang off the parent selection.
             let subQuestionsReset: Partial<ICQ> = {};
-            if (dependentMap[field.name] && formData.questionType === "CQ") {
+            if (
+              dependentMap[field.name] &&
+              familyOf(formData.questionType) === "cq"
+            ) {
               subQuestionsReset = {
                 subQuestions: (formData as ICQ).subQuestions?.map((sq) => ({
                   ...sq,

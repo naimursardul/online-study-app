@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { QuestionTypeCode } from "../utils/question-types";
 
 //  USER
 export interface IUser extends mongoose.Document {
@@ -31,7 +32,7 @@ export interface IRecord {
 
 // Base Question
 export interface IBaseQuestion extends Document {
-  questionType: "MCQ" | "CQ";
+  questionType: QuestionTypeCode;
   levelId: string;
   backgroundId: string[];
   subjectId: string;
@@ -60,10 +61,16 @@ export interface ISubQuestions {
   topicId: string;
 }
 
-// CQ
+// CQ — also used by Math-CQ (identical shape, 3 sub-questions instead of 4)
 export interface ICQ extends IBaseQuestion {
   statement: string;
   subQuestions: ISubQuestions[];
+}
+
+// Written — the shared shape behind SQ, EQ and WQ
+export interface IWritten extends IBaseQuestion {
+  question: string;
+  answer: string;
 }
 
 // Populated Type
@@ -95,6 +102,9 @@ export interface ISubject extends Document {
   name: string;
   levelId: mongoose.Types.ObjectId;
   backgroundId: mongoose.Types.ObjectId[];
+  // Which question types this subject offers. Empty means "not configured yet",
+  // and consumers fall back to showing every type.
+  questionTypes: QuestionTypeCode[];
 }
 
 // Chapter

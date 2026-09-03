@@ -1,4 +1,5 @@
 import type { IqDetails, ViewModeType } from "@/types/types";
+import { labelOf } from "@/utils/questionTypes";
 
 function InstitutionQuestionTopbar({
   qDetails,
@@ -26,13 +27,13 @@ function InstitutionQuestionTopbar({
             {qDetails?.withName?.institution &&
               qDetails?.withName?.year &&
               qDetails?.withName?.questionType &&
-              `${qDetails?.withName?.institution} - ${qDetails?.withName?.year} (${qDetails?.withName?.questionType})`}
+              `${qDetails?.withName?.institution} - ${qDetails?.withName?.year} (${labelOf(qDetails.withName.questionType)})`}
           </p>
         </div>
 
         {/*  */}
         {/*  */}
-        {/* MODE SELECTOR */}
+        {/* MODE SELECTOR — only MCQ is auto-graded, so only it offers practice */}
         {qDetails?.withName?.questionType === "MCQ" && (
           <form
             onChange={(e: React.ChangeEvent<HTMLFormElement>) =>

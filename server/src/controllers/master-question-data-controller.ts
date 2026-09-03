@@ -31,7 +31,7 @@ export const getMasterQuestionData = async (req: Request, res: Response) => {
     ] = await Promise.all([
       Level.find().select("name"),
       Background.find().select("name levelId"),
-      Subject.find().select("name levelId backgroundId"),
+      Subject.find().select("name levelId backgroundId questionTypes"),
       Chapter.find().select("name subjectId levelId backgroundId"),
       Topic.find().select("name chapterId subjectId"),
       Record.find().select("institution year recordType"),

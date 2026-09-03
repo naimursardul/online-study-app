@@ -27,6 +27,7 @@ import Exam from "../models/exam-model";
 import Answer from "../models/answer-model";
 import UserAnalytics from "../models/user-analytics-model";
 import User from "../models/user-model";
+import { familyOf } from "../utils/question-types";
 
 export type TaxonomyKind =
   | "level"
@@ -498,8 +499,10 @@ export const collectDoomed = async (
     (!!q.topicId && topicSet.has(q.topicId));
 
   const questions = ids(matched);
+  // Every type in the CQ family (CQ, Math-CQ) carries sub-questions, so all of
+  // them can be pulled in this way.
   const cqViaSubQuestions = matched.filter(
-    (q) => q.questionType === "CQ" && !isDirect(q),
+    (q) => familyOf(q.questionType ?? "") === "cq" && !isDirect(q),
   ).length;
 
   if (kind === "background") {

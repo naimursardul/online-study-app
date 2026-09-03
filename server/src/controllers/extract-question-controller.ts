@@ -4,9 +4,14 @@ import { generateContent } from "../services/kie";
 import { buildParts } from "../utils/buildParts";
 
 import {
+  EXTRACTION_PROMPTS,
   BULK_MCQ_EXTRACTION_PROMPT,
-  BULK_CQ_EXTRACTION_PROMPT,
 } from "../prompts/extractionPrompt";
+import {
+  QuestionTypeCode,
+  isQuestionTypeCode,
+  QUESTION_TYPES,
+} from "../utils/question-types";
 
 // ====================================================
 // Limits
@@ -64,7 +69,7 @@ type SupportedMime =
   | "image/webp"
   | "application/pdf";
 
-type QuestionType = "MCQ" | "CQ";
+type QuestionType = QuestionTypeCode;
 
 // ====================================================
 // Route Handler
@@ -127,20 +132,24 @@ export const extractQuestionsHandler = [
         }
       }
 
-      const questionType: QuestionType = req.body.questionType || "MCQ";
+      const requestedType = req.body.questionType;
+      const questionType: QuestionType = isQuestionTypeCode(requestedType)
+        ? requestedType
+        : "MCQ";
 
       // ====================================================
       // Prompt Selection
       // ====================================================
+      // One prompt per question type, resolved from the registry.
 
       const systemPrompt =
-        questionType === "CQ"
-          ? BULK_CQ_EXTRACTION_PROMPT
-          : BULK_MCQ_EXTRACTION_PROMPT;
+        EXTRACTION_PROMPTS[questionType] ?? BULK_MCQ_EXTRACTION_PROMPT;
+
+      const typeLabel = QUESTION_TYPES[questionType].label;
 
       const userText = isPDF
-        ? `Extract all ${questionType} questions from this PDF.`
-        : `Extract all ${questionType} questions from these ${imageFiles.length} image(s). Treat them as consecutive pages in the given order.`;
+        ? `Extract all ${typeLabel} (${questionType}) questions from this PDF.`
+        : `Extract all ${typeLabel} (${questionType}) questions from these ${imageFiles.length} image(s). Treat them as consecutive pages in the given order.`;
 
       const parts = buildParts({
         systemPrompt,
@@ -174,9 +183,15 @@ export const extractQuestionsHandler = [
         ? extracted.questions
         : [extracted];
 
+      // Trust the model's echoed type only if it is a real code — otherwise the
+      // client would branch on a type its registry doesn't know.
+      const resolvedType = isQuestionTypeCode(extracted.questionType)
+        ? extracted.questionType
+        : questionType;
+
       return res.json({
         success: true,
-        questionType: extracted.questionType || questionType,
+        questionType: resolvedType,
         questions,
         fileType: isPDF ? "application/pdf" : "image",
         fileCount: isPDF ? 1 : imageFiles.length,

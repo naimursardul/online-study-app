@@ -9,7 +9,7 @@ import {
 // Create Subject
 export const createSubject = async (req: Request, res: Response) => {
   try {
-    const { name, levelId, backgroundId } = req.body;
+    const { name, levelId, backgroundId, questionTypes } = req.body;
 
     if (!name || !levelId || !backgroundId) {
       res.status(200).json({
@@ -39,6 +39,8 @@ export const createSubject = async (req: Request, res: Response) => {
       name,
       levelId,
       backgroundId,
+      // Optional: an unconfigured subject offers every question type.
+      questionTypes: Array.isArray(questionTypes) ? questionTypes : [],
     });
 
     await newSubject.save();

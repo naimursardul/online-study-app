@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { objectId, objectIdList, safeSearch, safeStringList } from "./common";
+import { QUESTION_TYPE_CODES } from "../utils/question-types";
 
 const baseQuestion = {
   levelId: objectId,
@@ -23,24 +24,46 @@ const mcq = z.object({
   explanation: z.string().trim().min(1),
 });
 
-const cq = z.object({
-  ...baseQuestion,
-  questionType: z.literal("CQ"),
-  statement: z.string().trim().min(1),
-  subQuestions: z
-    .array(
-      z.object({
-        questionNo: z.string().trim().min(1),
-        question: z.string().trim().min(1),
-        answer: z.string().trim().min(1),
-        chapterId: objectId,
-        topicId: objectId,
-      }),
-    )
-    .length(4),
+const subQuestion = z.object({
+  questionNo: z.string().trim().min(1),
+  question: z.string().trim().min(1),
+  answer: z.string().trim().min(1),
+  chapterId: objectId,
+  topicId: objectId,
 });
 
-const question = z.discriminatedUnion("questionType", [mcq, cq]);
+// CQ and Math-CQ differ only in sub-question count (see question-model.ts).
+const cqFamily = <T extends string>(questionType: T, subQuestionCount: number) =>
+  z.object({
+    ...baseQuestion,
+    questionType: z.literal(questionType),
+    statement: z.string().trim().min(1),
+    subQuestions: z.array(subQuestion).length(subQuestionCount),
+  });
+
+// SQ, EQ and WQ are the same `question + answer` shape under different names.
+const writtenFamily = <T extends string>(questionType: T) =>
+  z.object({
+    ...baseQuestion,
+    questionType: z.literal(questionType),
+    question: z.string().trim().min(1),
+    answer: z.string().trim().min(1),
+  });
+
+const cq = cqFamily("CQ", 4);
+const mathCq = cqFamily("Math-CQ", 3);
+const sq = writtenFamily("SQ");
+const eq = writtenFamily("EQ");
+const wq = writtenFamily("WQ");
+
+const question = z.discriminatedUnion("questionType", [
+  mcq,
+  cq,
+  mathCq,
+  sq,
+  eq,
+  wq,
+]);
 
 export const createQuestionSchema = z.object({
   // `record` is required by the controller but is not a schema field; allow it
@@ -62,22 +85,16 @@ export const updateQuestionSchema = z.object({
   params: z.object({ id: objectId }),
   body: z
     .object({
-      questionType: z.enum(["MCQ", "CQ"]),
+      questionType: z.enum(QUESTION_TYPE_CODES),
       ...baseQuestion,
       question: z.string().trim().min(1),
       options: z.array(z.string().trim().min(1)).length(4),
       correctAnswer: z.string().trim().min(1),
       explanation: z.string().trim().min(1),
+      // `answer` belongs to the written family (SQ/EQ/WQ).
+      answer: z.string().trim().min(1),
       statement: z.string().trim().min(1),
-      subQuestions: z.array(
-        z.object({
-          questionNo: z.string().trim().min(1),
-          question: z.string().trim().min(1),
-          answer: z.string().trim().min(1),
-          chapterId: objectId,
-          topicId: objectId,
-        }),
-      ),
+      subQuestions: z.array(subQuestion),
     })
     .partial()
     .strict()
@@ -90,7 +107,7 @@ export const updateQuestionSchema = z.object({
 export const listQuestionSchema = z.object({
   query: z
     .object({
-      questionType: z.enum(["MCQ", "CQ"]),
+      questionType: z.enum(QUESTION_TYPE_CODES),
       levelId: objectId,
       backgroundId: objectIdList.optional(),
       subjectId: objectId.optional(),

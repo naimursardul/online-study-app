@@ -2,6 +2,7 @@ import AllData from "@/components/admin/all-data";
 import UploadForm from "@/components/admin/upload-form";
 import { Card, CardContent } from "@/components/ui/card";
 import type { IField } from "@/types/types";
+import { QUESTION_TYPE_OPTIONS } from "@/utils/questionTypes";
 import { createFormInfo } from "@/utils/utils";
 import { PlusCircle } from "lucide-react";
 
@@ -21,6 +22,16 @@ export default function Subject() {
       label: "Name",
       inputType: "input",
       name: "name",
+    },
+    // Which question types this subject offers. The options are literal codes —
+    // they are stored on the subject verbatim, not looked up in master data.
+    // Leaving it empty means "every type", so existing subjects keep working.
+    {
+      label: "Question Types",
+      inputType: "checkbox",
+      name: "questionTypes",
+      manualOptionData: true,
+      optionData: QUESTION_TYPE_OPTIONS,
     },
   ];
 

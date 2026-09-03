@@ -1,4 +1,8 @@
-import type { ICQ, IMCQ } from "@/types/types";
+import type { ICQ, IMCQ, IWritten } from "@/types/types";
+import { familyOf, subQuestionCountOf, subQuestionLabelsOf } from "./questionTypes";
+
+// Any authored/extracted question, whatever its shape family.
+export type IAnyQuestion = IMCQ | ICQ | IWritten;
 
 export interface IValidationError {
   field: string;
@@ -10,7 +14,7 @@ export interface IQuestionValidationResult {
   errors: IValidationError[];
 }
 
-function validateBase(q: IMCQ | ICQ): IValidationError[] {
+function validateBase(q: IAnyQuestion): IValidationError[] {
   const errors: IValidationError[] = [];
 
   if (!q.levelId)
@@ -62,20 +66,23 @@ function validateMCQ(q: IMCQ): IValidationError[] {
   return errors;
 }
 
+// CQ needs 4 sub-questions, Math-CQ needs 3 — the count comes from the registry.
 function validateCQ(q: ICQ): IValidationError[] {
   const errors: IValidationError[] = [];
+  const expected = subQuestionCountOf(q.questionType);
+  const labels = subQuestionLabelsOf(q.questionType);
 
   if (!q.statement?.trim())
     errors.push({ field: "statement", message: "Statement is required." });
 
-  if (!q.subQuestions || q.subQuestions.length !== 4) {
+  if (!q.subQuestions || q.subQuestions.length !== expected) {
     errors.push({
       field: "subQuestions",
-      message: "Exactly 4 sub-questions are required.",
+      message: `Exactly ${expected} sub-questions are required.`,
     });
   } else {
     q.subQuestions.forEach((sq, i) => {
-      const label = ["A", "B", "C", "D"][i];
+      const label = labels[i] ?? String(i + 1);
       if (!sq.question?.trim())
         errors.push({
           field: `subQuestion${label}`,
@@ -102,17 +109,42 @@ function validateCQ(q: ICQ): IValidationError[] {
   return errors;
 }
 
-export function validateQuestion(q: IMCQ | ICQ): IQuestionValidationResult {
+// SQ / EQ / WQ
+function validateWritten(q: IWritten): IValidationError[] {
+  const errors: IValidationError[] = [];
+
+  if (!q.question?.trim())
+    errors.push({ field: "question", message: "Question text is required." });
+  if (!q.answer?.trim())
+    errors.push({ field: "answer", message: "Answer is required." });
+
+  return errors;
+}
+
+export function validateQuestion(q: IAnyQuestion): IQuestionValidationResult {
   const baseErrors = validateBase(q);
+
+  const family = familyOf(q.questionType);
   const typeErrors =
-    q.questionType === "MCQ" ? validateMCQ(q as IMCQ) : validateCQ(q as ICQ);
+    family === "mcq"
+      ? validateMCQ(q as IMCQ)
+      : family === "cq"
+        ? validateCQ(q as ICQ)
+        : family === "simple"
+          ? validateWritten(q as IWritten)
+          : [
+              {
+                field: "questionType",
+                message: `Unknown question type "${q.questionType}".`,
+              },
+            ];
 
   const errors = [...baseErrors, ...typeErrors];
   return { valid: errors.length === 0, errors };
 }
 
 export function validateAll(
-  questions: (IMCQ | ICQ)[],
+  questions: IAnyQuestion[],
 ): IQuestionValidationResult[] {
   return questions.map(validateQuestion);
 }

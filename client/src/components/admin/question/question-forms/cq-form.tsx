@@ -11,6 +11,7 @@ import {
 import type { ICQ } from "@/types/types";
 import { useMasterData } from "@/lib/MasterData-context";
 import TextEditor from "@/components/text-editor/TextEditor";
+import { subQuestionLabelsOf } from "@/utils/questionTypes";
 
 export default function CqForm({
   isQuestionReady,
@@ -24,6 +25,9 @@ export default function CqForm({
   setFormData: React.Dispatch<React.SetStateAction<ICQ>>;
 }) {
   const { masterData } = useMasterData();
+
+  // CQ shows A–D, Math CQ shows A–C — the count comes from the registry.
+  const subQuestionLabels = subQuestionLabelsOf(formData.questionType);
 
   // Initialize subquestions with parent chapter/topic
   useEffect(() => {
@@ -100,7 +104,7 @@ export default function CqForm({
 
         <div className="space-y-8">
           {(formData?.subQuestions || []).map((_, i) => {
-            const label = ["A", "B", "C", "D"][i];
+            const label = subQuestionLabels[i] ?? String(i + 1);
 
             return (
               <div key={i} className="space-y-4 pl-3">

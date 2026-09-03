@@ -6,10 +6,18 @@
  */
 
 import { Request, Response } from "express";
-import { MCQ, CQ, BaseQuestion } from "../models/question-model";
+import { BaseQuestion, questionModels } from "../models/question-model";
 // Aliased so it doesn't shadow TypeScript's built-in `Record<K, V>` utility type.
 import RecordModel from "../models/record-model";
-import { ICQ, IMCQ } from "../type/type";
+import {
+  QUESTION_TYPE_CODES,
+  QuestionTypeCode,
+  familyOf,
+  isQuestionTypeCode,
+  primaryTextFieldOf,
+  searchTextFieldOf,
+  subQuestionCountOf,
+} from "../utils/question-types";
 
 // CREATE QUESTION
 async function createQuestion(req: Request, res: Response) {
@@ -30,18 +38,16 @@ async function createQuestion(req: Request, res: Response) {
       options,
       correctAnswer,
       explanation,
+      answer,
       statement,
       subQuestions,
     } = req.body;
 
-    // Define supported question types dynamically
-    const supportedQuestionTypes = ["MCQ", "CQ"]; // Add more types here as needed in the future
-
-    // Validate that the provided questionType is supported
-    if (!supportedQuestionTypes.includes(questionType)) {
+    // Supported types come from the registry, so a new type needs no change here.
+    if (!isQuestionTypeCode(questionType)) {
       res.status(200).json({
         success: false,
-        message: `Invalid question type. Supported types are: ${supportedQuestionTypes.join(
+        message: `Invalid question type. Supported types are: ${QUESTION_TYPE_CODES.join(
           ", ",
         )}.`,
         data: null,
@@ -49,7 +55,7 @@ async function createQuestion(req: Request, res: Response) {
       return;
     }
 
-    // Check for missing required fields for both MCQ and CQ
+    // Check for the fields every question type shares
     if (
       !levelId ||
       !Array.isArray(backgroundId) ||
@@ -74,88 +80,88 @@ async function createQuestion(req: Request, res: Response) {
       return;
     }
 
-    switch (questionType) {
-      // MCQ
-      case "MCQ":
-        // Handle MCQ-specific validation
-        if (
-          !question ||
-          !options ||
-          options.length < 4 ||
-          !correctAnswer ||
-          !explanation
-        ) {
-          res.status(200).json({
-            success: false,
-            message:
-              "Invalid MCQ question. Ensure 'question', 'options' (with at least 4 options), 'correctAnswer', and 'explanation' are provided.",
-            data: null,
-          });
-          return;
-        }
+    // Shape validation per family (mcq / cq / simple — see utils/question-types.ts)
+    const family = familyOf(questionType);
 
-        // Check if the MCQ already exists
-        const existingMCQ = await MCQ.findOne({ question });
-        if (existingMCQ) {
-          res.status(200).json({
-            success: false,
-            message: "This MCQ question already exists.",
-            data: null,
-          });
-          return;
-        }
-
-        // Create a new MCQ
-        const newMCQ = new MCQ(req.body);
-        await newMCQ.save();
-        break;
-
-      // CQ
-      case "CQ":
-        // Handle CQ-specific validation
-        if (!statement || !subQuestions || subQuestions.length !== 4) {
-          res.status(200).json({
-            success: false,
-            message:
-              "Invalid CQ question. Ensure 'statement' and 'subQuestions' (with at least 4 questions) are provided.",
-            data: null,
-          });
-          return;
-        }
-        subQuestions.map((sq: any) => {
-          if (
-            !sq?.questionNo ||
-            !sq?.question ||
-            !sq.answer ||
-            !sq?.chapterId ||
-            !sq?.topicId
-          ) {
-            res.status(200).json({
-              success: false,
-              message:
-                "Sub-Questions must have questionNo, question, answer, chapterId, subjectId, and topicId.",
-              data: null,
-            });
-            return;
-          }
+    if (family === "mcq") {
+      if (
+        !question ||
+        !options ||
+        options.length < 4 ||
+        !correctAnswer ||
+        !explanation
+      ) {
+        res.status(200).json({
+          success: false,
+          message:
+            "Invalid MCQ question. Ensure 'question', 'options' (with at least 4 options), 'correctAnswer', and 'explanation' are provided.",
+          data: null,
         });
-
-        // Check if the CQ already exists
-        const existingCQ = await CQ.findOne({ statement });
-        if (existingCQ) {
-          res.status(200).json({
-            success: false,
-            message: "This CQ question already exists.",
-            data: null,
-          });
-          return;
-        }
-
-        // Create a new CQ
-        const newCQ = new CQ(req.body);
-        await newCQ.save();
-        break;
+        return;
+      }
     }
+
+    if (family === "cq") {
+      const expectedSubQuestions = subQuestionCountOf(questionType);
+      if (
+        !statement ||
+        !Array.isArray(subQuestions) ||
+        subQuestions.length !== expectedSubQuestions
+      ) {
+        res.status(200).json({
+          success: false,
+          message: `Invalid ${questionType} question. Ensure 'statement' and exactly ${expectedSubQuestions} 'subQuestions' are provided.`,
+          data: null,
+        });
+        return;
+      }
+
+      const invalidSubQuestion = subQuestions.some(
+        (sq: any) =>
+          !sq?.questionNo ||
+          !sq?.question ||
+          !sq?.answer ||
+          !sq?.chapterId ||
+          !sq?.topicId,
+      );
+      if (invalidSubQuestion) {
+        res.status(200).json({
+          success: false,
+          message:
+            "Sub-Questions must have questionNo, question, answer, chapterId, and topicId.",
+          data: null,
+        });
+        return;
+      }
+    }
+
+    if (family === "simple") {
+      if (!question || !answer) {
+        res.status(200).json({
+          success: false,
+          message: `Invalid ${questionType} question. Ensure 'question' and 'answer' are provided.`,
+          data: null,
+        });
+        return;
+      }
+    }
+
+    // Reject duplicates on the family's identifying text field
+    const Model = questionModels[questionType];
+    const dedupeField = primaryTextFieldOf(questionType);
+    const existingQuestion = await Model.findOne({
+      [dedupeField]: req.body[dedupeField],
+    });
+    if (existingQuestion) {
+      res.status(200).json({
+        success: false,
+        message: `This ${questionType} question already exists.`,
+        data: null,
+      });
+      return;
+    }
+
+    await new Model(req.body).save();
 
     res.status(200).json({
       success: true,
@@ -202,6 +208,16 @@ const getAllQuestions = async (req: Request, res: Response) => {
       res.status(200).json({
         success: false,
         message: "Question-type, levelId must be selected.",
+        data: null,
+      });
+      return;
+    }
+    if (!isQuestionTypeCode(questionType)) {
+      res.status(200).json({
+        success: false,
+        message: `Invalid question type. Supported types are: ${QUESTION_TYPE_CODES.join(
+          ", ",
+        )}.`,
         data: null,
       });
       return;
@@ -253,15 +269,15 @@ const getAllQuestions = async (req: Request, res: Response) => {
 
     if (typeof search === "string") {
       const searchRegex = { $regex: escapeRegex(search), $options: "i" };
-      if (questionType === "MCQ") query.question = searchRegex;
-      else query["subQuestions.question"] = searchRegex;
+      // The CQ family keeps its text on sub-questions; everything else on `question`.
+      query[searchTextFieldOf(questionType)] = searchRegex;
     }
 
-    // Both discriminators live in the same collection; typed as the base model
-    // so the union of the two discriminator types doesn't break `find()`.
-    const Model = (
-      questionType === "MCQ" ? MCQ : CQ
-    ) as unknown as typeof BaseQuestion;
+    // Every discriminator lives in the same collection; typed as the base model
+    // so the union of discriminator types doesn't break `find()`.
+    const Model = questionModels[
+      questionType
+    ] as unknown as typeof BaseQuestion;
     const pageSize = Number(limit) || 20;
     const pageNumber = Number(page) || 0; // 0 => not paginated
 
@@ -358,22 +374,26 @@ const updateSingleQuestion = async (req: Request, res: Response) => {
     return;
   }
 
+  if (!isQuestionTypeCode(questionType)) {
+    res.status(200).json({
+      success: false,
+      message: `Invalid question type. Supported types are: ${QUESTION_TYPE_CODES.join(
+        ", ",
+      )}.`,
+      data: null,
+    });
+    return;
+  }
+
   try {
-    let updatedQ;
-    switch (questionType) {
-      case "MCQ":
-        updatedQ = await MCQ.findByIdAndUpdate(id, newData, {
-          new: true,
-          runValidators: true,
-        });
-        break;
-      case "CQ":
-        updatedQ = await CQ.findByIdAndUpdate(id, newData, {
-          new: true,
-          runValidators: true,
-        });
-        break;
-    }
+    const updatedQ = await questionModels[questionType].findByIdAndUpdate(
+      id,
+      newData,
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
 
     res.status(200).json({
       success: true,
@@ -433,20 +453,39 @@ async function bulkCreateQuestions(req: Request, res: Response) {
     return;
   }
 
-  // Split by type
-  const mcqs = questions.filter((q) => q.questionType === "MCQ") as IMCQ[];
-  const cqs = questions.filter((q) => q.questionType === "CQ") as ICQ[];
+  // Group by type so each discriminator gets its own insertMany. Original
+  // request indexes are carried along so error reporting points at the right
+  // question rather than at a position within the per-type batch.
+  const grouped = new Map<QuestionTypeCode, { doc: any; index: number }[]>();
 
   let inserted = 0;
   let failed = 0;
   const errors: { index: number; message: string }[] = [];
 
+  questions.forEach((doc: any, index: number) => {
+    const questionType = doc?.questionType;
+    if (!isQuestionTypeCode(questionType)) {
+      failed += 1;
+      errors.push({
+        index,
+        message: `Unsupported question type: ${questionType}.`,
+      });
+      return;
+    }
+    const group = grouped.get(questionType) ?? [];
+    group.push({ doc, index });
+    grouped.set(questionType, group);
+  });
+
   // -------------------------
-  // Insert MCQs
+  // Insert per type
   // -------------------------
-  if (mcqs.length > 0) {
+  for (const [questionType, group] of grouped) {
     try {
-      const result = await MCQ.insertMany(mcqs, { ordered: false });
+      const result = await questionModels[questionType].insertMany(
+        group.map((entry) => entry.doc),
+        { ordered: false },
+      );
       inserted += result.length;
     } catch (err: any) {
       // ordered: false means valid docs still insert even if some fail
@@ -459,32 +498,8 @@ async function bulkCreateQuestions(req: Request, res: Response) {
 
       writeErrors.forEach((e: any) => {
         errors.push({
-          index: e.index,
-          message: e.errmsg || "MCQ insert failed.",
-        });
-      });
-    }
-  }
-
-  // -------------------------
-  // Insert CQs
-  // -------------------------
-  if (cqs.length > 0) {
-    try {
-      const result = await CQ.insertMany(cqs, { ordered: false });
-      inserted += result.length;
-    } catch (err: any) {
-      if (err.insertedDocs) {
-        inserted += err.insertedDocs.length;
-      }
-
-      const writeErrors = err.writeErrors || [];
-      failed += writeErrors.length;
-
-      writeErrors.forEach((e: any) => {
-        errors.push({
-          index: e.index,
-          message: e.errmsg || "CQ insert failed.",
+          index: group[e.index]?.index ?? e.index,
+          message: e.errmsg || e.err?.errmsg || `${questionType} insert failed.`,
         });
       });
     }

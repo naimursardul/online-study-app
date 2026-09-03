@@ -44,7 +44,12 @@ export function createFormInfo<T extends { _id: string }>(
           field?.inputType === "checkbox" &&
           Array.isArray(data[fieldName])
         ) {
-          obj[fieldName] = data[fieldName]?.map((d) => d?._id) as T[keyof T];
+          // A multi-select holds ids. Populated master-data rows arrive as
+          // objects and collapse to their _id; a field with manual options
+          // (subject.questionTypes) already holds plain codes, so keep those.
+          obj[fieldName] = (data[fieldName] as unknown[]).map((d) =>
+            typeof d === "string" ? d : (d as { _id?: string })?._id,
+          ) as T[keyof T];
         } else {
           obj[fieldName] = (data[fieldName]
             ? (data[fieldName] as { _id?: string })?._id

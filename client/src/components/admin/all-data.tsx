@@ -61,6 +61,10 @@ type DataType = (
 // nothing to preview.
 const IMPACT_ROUTES = ["/level", "/background", "/subject", "/chapter", "/topic"];
 
+// Columns that are editable but not filterable: no list endpoint filters by
+// them, so a filter control here would look functional and do nothing.
+const NON_FILTER_FIELDS = ["details", "questionTypes"];
+
 type ImpactReport = {
   kind: string;
   name: string;
@@ -373,15 +377,22 @@ export default function AllData({
   );
 
   function resolveCellValue(value: unknown): string {
-    if (Array.isArray(value))
-      return (value as { name: string }[]).map((v) => v.name).join(", ");
+    if (Array.isArray(value)) {
+      // Either populated master-data rows ({ name }) or plain codes
+      // (subject.questionTypes).
+      const parts = value
+        .map((v) => (typeof v === "string" ? v : (v as { name?: string })?.name))
+        .filter(Boolean);
+      return parts.length ? parts.join(", ") : "—";
+    }
     if (typeof value === "object" && value !== null && "name" in value)
       return (value as { name: string }).name;
     return String(value ?? "—");
   }
 
   const filterFields =
-    updatedFields?.filter((f: IField) => f.name !== "details") ?? [];
+    updatedFields?.filter((f: IField) => !NON_FILTER_FIELDS.includes(f.name)) ??
+    [];
   const hasFilters = filterFields.length > 0;
 
   return (

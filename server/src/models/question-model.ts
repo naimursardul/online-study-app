@@ -1,12 +1,19 @@
 /*
  * Title: Question Model
- * Description: Question model for both MCQ & CQ
+ * Description: Question model for every question type. All types live in the
+ *              `questions` collection behind the `questionType` discriminator
+ *              key and share `baseQuestionSchema`. Shapes come in three
+ *              families — see utils/question-types.ts.
  * Author: Naimur Rahman
  * Date: 2025-04-09
  */
 
 import mongoose, { Schema } from "mongoose";
-import { IBaseQuestion, ICQ, IMCQ } from "../type/type";
+import { IBaseQuestion, ICQ, IMCQ, IWritten } from "../type/type";
+import {
+  QUESTION_TYPE_CODES,
+  QuestionTypeCode,
+} from "../utils/question-types";
 
 // -----------------------
 // Schemas
@@ -16,7 +23,7 @@ const baseQuestionSchema = new Schema<IBaseQuestion>(
   {
     questionType: {
       type: String,
-      enum: ["MCQ", "CQ"],
+      enum: QUESTION_TYPE_CODES,
       required: true,
     },
     backgroundId: [
@@ -131,47 +138,87 @@ const mcqSchema = new Schema<IMCQ>({
 const MCQ = BaseQuestion.discriminator<IMCQ>("MCQ", mcqSchema);
 
 // CQ Schema
-const cqSchema = new Schema<ICQ>({
-  statement: {
-    type: String,
-    required: true,
-  },
-  subQuestions: {
-    type: [
-      {
-        questionNo: {
-          type: String,
-          required: true,
+// Built by a factory because the CQ family differs only in how many
+// sub-questions it expects: CQ has 4 (ক/খ/গ/ঘ), Math-CQ has 3 (ক/খ/গ).
+// Fresh definition objects per call so the two schemas never share state.
+const makeCqSchema = (subQuestionCount: number) =>
+  new Schema<ICQ>({
+    statement: {
+      type: String,
+      required: true,
+    },
+    subQuestions: {
+      type: [
+        {
+          questionNo: {
+            type: String,
+            required: true,
+          },
+          question: {
+            type: String,
+            required: true,
+          },
+          answer: {
+            type: String,
+            required: true,
+          },
+          chapterId: {
+            type: String,
+            required: true,
+          },
+          topicId: {
+            type: String,
+            required: true,
+          },
         },
-        question: {
-          type: String,
-          required: true,
+      ],
+      validate: [
+        {
+          validator: (val: unknown[]) => val.length === subQuestionCount,
+          message: `Sub Questions must be exactly ${subQuestionCount}.`,
         },
-        answer: {
-          type: String,
-          required: true,
-        },
-        chapterId: {
-          type: String,
-          required: true,
-        },
-        topicId: {
-          type: String,
-          required: true,
-        },
-      },
-    ],
-    validate: [
-      {
-        validator: (val: string[]) => val.length === 4,
-        message: "Sub Questions must be exactly 4.",
-      },
-    ],
-  },
-});
+      ],
+    },
+  });
 
-const CQ = BaseQuestion.discriminator<ICQ>("CQ", cqSchema);
+const CQ = BaseQuestion.discriminator<ICQ>("CQ", makeCqSchema(4));
+const MathCQ = BaseQuestion.discriminator<ICQ>("Math-CQ", makeCqSchema(3));
+
+// Written Schema
+// SQ (short question), EQ (English question) and WQ (written question) are the
+// same `question + answer` shape under different names, so they share a schema
+// factory and only the discriminator value differs.
+const makeWrittenSchema = () =>
+  new Schema<IWritten>({
+    question: {
+      type: String,
+      required: true,
+    },
+    answer: {
+      type: String,
+      required: true,
+    },
+  });
+
+const SQ = BaseQuestion.discriminator<IWritten>("SQ", makeWrittenSchema());
+const EQ = BaseQuestion.discriminator<IWritten>("EQ", makeWrittenSchema());
+const WQ = BaseQuestion.discriminator<IWritten>("WQ", makeWrittenSchema());
+
+// -----------------------
+// Registry
+// -----------------------
+
+// Controllers resolve the model from the request's questionType through this
+// map instead of branching per type.
+const questionModels: Record<QuestionTypeCode, mongoose.Model<any>> = {
+  MCQ,
+  CQ,
+  "Math-CQ": MathCQ,
+  SQ,
+  EQ,
+  WQ,
+};
 
 // -----------------------
 
-export { BaseQuestion, MCQ, CQ };
+export { BaseQuestion, MCQ, CQ, MathCQ, SQ, EQ, WQ, questionModels };
