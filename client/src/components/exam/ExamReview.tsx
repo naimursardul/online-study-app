@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ChevronsUpDown, X } from "lucide-react";
+import { Check, CheckCircle2, ChevronsUpDown, X, XCircle } from "lucide-react";
 import ReactMarkdownRender from "@/components/text-editor/ReactMarkdownRender";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import type { ExamReviewItemType } from "@/types/types";
+import { optionLetterOf } from "@/utils/questionTypes";
 import type { ExamResultSummary } from "./ExamResult";
 
 type Props = {
@@ -18,7 +19,23 @@ type Props = {
   onBack: () => void;
 };
 
-const OPTION_LABEL: Record<number, string> = { 0: "A", 1: "B", 2: "C", 3: "D" };
+// The same bordered, tinted option rows the question display uses
+// (qb/institution-question/single-question/single-mcq-question.tsx), so the
+// review does not switch visual language the moment an exam is submitted.
+type OptionTone = "neutral" | "correct" | "wrong";
+
+const OPTION_TONES: Record<OptionTone, string> = {
+  neutral: "border-sidebar-border",
+  correct: "border-green-500 bg-green-500/10",
+  wrong: "border-destructive bg-destructive/10",
+};
+
+function optionRowClass(tone: OptionTone) {
+  return `flex gap-2 items-center rounded-lg border p-3 max-sm:text-sm [&_p]:my-0 ${OPTION_TONES[tone]}`;
+}
+
+const OPTION_BADGE =
+  "shrink-0 size-5 md:size-6 flex items-center justify-center border border-primary rounded-full text-xs md:text-sm";
 
 export default function ExamReview({
   examName,
@@ -107,11 +124,11 @@ function ReviewQuestion({
 
   const correctIdx = Number(item.correctAnswer);
 
-  const optionBg = (j: number) => {
-    if (j === correctIdx) return "bg-green-400 text-white border-none";
-    if (givenIdx === j && givenIdx !== correctIdx)
-      return "bg-red-500 text-white border-none";
-    return "bg-sidebar-accent";
+  const optionTone = (j: number): OptionTone => {
+    if (j === correctIdx) return "correct";
+    // Only the pick that missed is flagged; every other option stays neutral.
+    if (j === givenIdx) return "wrong";
+    return "neutral";
   };
 
   return (
@@ -131,22 +148,25 @@ function ReviewQuestion({
         </div>
 
         {/* OPTIONS */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {item.options?.map((o, j) => (
-            <div
-              key={j}
-              className={`pl-4 flex gap-2 items-center px-2 py-2 rounded-lg font-semibold ${optionBg(
-                j,
-              )}`}
-            >
-              <span className="size-5 flex items-center justify-center border border-primary rounded-full text-xs md:text-sm text-primary">
-                {OPTION_LABEL[j]}
-              </span>
-              <span className="max-sm:text-sm">
-                <ReactMarkdownRender text={o} />
-              </span>
-            </div>
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {item.options?.map((o, j) => {
+            const tone = optionTone(j);
+
+            return (
+              <div key={j} className={optionRowClass(tone)}>
+                <span className={OPTION_BADGE}>{optionLetterOf(j)}</span>
+                <div className="min-w-0 flex-1">
+                  <ReactMarkdownRender text={o} />
+                </div>
+                {tone === "correct" && (
+                  <CheckCircle2 className="shrink-0 size-4 text-green-500" />
+                )}
+                {tone === "wrong" && (
+                  <XCircle className="shrink-0 size-4 text-destructive" />
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* EXPLANATION */}

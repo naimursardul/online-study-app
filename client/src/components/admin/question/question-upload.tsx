@@ -20,13 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import type {
-  IMCQ,
-  IBaseQuestion,
-  ICQ,
-  IField,
-  IWritten,
-} from "@/types/types";
+import type { IMCQ, IBaseQuestion, ICQ, IField, IWritten } from "@/types/types";
 import SubmitBtn from "@/components/submit-btn/submit-btn";
 import { useMasterData } from "@/lib/MasterData-context";
 import {
@@ -36,6 +30,8 @@ import {
   typesForSubject,
   type QuestionTypeCode,
 } from "@/utils/questionTypes";
+import ValidationSummary from "../questionExtraction/ValidationSummary ";
+import { validateQuestion } from "@/utils/validateQuestion";
 
 // Base metadata fields — the same for every question type, so they live outside
 // the component and keep a stable identity across renders.
@@ -68,7 +64,7 @@ const FIELDS: IField[] = [
   {
     label: "Record",
     inputType: "checkbox",
-    name: "record",
+    name: "recordId",
   },
   {
     label: "Difficulty",
@@ -119,6 +115,7 @@ export default function QuestionUpload() {
     [masterData, formData],
   );
 
+  console.log(filteredFields);
   const selectedSubject = useMemo(
     () => masterData.subjects.find((s) => s._id === formData.subjectId),
     [masterData.subjects, formData.subjectId],
@@ -294,6 +291,11 @@ export default function QuestionUpload() {
               loading={loading}
               btnName={isQuestionReady ? "Submit" : "Ready"}
             />
+            {isQuestionReady && (
+              <ValidationSummary
+                result={validateQuestion(formData as IMCQ | ICQ | IWritten)}
+              />
+            )}
           </form>
         </CardContent>
       </Card>

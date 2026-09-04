@@ -1,5 +1,5 @@
-import { useRef, useState, type Dispatch, type SetStateAction } from "react";
-import { ChevronsUpDown } from "lucide-react";
+import { useState, type Dispatch, type SetStateAction } from "react";
+import { CheckCircle2, ChevronsUpDown } from "lucide-react";
 import type {
   ExamStatusType,
   IMCQ,
@@ -16,6 +16,31 @@ import { Badge } from "@/components/ui/badge";
 import { useMasterData } from "@/lib/MasterData-context";
 import { extractIdTo_ } from "@/utils/utils";
 import SaveToCollectionButton from "@/components/collection/saveToCollectionBtn";
+import { optionLetterOf } from "@/utils/questionTypes";
+
+// Options are bordered boxes tinted by state — the same design the admin's
+// extraction card uses (admin/questionExtraction/MCQCard.tsx), so an option
+// looks the same whether it is being authored or answered. Green means "this is
+// the answer", so a practice pick is tinted with the primary colour instead:
+// nothing has been graded at that point.
+type OptionTone = "neutral" | "correct" | "picked";
+
+const OPTION_TONES: Record<OptionTone, string> = {
+  neutral: "border-sidebar-border",
+  correct: "border-green-500 bg-green-500/10",
+  picked: "border-primary bg-primary/10",
+};
+
+// `[&_p]:my-0` cancels the `my-2` ReactMarkdownRender puts on paragraphs, which
+// would otherwise inflate every row.
+function optionRowClass(tone: OptionTone, selectable = false) {
+  return `flex gap-2 items-center rounded-lg border p-3 max-sm:text-sm [&_p]:my-0 ${
+    OPTION_TONES[tone]
+  } ${selectable ? "cursor-pointer hover:border-primary/60" : ""}`;
+}
+
+const OPTION_BADGE =
+  "shrink-0 size-5 md:size-6 flex items-center justify-center border border-primary rounded-full text-xs md:text-sm";
 
 export default function SingleMcqQuestion({
   q,
@@ -36,22 +61,19 @@ export default function SingleMcqQuestion({
     questionId: q._id || "",
     givenAns: undefined,
   });
-  const optionRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // COLLAPSE SETTING FOR EXPLATION
   const [isOpen, setIsOpen] = useState(false);
 
-  // CONVERT OPTION INDEX TO STRING
-  const optionSetting: Record<number, string> = {
-    0: "A",
-    1: "B",
-    2: "C",
-    3: "D",
-  };
+  // A question can reach here carrying no options at all, and the rendering must
+  // not leak a stray `0` for it.
+  const hasOptions = Array.isArray(q?.options) && q.options.length > 0;
+
+  // Practice locks after the first pick, and a finished exam locks everything.
+  const canPick = changeOption && examStatus !== "finished";
 
   // HANDLE AFTER SELECTING AN OPTION
-  function handleSingleMcqSubmit(e: React.ChangeEvent<HTMLFormElement>) {
-    e.preventDefault();
+  function handleOptionChange(e: React.ChangeEvent<HTMLInputElement>) {
     if (!setAnswerScript) return;
     const singleAnsObj: SingleMcqAnswerType = {
       questionId: q._id,
@@ -61,24 +83,12 @@ export default function SingleMcqQuestion({
     setChangeOption(false);
 
     // setting answer to answer script array
-    setAnswerScript((p) => {
-      const newP = p.map((t) => {
-        if (t.questionId === singleAnsObj.questionId) {
-          t = { ...singleAnsObj };
-        }
-        return t;
-      });
-
-      return [...newP];
-    });
+    setAnswerScript((p) =>
+      p.map((t) =>
+        t.questionId === singleAnsObj.questionId ? { ...singleAnsObj } : t,
+      ),
+    );
   }
-
-  const optionBg = (optionNumber: string) => {
-    if (optionNumber === singleMcqAnswer.givenAns) {
-      return "bg-green-400";
-    }
-    return "bg-sidebar-accent";
-  };
 
   return (
     <div className="bg-background rounded-xl p-5 max-sm:p-4 border border-sidebar-border">
@@ -120,74 +130,74 @@ export default function SingleMcqQuestion({
         </div>
 
         {viewMode === "practice" ? (
-          <>
-            {/* MCQ FORM */}
-            <form
-              onChange={handleSingleMcqSubmit}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-1 "
-            >
-              {q?.options?.length &&
-                q.options.map((o, j) => (
-                  <div
+          /* PRACTICE / EXAM — a real radio group, so Tab reaches it and the
+             arrow keys move through the options. */
+          <fieldset
+            disabled={!canPick}
+            className="grid min-w-0 grid-cols-1 sm:grid-cols-2 gap-2"
+          >
+            <legend className="sr-only">Options for question {i}</legend>
+            {hasOptions
+              ? q.options.map((o, j) => (
+                  <label
                     key={j}
-                    onClick={() => optionRefs.current[j]?.click()}
-                    className={`flex gap-2 items-center px-2 py-2 rounded-lg cursor-pointer ${optionBg(
-                      String(j),
-                    )}`}
+                    htmlFor={`mcq-${q._id}-${j}`}
+                    className={`${optionRowClass(
+                      singleMcqAnswer.givenAns === String(j)
+                        ? "picked"
+                        : "neutral",
+                      canPick,
+                    )} has-focus-visible:ring-2 has-focus-visible:ring-ring/50`}
                   >
                     {/* OPTION NUMBERING */}
-                    <div
-                      className={`min-w-4 min-h-4 md:min-w-5 md:min-h-5 flex items-center justify-center border border-primary rounded-full text-xs md:text-sm`}
-                    >
-                      {optionSetting[j]}
-                    </div>
-                    {/* OPTION INPUT */}
+                    <span className={OPTION_BADGE}>{optionLetterOf(j)}</span>
+                    {/* OPTION INPUT — visually hidden but still focusable, and
+                        the option text becomes its accessible name. */}
                     <input
-                      hidden
-                      ref={(el) => {
-                        optionRefs.current[j] = el;
-                      }}
-                      disabled={!changeOption || examStatus === "finished"}
+                      className="sr-only"
                       type="radio"
                       name={`mcq-${q._id}`}
                       id={`mcq-${q._id}-${j}`}
                       value={String(j)}
+                      checked={singleMcqAnswer.givenAns === String(j)}
+                      onChange={handleOptionChange}
                     />
                     {/* OPTION DETAILS */}
-                    <p className="max-sm:text-sm text-sm">
+                    <div className="min-w-0 flex-1">
                       <ReactMarkdownRender text={o} />
-                    </p>
-                  </div>
-                ))}
-            </form>
-          </>
+                    </div>
+                  </label>
+                ))
+              : null}
+          </fieldset>
         ) : (
           // MCQ (VIEW ONLY + SHOW ANSWER MODE)
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 ">
-            {q?.options?.length &&
-              q.options.map((o, j) => (
-                <div
-                  key={j}
-                  className={` flex gap-2 items-center px-2 py-2 rounded-lg font-semibold  ${
-                    viewMode === "showAns" && q?.correctAnswer === String(j)
-                      ? "bg-green-400 border-none"
-                      : "bg-sidebar-accent"
-                  }`}
-                >
-                  {/* OPTION NUMBERING */}
-                  <span
-                    className={`min-w-4 min-h-4 md:min-w-5 md:min-h-5 flex items-center justify-center border border-primary rounded-full text-xs md:text-sm`}
-                  >
-                    {optionSetting[j]}
-                  </span>
-                  {/* OPTION DETAILS */}
-                  <span
-                    className={`flex justify-center items-center max-sm:text-sm `}
-                  >
-                    <ReactMarkdownRender text={o} />
-                  </span>
-                </div>
-              ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {hasOptions
+              ? q.options.map((o, j) => {
+                  const isCorrect =
+                    viewMode === "showAns" && q?.correctAnswer === String(j);
+
+                  return (
+                    <div
+                      key={j}
+                      className={optionRowClass(
+                        isCorrect ? "correct" : "neutral",
+                      )}
+                    >
+                      {/* OPTION NUMBERING */}
+                      <span className={OPTION_BADGE}>{optionLetterOf(j)}</span>
+                      {/* OPTION DETAILS */}
+                      <div className="min-w-0 flex-1">
+                        <ReactMarkdownRender text={o} />
+                      </div>
+                      {isCorrect && (
+                        <CheckCircle2 className="shrink-0 size-4 text-green-500" />
+                      )}
+                    </div>
+                  );
+                })
+              : null}
           </div>
         )}
         {/* MCQ EXPLANATION */}

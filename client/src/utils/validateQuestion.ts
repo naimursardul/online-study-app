@@ -1,5 +1,9 @@
 import type { ICQ, IMCQ, IWritten } from "@/types/types";
-import { familyOf, subQuestionCountOf, subQuestionLabelsOf } from "./questionTypes";
+import {
+  familyOf,
+  subQuestionCountOf,
+  subQuestionLabelsOf,
+} from "./questionTypes";
 
 // Any authored/extracted question, whatever its shape family.
 export type IAnyQuestion = IMCQ | ICQ | IWritten;
@@ -122,6 +126,7 @@ function validateWritten(q: IWritten): IValidationError[] {
 }
 
 export function validateQuestion(q: IAnyQuestion): IQuestionValidationResult {
+  console.log(q);
   const baseErrors = validateBase(q);
 
   const family = familyOf(q.questionType);

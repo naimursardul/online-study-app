@@ -77,6 +77,14 @@ export function subQuestionLabelsOf(code: string): string[] {
   return SUB_QUESTION_LABELS.slice(0, subQuestionCountOf(code));
 }
 
+// The badge an MCQ option carries. A question is expected to hold four options,
+// but nothing enforces it, so anything past D falls back to its 1-based number.
+const OPTION_LETTERS = ["A", "B", "C", "D"];
+
+export function optionLetterOf(index: number): string {
+  return OPTION_LETTERS[index] ?? String(index + 1);
+}
+
 // A subject with no configured types is treated as offering every type, so
 // subjects created before this feature keep working until an admin sets them.
 export function typesForSubject(

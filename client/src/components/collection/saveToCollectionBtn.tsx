@@ -11,6 +11,7 @@ import type { IBaseQuestion } from "@/types/types";
 import { client } from "@/utils/utils";
 import { toast } from "sonner";
 import { useMasterData } from "@/lib/MasterData-context";
+import { useAuth } from "@/lib/Auth-context";
 
 type Props = {
   questionId: string;
@@ -27,6 +28,8 @@ export default function SaveToCollectionButton({
   topicId,
   questionType,
 }: Props) {
+  const { user, authLoader } = useAuth();
+
   const { masterData } = useMasterData();
 
   const [savedCollectionIds, setSavedCollectionIds] = useState<string[]>([]);
@@ -124,6 +127,8 @@ export default function SaveToCollectionButton({
       setIsCreating(false);
     }
   }
+
+  if (!user && authLoader) return null;
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
