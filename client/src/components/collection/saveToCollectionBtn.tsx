@@ -28,8 +28,6 @@ export default function SaveToCollectionButton({
   topicId,
   questionType,
 }: Props) {
-  const { user, authLoader } = useAuth();
-
   const { masterData } = useMasterData();
 
   const [savedCollectionIds, setSavedCollectionIds] = useState<string[]>([]);
@@ -128,7 +126,6 @@ export default function SaveToCollectionButton({
     }
   }
 
-  if (!user && authLoader) return null;
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>

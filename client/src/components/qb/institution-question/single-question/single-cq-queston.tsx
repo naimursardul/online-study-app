@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { extractIdTo_ } from "@/utils/utils";
 import { useMasterData } from "@/lib/MasterData-context";
 import SaveToCollectionButton from "@/components/collection/saveToCollectionBtn";
+import ProtectedComponent from "@/lib/Protected.component";
 
 export default function SingleCqQuestion({
   q,
@@ -27,12 +28,16 @@ export default function SingleCqQuestion({
           <p className="bg-input size-5 md:size-7 flex justify-center items-center px-2 py-2 text-xs rounded">
             {i}
           </p>
-          <SaveToCollectionButton
-            questionType={q.questionType}
-            questionId={q._id}
-            subjectId={q.subjectId}
-            chapterId={q.chapterId}
-            topicId={q.topicId}
+          <ProtectedComponent
+            component={
+              <SaveToCollectionButton
+                questionType={q.questionType}
+                questionId={q._id}
+                subjectId={q.subjectId}
+                chapterId={q.chapterId}
+                topicId={q.topicId}
+              />
+            }
           />
         </div>
         <p className="w-full max-sm:text-sm">

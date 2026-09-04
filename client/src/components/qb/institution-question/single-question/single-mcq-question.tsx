@@ -17,6 +17,7 @@ import { useMasterData } from "@/lib/MasterData-context";
 import { extractIdTo_ } from "@/utils/utils";
 import SaveToCollectionButton from "@/components/collection/saveToCollectionBtn";
 import { optionLetterOf } from "@/utils/questionTypes";
+import ProtectedComponent from "@/lib/Protected.component";
 
 // Options are bordered boxes tinted by state — the same design the admin's
 // extraction card uses (admin/questionExtraction/MCQCard.tsx), so an option
@@ -100,12 +101,16 @@ export default function SingleMcqQuestion({
             {i}
           </p>
           {/* BOOKMARK BUTTON */}
-          <SaveToCollectionButton
-            questionId={q._id}
-            subjectId={q.subjectId}
-            chapterId={q.chapterId}
-            topicId={q.topicId}
-            questionType={q.questionType}
+          <ProtectedComponent
+            component={
+              <SaveToCollectionButton
+                questionId={q._id}
+                subjectId={q.subjectId}
+                chapterId={q.chapterId}
+                topicId={q.topicId}
+                questionType={q.questionType}
+              />
+            }
           />
         </div>
         {/* QUESTION DETAILS */}

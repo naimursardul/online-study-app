@@ -12,6 +12,7 @@ import { extractIdTo_ } from "@/utils/utils";
 import { useMasterData } from "@/lib/MasterData-context";
 import SaveToCollectionButton from "@/components/collection/saveToCollectionBtn";
 import { labelOf } from "@/utils/questionTypes";
+import ProtectedComponent from "@/lib/Protected.component";
 
 // The `simple` family (SQ / EQ / WQ): question on top, answer behind a toggle.
 export default function SingleWrittenQuestion({
@@ -35,12 +36,16 @@ export default function SingleWrittenQuestion({
           <p className="bg-input size-5 md:size-7 flex justify-center items-center px-2 py-2 text-xs rounded">
             {i}
           </p>
-          <SaveToCollectionButton
-            questionType={q.questionType}
-            questionId={q._id}
-            subjectId={q.subjectId}
-            chapterId={q.chapterId}
-            topicId={q.topicId}
+          <ProtectedComponent
+            component={
+              <SaveToCollectionButton
+                questionType={q.questionType}
+                questionId={q._id}
+                subjectId={q.subjectId}
+                chapterId={q.chapterId}
+                topicId={q.topicId}
+              />
+            }
           />
         </div>
 
