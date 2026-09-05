@@ -55,6 +55,11 @@
   --color-foreground: var(--foreground);
   --color-background: var(--background);
 
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-subtle: var(--brand-subtle);
+  --color-brand-text: var(--brand-text);
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -87,6 +92,14 @@
 
   --accent: #f5f5f5;
   --accent-foreground: #171717;
+
+  /* Brand accent — the only chromatic colour on the marketing pages. Reserved
+     for primary CTAs, eyebrows and pills; interior app UI stays neutral.
+     White on --brand is 5.15:1; --brand-text is 7.1:1 on --background. */
+  --brand: #863bff;
+  --brand-foreground: #ffffff;
+  --brand-subtle: #f3ecff;
+  --brand-text: #6d28d9;
 
   --destructive: #e03d2b;
 
@@ -135,6 +148,14 @@
 
   --accent: #3a3a3a;
   --accent-foreground: #fafafa;
+
+  /* Same fill so white text keeps its 5.15:1, but --brand is only 2.98:1
+     against --background here, so brand fills add ring-1 ring-white/15 in dark.
+     --brand-text is 8.3:1 on #252525. */
+  --brand: #863bff;
+  --brand-foreground: #ffffff;
+  --brand-subtle: #2a1d47;
+  --brand-text: #c4b5fd;
 
   --destructive: #f87171;
 

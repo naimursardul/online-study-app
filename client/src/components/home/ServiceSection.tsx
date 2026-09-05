@@ -1,71 +1,78 @@
-import { Video, FileText, BadgeCheck } from "lucide-react";
+import { ArrowUpRight, FileText, Search, Library } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
 import FadeIn from "./FadeIn";
+import { Section, SectionHeading } from "./Section";
 
 const SERVICES = [
   {
-    icon: Video,
-    title: "Recorded Classes",
-    desc: "Access high-quality video lessons at your own pace, reviewed and updated every semester.",
-    tag: "On-demand",
+    icon: Library,
+    title: "Question Bank",
+    to: "/question-bank",
+    desc: "Browse by level, subject, chapter and topic. Every question is tagged with the institution and year it came from.",
+    tag: "Open to everyone",
+  },
+  {
+    icon: Search,
+    title: "Question Explorer",
+    to: "/question-explorer",
+    desc: "Filter across the whole bank at once: institution, year, chapter, topic, difficulty, question type, plus free-text search.",
+    tag: "Needs an account",
   },
   {
     icon: FileText,
-    title: "Board Questions",
-    desc: "Curated question banks from every major board exam, organized by year and topic.",
-    tag: "10K+ Questions",
-  },
-  {
-    icon: BadgeCheck,
-    title: "Online MCQ Exams",
-    desc: "Timed mock exams with instant feedback, detailed explanations, and performance tracking.",
-    tag: "Live scoring",
+    title: "Mock Exams",
+    to: "/exam",
+    desc: "Build a timed MCQ exam from any scope you like, submit, and get scored the moment you're done.",
+    tag: "Needs an account",
   },
 ];
 
 export function ServiceSection() {
   return (
-    <section className="py-20 px-6 bg-secondary/50">
-      <div className="max-w-6xl mx-auto">
-        <FadeIn className="text-center mb-14">
-          <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-3">
-            What we offer
-          </p>
-          <h2 className="text-3xl max-md:text-2xl font-bold text-foreground tracking-tight">
-            Our Services
-          </h2>
-        </FadeIn>
+    <Section tinted>
+      <SectionHeading
+        eyebrow="What's inside"
+        title="Three tools, one question bank"
+        align="center"
+      />
 
-        <div className="grid md:grid-cols-3 max-lg:grid-cols-2 max-sm:grid-cols-1 gap-5">
-          {SERVICES.map((s, i) => {
-            const Icon = s.icon;
-            return (
-              <FadeIn key={s.title} delay={i * 80}>
-                <Card className="group h-full border-border hover:border-foreground/20 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {SERVICES.map((s, i) => {
+          const Icon = s.icon;
+          return (
+            <FadeIn key={s.title} delay={i * 80} className="h-full">
+              <Link
+                to={s.to}
+                className="group block h-full rounded-xl focus-visible:ring-3 focus-visible:ring-brand/40 focus-visible:outline-none"
+              >
+                <Card className="h-full transition-all duration-300 group-hover:-translate-y-1 group-hover:ring-brand/30 group-hover:shadow-lg">
                   <CardContent className="p-7">
-                    <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center text-foreground mb-5 group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
-                      <Icon className="w-5 h-5" />
+                    <div className="mb-5 flex items-start justify-between">
+                      <div className="flex size-12 items-center justify-center rounded-xl bg-brand-subtle text-brand-text">
+                        <Icon className="size-5" aria-hidden="true" />
+                      </div>
+                      <ArrowUpRight
+                        className="size-4 text-muted-foreground transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-brand-text"
+                        aria-hidden="true"
+                      />
                     </div>
-                    <Badge
-                      variant="secondary"
-                      className="mb-4 text-xs font-medium"
-                    >
-                      {s.tag}
-                    </Badge>
-                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                    <h3 className="text-lg font-semibold text-foreground">
                       {s.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                       {s.desc}
+                    </p>
+                    <p className="mt-4 text-xs text-muted-foreground">
+                      {s.tag}
                     </p>
                   </CardContent>
                 </Card>
-              </FadeIn>
-            );
-          })}
-        </div>
+              </Link>
+            </FadeIn>
+          );
+        })}
       </div>
-    </section>
+    </Section>
   );
 }

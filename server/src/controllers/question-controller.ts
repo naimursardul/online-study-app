@@ -278,7 +278,9 @@ const getAllQuestions = async (req: Request, res: Response) => {
     const Model = questionModels[
       questionType
     ] as unknown as typeof BaseQuestion;
-    const pageSize = Number(limit) || 20;
+    const MAX_LIMIT = questionType === "MCQ" ? 100 : 20; // MCQs are smaller, so allow more per page
+    const requestedPageSize = Number(limit) || 20;
+    const pageSize = Math.min(requestedPageSize, MAX_LIMIT);
     const pageNumber = Number(page) || 0; // 0 => not paginated
 
     let allQuestions;
@@ -499,7 +501,8 @@ async function bulkCreateQuestions(req: Request, res: Response) {
       writeErrors.forEach((e: any) => {
         errors.push({
           index: group[e.index]?.index ?? e.index,
-          message: e.errmsg || e.err?.errmsg || `${questionType} insert failed.`,
+          message:
+            e.errmsg || e.err?.errmsg || `${questionType} insert failed.`,
         });
       });
     }

@@ -31,6 +31,8 @@ import SingleExamPage from "./pages/service-pages/exam/slug-1/SingleExamPage.tsx
 import AiExtractor from "./pages/admin/(allUploadPages)/ai-extractor/ai-extractor.tsx";
 import QuestionExplorer from "./pages/service-pages/question-explorer/Question-explorer.tsx";
 import RegistrationRoute from "./lib/Registration.route.tsx";
+import Terms from "./pages/terms/Terms.tsx";
+import Privacy from "./pages/privacy/Privacy.tsx";
 
 function App() {
   return (
@@ -62,6 +64,8 @@ function App() {
             <Route index element={<Home />} />
             <Route path="about" element={<About />} />
             <Route path="contact" element={<Contact />} />
+            <Route path="terms" element={<Terms />} />
+            <Route path="privacy" element={<Privacy />} />
             <Route
               path="signup"
               element={<RegistrationRoute element={<Signup />} />}

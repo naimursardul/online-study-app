@@ -11,7 +11,6 @@ import type { IBaseQuestion } from "@/types/types";
 import { client } from "@/utils/utils";
 import { toast } from "sonner";
 import { useMasterData } from "@/lib/MasterData-context";
-import { useAuth } from "@/lib/Auth-context";
 
 type Props = {
   questionId: string;

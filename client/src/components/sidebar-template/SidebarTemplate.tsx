@@ -1,4 +1,3 @@
-import { Bird } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -13,6 +12,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
+import SiteBrand from "@/components/layout/SiteBrand";
 import type { SidebarItemType } from "@/types/types";
 
 function SidebarTemplate({ items }: { items: SidebarItemType[] }) {
@@ -21,16 +21,9 @@ function SidebarTemplate({ items }: { items: SidebarItemType[] }) {
   return (
     <Sidebar collapsible="icon" className="w-50">
       <SidebarHeader className="mt-3">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton>
-              <Link to={"/"} className="flex gap-3 font-semibold ">
-                <Bird className="size-6" />
-                <span className="text-[16px]">Wikeebly</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        {/* Rendered outside SidebarMenuButton on purpose: that renders a
+            <button>, and SiteBrand is a <Link>. */}
+        <SiteBrand className="px-2" />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>

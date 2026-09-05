@@ -1,10 +1,26 @@
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/utils/utils";
 
-function useInView() {
+const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
+
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(
+    () => window.matchMedia?.(REDUCED_MOTION).matches ?? false,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia(REDUCED_MOTION);
+    const onChange = () => setReduced(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  return reduced;
+}
+
+function useInView(skip: boolean) {
   const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   useEffect(() => {
+    if (skip) return;
     const obs = new IntersectionObserver(
       ([e]) => {
         if (e.isIntersecting) {
@@ -16,7 +32,7 @@ function useInView() {
     );
     if (ref.current) obs.observe(ref.current);
     return () => obs.disconnect();
-  }, []);
+  }, [skip]);
   return [ref, inView] as const;
 }
 
@@ -31,16 +47,23 @@ export default function FadeIn({
   delay = 0,
   className,
 }: FadeInProps) {
-  const [ref, inView] = useInView();
+  const reduced = usePrefersReducedMotion();
+  const [ref, inView] = useInView(reduced);
+  const visible = reduced || inView;
+
   return (
     <div
       ref={ref}
       className={cn(className)}
-      style={{
-        opacity: inView ? 1 : 0,
-        transform: inView ? "translateY(0)" : "translateY(18px)",
-        transition: `opacity 0.55s ease ${delay}ms, transform 0.55s ease ${delay}ms`,
-      }}
+      style={
+        reduced
+          ? undefined
+          : {
+              opacity: visible ? 1 : 0,
+              transform: visible ? "translateY(0)" : "translateY(18px)",
+              transition: `opacity 0.55s ease ${delay}ms, transform 0.55s ease ${delay}ms`,
+            }
+      }
     >
       {children}
     </div>

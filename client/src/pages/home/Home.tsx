@@ -1,17 +1,23 @@
 import { HeroSection } from "@/components/home/HeroSection";
+import { HowItWorksSection } from "@/components/home/HowItWorksSection";
 import { ServiceSection } from "@/components/home/ServiceSection";
+import { FormatsSection } from "@/components/home/FormatsSection";
+import { ExamSection } from "@/components/home/ExamSection";
 import { FeaturesSection } from "@/components/home/FeaturesSection";
-import { TestimonialsSection } from "@/components/home/TestimonialsSection";
+import { RoadmapSection } from "@/components/home/RoadmapSection";
 import { FAQSection } from "@/components/home/FAQSection";
 import { CTASection } from "@/components/home/CTASection";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="bg-background text-foreground">
       <HeroSection />
+      <HowItWorksSection />
       <ServiceSection />
+      <FormatsSection />
+      <ExamSection />
       <FeaturesSection />
-      <TestimonialsSection />
+      <RoadmapSection />
       <FAQSection />
       <CTASection />
     </div>

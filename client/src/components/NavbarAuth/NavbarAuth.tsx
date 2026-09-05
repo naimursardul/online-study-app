@@ -53,8 +53,6 @@ export default function NavbarAuth() {
     }
   };
 
-  console.log(user);
-
   return (
     <div className="flex items-center gap-4 max-sm:gap-2">
       <ThemeToggle />

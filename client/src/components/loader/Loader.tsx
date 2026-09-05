@@ -1,7 +1,9 @@
 export default function Loader() {
   return (
-    <div className="flex items-center justify-center min-h-screen ">
-      <div className="w-16 h-16 border-t-4 border-b-4 border-[--text] rounded-full animate-spin"></div>
+    <div className="flex min-h-screen items-center justify-center">
+      {/* border-[--text] was v3 syntax for a token that doesn't exist, so the
+          spinner had no visible colour. */}
+      <div className="size-16 animate-spin rounded-full border-4 border-border border-t-brand"></div>
     </div>
   );
 }
