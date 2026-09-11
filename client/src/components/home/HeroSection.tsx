@@ -12,7 +12,7 @@ const HIGHLIGHTS = [
 
 export function HeroSection() {
   return (
-    <section className="px-6 pt-16 pb-20 max-md:pt-10">
+    <section className="px-6 pb-20 max-md:pt-10">
       <div className="mx-auto max-w-3xl text-center">
         <p className="mb-8 inline-flex items-center gap-2 rounded-full bg-brand-subtle px-4 py-1.5 text-sm text-brand-text">
           <Sparkles className="size-3.5" aria-hidden="true" />

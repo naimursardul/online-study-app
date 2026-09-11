@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
+import axios from "axios";
 import SingleCqQuestion from "@/components/qb/institution-question/single-question/single-cq-queston";
 import SingleMcqQuestion from "@/components/qb/institution-question/single-question/single-mcq-question";
 import SingleWrittenQuestion from "@/components/qb/institution-question/single-question/single-written-question";
 import { Button } from "@/components/ui/button";
 import { client } from "@/utils/utils";
+import { getApiErrorMessage } from "@/lib/api-error";
+import ApiErrorState from "@/components/shared/ApiErrorState";
 import type {
   ExamStatusType,
   IBaseQuestion,
@@ -41,6 +44,10 @@ function QuestionBankSlug2() {
   const [allQuestion, setAllQuestion] = useState<
     ((IMCQ | ICQ | IWritten) & { _id: string })[]
   >([]);
+  // A failed fetch must not render as a paper with zero questions.
+  const [loadError, setLoadError] = useState<unknown>(null);
+  // Bumped by the error state's retry button to re-run the fetch.
+  const [reloadToken, setReloadToken] = useState(0);
 
   const navigate = useNavigate();
 
@@ -55,8 +62,14 @@ function QuestionBankSlug2() {
   // FETCH QUESTIONS
   // =========================
   useEffect(() => {
+    // This refetches on every qDetails change (each sidebar paper link);
+    // without the AbortController a slow older response can land after a
+    // newer one and render the previous paper's questions.
+    const controller = new AbortController();
+
     const fetchQuestions = async () => {
       setLoading((prev) => ({ ...prev, question: true }));
+      setLoadError(null);
 
       const params = new URLSearchParams();
 
@@ -71,9 +84,10 @@ function QuestionBankSlug2() {
       });
 
       try {
-        const res = await client.get(`/question?${params.toString()}`);
+        const res = await client.get(`/question?${params.toString()}`, {
+          signal: controller.signal,
+        });
 
-        console.log(res.data);
         if (res.data?.success) {
           setAllQuestion(res.data.data);
 
@@ -84,14 +98,21 @@ function QuestionBankSlug2() {
           );
         }
       } catch (error) {
-        console.log(error);
+        // A superseded request is not a failure — its replacement is in flight.
+        if (axios.isCancel(error)) return;
+        console.error(error);
+        setLoadError(error);
       } finally {
-        setLoading((prev) => ({ ...prev, question: false }));
+        if (!controller.signal.aborted) {
+          setLoading((prev) => ({ ...prev, question: false }));
+        }
       }
     };
 
     fetchQuestions();
-  }, [qDetails]);
+
+    return () => controller.abort();
+  }, [qDetails, reloadToken]);
 
   // =========================
   // START EXAM
@@ -114,11 +135,7 @@ function QuestionBankSlug2() {
       }
       navigate(`/exam/${res.data.data.exam._id}`);
     } catch (error) {
-      // Axios puts the server's own message on the response body.
-      const message = (
-        error as { response?: { data?: { message?: string } } }
-      )?.response?.data?.message;
-      toast.error(message || "Failed to generate exam.");
+      toast.error(getApiErrorMessage(error, "Failed to generate exam."));
     } finally {
       setLoading((prev) => ({ ...prev, generateExam: false }));
     }
@@ -138,6 +155,17 @@ function QuestionBankSlug2() {
         <CqQuestionSkeleton />
         <CqQuestionSkeleton />
       </div>
+    );
+  }
+
+  // ---- FETCH FAILED ----
+  if (loadError !== null) {
+    return (
+      <ApiErrorState
+        error={loadError}
+        message="Failed to load this paper."
+        onRetry={() => setReloadToken((t) => t + 1)}
+      />
     );
   }
 

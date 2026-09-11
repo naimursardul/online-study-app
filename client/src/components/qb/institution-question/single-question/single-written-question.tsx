@@ -13,6 +13,7 @@ import { useMasterData } from "@/lib/MasterData-context";
 import SaveToCollectionButton from "@/components/collection/saveToCollectionBtn";
 import { labelOf } from "@/utils/questionTypes";
 import ProtectedComponent from "@/lib/Protected.component";
+import LoginAnswerPrompt from "@/components/qb/LoginAnswerPrompt";
 
 // The `simple` family (SQ / EQ / WQ): question on top, answer behind a toggle.
 export default function SingleWrittenQuestion({
@@ -75,19 +76,24 @@ export default function SingleWrittenQuestion({
         </div>
 
         {/* ANSWER */}
-        <Collapsible
-          open={isOpen}
-          onOpenChange={setIsOpen}
-          className="bg-chart-6 rounded-2xl"
-        >
-          <CollapsibleTrigger className="w-full flex items-center justify-center gap-1 bg-chart-6 shadow-2xl py-2.5 rounded-2xl font-semibold text-sm max-sm:text-xs hover:opacity-75 cursor-pointer">
-            {isOpen ? "Hide Answer" : "Show Answer"}
-            <ChevronsUpDown className="size-4 max-sm:size-3" />
-          </CollapsibleTrigger>
-          <CollapsibleContent className="px-4 py-3 max-sm:text-sm">
-            <ReactMarkdownRender text={q?.answer} />
-          </CollapsibleContent>
-        </Collapsible>
+        <ProtectedComponent
+          component={
+            <Collapsible
+              open={isOpen}
+              onOpenChange={setIsOpen}
+              className="bg-chart-6 rounded-2xl"
+            >
+              <CollapsibleTrigger className="w-full flex items-center justify-center gap-1 bg-chart-6 shadow-2xl py-2.5 rounded-2xl font-semibold text-sm max-sm:text-xs hover:opacity-75 cursor-pointer">
+                {isOpen ? "Hide Answer" : "Show Answer"}
+                <ChevronsUpDown className="size-4 max-sm:size-3" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="px-4 py-3 max-sm:text-sm">
+                <ReactMarkdownRender text={q?.answer} />
+              </CollapsibleContent>
+            </Collapsible>
+          }
+          fallback={<LoginAnswerPrompt />}
+        />
       </div>
     </div>
   );

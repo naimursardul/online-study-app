@@ -126,7 +126,6 @@ function validateWritten(q: IWritten): IValidationError[] {
 }
 
 export function validateQuestion(q: IAnyQuestion): IQuestionValidationResult {
-  console.log(q);
   const baseErrors = validateBase(q);
 
   const family = familyOf(q.questionType);

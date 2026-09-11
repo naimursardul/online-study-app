@@ -28,7 +28,7 @@ export const createChapter = async (req: Request, res: Response) => {
     });
 
     if (existing) {
-      res.status(400).json({
+      res.status(409).json({
         success: false,
         message:
           "Chapter already exists with this level, background, and subject.",

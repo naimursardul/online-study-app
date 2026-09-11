@@ -7,8 +7,11 @@ export default function AboutProfile() {
         <div className="w-full">
           <div className="relative w-62.5 h-62.5 max-sm:w-50 max-sm:h-50 mx-auto">
             <img
-              src="/aboutme.png"
+              src="/aboutme.webp"
               alt="Naimur Rahman"
+              width={250}
+              height={250}
+              loading="lazy"
               className="rounded-full bg-secondary border border-border object-cover"
             />
           </div>

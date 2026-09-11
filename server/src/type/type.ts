@@ -19,6 +19,9 @@ export interface IUser extends mongoose.Document {
   verificationTokenExpireAt?: Date;
   resetToken?: string;
   resetTokenExpireAt?: Date;
+  // Single-use grant proving verify-otp succeeded; consumed by create-user.
+  signupGrantToken?: string;
+  signupGrantExpireAt?: Date;
   passwordChangedAt?: Date;
   lastLogin?: Date;
 }

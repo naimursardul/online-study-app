@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
   DropdownMenu,
@@ -21,6 +22,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/Auth-context";
 import { toast } from "sonner";
 import { client } from "@/utils/utils";
+import { getApiErrorMessage } from "@/lib/api-error";
 import ThemeToggle from "../theme/toggleMode";
 import { Skeleton } from "../ui/skeleton";
 
@@ -28,28 +30,24 @@ export default function NavbarAuth() {
   const { user, userExisted, setUser, authLoader } = useAuth();
   const isMobile = window.innerWidth < 640; // Example breakpoint for mobile devices
 
+  const [loggingOut, setLoggingOut] = useState(false);
+
   const navigate = useNavigate();
   // LOGOUT
   const handleLogout = async () => {
+    setLoggingOut(true);
     try {
-      const res = await client.get(`/auth/logout`);
-
-      const { data } = res;
-      if (!data.success) {
-        toast.warning(data.message);
-        return;
-      }
-      setUser(null);
-      if (localStorage.getItem("userExisted")) {
-        localStorage.removeItem("userExisted");
-      }
-      console.log("Logout successful");
-      navigate("/login", { replace: true });
-      return;
+      await client.post(`/auth/logout`);
     } catch (error) {
-      console.log(error);
-      toast.error("There is an error in server side.");
-      return;
+      toast.error(getApiErrorMessage(error, "Logout failed."));
+    } finally {
+      // Local state clears no matter how the request went: a session that
+      // can't reach the server (or already expired server-side) is no reason
+      // to keep the UI showing the user as logged in.
+      setUser(null);
+      localStorage.removeItem("userExisted");
+      setLoggingOut(false);
+      navigate("/login", { replace: true });
     }
   };
 
@@ -115,14 +113,16 @@ export default function NavbarAuth() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            {/* <form onSubmit={handleLogout}> */}
-            <button onClick={handleLogout} className="w-full">
+            <button
+              onClick={handleLogout}
+              disabled={loggingOut}
+              className="w-full disabled:opacity-50"
+            >
               <DropdownMenuItem className="cursor-pointer">
                 <LogOut />
-                Log out
-              </DropdownMenuItem>{" "}
+                {loggingOut ? "Logging out…" : "Log out"}
+              </DropdownMenuItem>
             </button>
-            {/* </form> */}
           </DropdownMenuContent>
         </DropdownMenu>
       ) : (

@@ -37,6 +37,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+# Dummy values only (see the header in the file) — committed so a fresh clone can
+# run `npm test` in server/ without hand-building an env.
+!server/.env.test
 
 # vercel
 .vercel

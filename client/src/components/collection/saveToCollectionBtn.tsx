@@ -10,6 +10,7 @@ import {
 import type { IBaseQuestion } from "@/types/types";
 import { client } from "@/utils/utils";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/api-error";
 import { useMasterData } from "@/lib/MasterData-context";
 
 type Props = {
@@ -52,7 +53,9 @@ export default function SaveToCollectionButton({
       }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to load saved status");
+      // One of these renders per question card, so a 20-question page fires
+      // 20 identical requests — a shared toast id makes them one toast.
+      toast.error("Failed to load saved status", { id: "saved-status" });
     }
   }
   useEffect(() => {
@@ -86,10 +89,18 @@ export default function SaveToCollectionButton({
 
       if (res.data.success) {
         await fetchSavedStatus();
+      } else {
+        // Keep-both-paths: the server now throws 4xx, but during a split
+        // deploy the old 200-with-success:false body still arrives.
+        toast.error(res.data.message || "Failed to update collection", {
+          id: "toggle-saved",
+        });
       }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to update collection");
+      toast.error(getApiErrorMessage(error, "Failed to update collection"), {
+        id: "toggle-saved",
+      });
     } finally {
       setTogglingId(null);
     }
@@ -119,7 +130,7 @@ export default function SaveToCollectionButton({
       }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to create collection");
+      toast.error(getApiErrorMessage(error, "Failed to create collection"));
     } finally {
       setIsCreating(false);
     }

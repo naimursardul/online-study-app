@@ -18,6 +18,7 @@ import { extractIdTo_ } from "@/utils/utils";
 import SaveToCollectionButton from "@/components/collection/saveToCollectionBtn";
 import { optionLetterOf } from "@/utils/questionTypes";
 import ProtectedComponent from "@/lib/Protected.component";
+import LoginAnswerPrompt from "@/components/qb/LoginAnswerPrompt";
 
 // Options are bordered boxes tinted by state — the same design the admin's
 // extraction card uses (admin/questionExtraction/MCQCard.tsx), so an option
@@ -207,19 +208,24 @@ export default function SingleMcqQuestion({
         )}
         {/* MCQ EXPLANATION */}
         {viewMode === "showAns" && (
-          <Collapsible
-            open={isOpen}
-            onOpenChange={setIsOpen}
-            className="bg-chart-6 rounded-2xl"
-          >
-            <CollapsibleTrigger className="w-full flex items-center justify-center gap-1 bg-chart-6 shadow-2xl py-2.5 rounded-2xl font-semibold text-sm max-sm:text-xs hover:opacity-75 cursor-pointer">
-              {isOpen ? "Hide Explanation" : "Show Explanation"}
-              <ChevronsUpDown className="size-4 max-sm:size-3" />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="px-4 py-3 max-sm:text-sm ">
-              <ReactMarkdownRender text={q?.explanation} />
-            </CollapsibleContent>
-          </Collapsible>
+          <ProtectedComponent
+            component={
+              <Collapsible
+                open={isOpen}
+                onOpenChange={setIsOpen}
+                className="bg-chart-6 rounded-2xl"
+              >
+                <CollapsibleTrigger className="w-full flex items-center justify-center gap-1 bg-chart-6 shadow-2xl py-2.5 rounded-2xl font-semibold text-sm max-sm:text-xs hover:opacity-75 cursor-pointer">
+                  {isOpen ? "Hide Explanation" : "Show Explanation"}
+                  <ChevronsUpDown className="size-4 max-sm:size-3" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="px-4 py-3 max-sm:text-sm ">
+                  <ReactMarkdownRender text={q?.explanation} />
+                </CollapsibleContent>
+              </Collapsible>
+            }
+            fallback={<LoginAnswerPrompt />}
+          />
         )}
       </div>
     </div>

@@ -33,10 +33,12 @@ import QuestionExplorer from "./pages/service-pages/question-explorer/Question-e
 import RegistrationRoute from "./lib/Registration.route.tsx";
 import Terms from "./pages/terms/Terms.tsx";
 import Privacy from "./pages/privacy/Privacy.tsx";
+import RouteSeo from "./lib/seo/RouteSeo.tsx";
 
 function App() {
   return (
     <BrowserRouter>
+      <RouteSeo />
       <div className="">
         <Routes>
           <Route
@@ -101,10 +103,21 @@ function App() {
             <Route
               path="exam"
               element={
-                <ProtectedRoute roles={["user", "admin"]} element={<Exam />} />
+                <ProtectedRoute
+                  roles={["user", "admin", "super-admin"]}
+                  element={<Exam />}
+                />
               }
             />
-            <Route path="exam/:examId" element={<SingleExamPage />} />
+            <Route
+              path="exam/:examId"
+              element={
+                <ProtectedRoute
+                  roles={["user", "admin", "super-admin"]}
+                  element={<SingleExamPage />}
+                />
+              }
+            />
             <Route path="doubt" element={<Doubt />} />
             <Route
               path="/dashboard"

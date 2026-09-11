@@ -1,6 +1,5 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import axios from "axios";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   InputOTP,
@@ -18,8 +17,13 @@ import {
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 import SubmitBtn from "../submit-btn/submit-btn";
 import { client } from "@/utils/utils";
+import {
+  applyApiFieldErrors,
+  getApiErrorMessage,
+} from "@/lib/api-error";
 
 const otpSchema = z.object({
   otp: z.string().min(6, "OTP must be 6 digits").max(6, "OTP must be 6 digits"),
@@ -32,6 +36,8 @@ export default function OtpForm({
   setStep: Dispatch<SetStateAction<1 | 2 | 3>>;
   phone: string;
 }) {
+  const [resending, setResending] = useState(false);
+
   const form = useForm<z.infer<typeof otpSchema>>({
     resolver: zodResolver(otpSchema),
     defaultValues: {
@@ -40,7 +46,6 @@ export default function OtpForm({
   });
 
   const onSubmit = async (values: z.infer<typeof otpSchema>) => {
-    console.log("OTP Submitted:", values.otp);
     try {
       const res = await client.post(`/auth/verify-otp`, {
         phone: phone,
@@ -57,13 +62,29 @@ export default function OtpForm({
       toast.success("OTP submitted successfully!");
       return;
     } catch (error) {
-      console.log(error);
-      const message = axios.isAxiosError(error)
-        ? error.response?.data?.message
-        : undefined;
-      toast.error(message || "There is a problem with the server.");
+      // A wrong OTP is a field-level issue — it belongs under the input.
+      if (!applyApiFieldErrors(error, ["otp"], form.setError)) {
+        toast.error(getApiErrorMessage(error, "Something went wrong. Please try again."));
+      }
     }
   };
+
+  // The resend button used to only toast "Resending code..." and call nothing.
+  async function handleResend() {
+    setResending(true);
+    try {
+      const res = await client.post(`/auth/send-otp`, { phone });
+      if (res.data?.success) {
+        toast.success("A new code is on its way.");
+      } else {
+        toast.error(res.data?.message || "Failed to resend the code.");
+      }
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Failed to resend the code."));
+    } finally {
+      setResending(false);
+    }
+  }
 
   return (
     <div className="flex justify-center mt-20">
@@ -122,10 +143,11 @@ export default function OtpForm({
             {"Didn’t get the code? "}
             <button
               type="button"
-              className="text-primary underline hover:opacity-80"
-              onClick={() => toast.info("Resending code...")}
+              className="text-primary underline hover:opacity-80 disabled:opacity-50"
+              disabled={resending}
+              onClick={handleResend}
             >
-              Resend
+              {resending ? "Resending…" : "Resend"}
             </button>
           </p>
         </form>

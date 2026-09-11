@@ -82,7 +82,6 @@ export default function CqForm({
     }));
   };
 
-  console.log(formData);
   return (
     <>
       <div className="space-y-2">

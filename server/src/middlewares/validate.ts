@@ -11,15 +11,16 @@ type ValidatedRequest = {
 // Parsed values are written back so downstream controllers see coerced, stripped
 // data rather than the raw input.
 export function validate(schema: ZodType<ValidatedRequest>): RequestHandler {
+  // Never log req.body or the zod issues here: this middleware runs on
+  // /auth/login-with-phone, /auth/send-otp and /auth/reset-password, so any
+  // logging writes plaintext passwords and OTPs to the server logs.
   return (req: Request, res: Response, next: NextFunction) => {
-    console.log(req.body);
     const result = schema.safeParse({
       body: req.body,
       query: req.query,
       params: req.params,
     });
     if (!result.success) {
-      console.log(result.error.issues[0]);
       res.status(400).json({
         success: false,
         message: "Validation failed",

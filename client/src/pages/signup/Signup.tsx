@@ -3,6 +3,7 @@ import AfterOtpForm from "@/components/signup-flow/after-otp-form";
 import BeforeOtpForm from "@/components/signup-flow/before-otp-form";
 import OtpForm from "@/components/signup-flow/otp-form";
 import { Card } from "@/components/ui/card";
+import ApiErrorState from "@/components/shared/ApiErrorState";
 import { getDataForOptions } from "@/lib/helper";
 import type { IBackground, ILevel } from "@/types/types";
 import { useEffect, useState } from "react";
@@ -19,6 +20,7 @@ export default function Signup() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
     let isMounted = true; // prevent state update after unmount
@@ -26,8 +28,8 @@ export default function Signup() {
     const fetchData = async () => {
       try {
         setLoading(true);
+        setError(null);
 
-        // 🚀 Parallel requests (FASTER)
         const [levels, backgrounds] = await Promise.all([
           getDataForOptions<Level>("level"),
           getDataForOptions<Background>("background"),
@@ -39,7 +41,7 @@ export default function Signup() {
         setBackgroundOptions(backgrounds);
       } catch (err) {
         console.error(err);
-        if (isMounted) setError("Failed to load data");
+        if (isMounted) setError("Failed to load data.");
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -50,18 +52,25 @@ export default function Signup() {
     return () => {
       isMounted = false;
     };
-  }, []);
-
-  console.log(step);
+  }, [reloadToken]);
 
   // 🔄 Loading UI
   if (loading) return <Loader />;
 
-  // ❌ Error UI
-  if (error) return <p className="text-red-500 text-center">{error}</p>;
+  // ❌ Error UI — reachable now that getDataForOptions throws; without the
+  // retry the only way past a failed load was a full page reload.
+  if (error)
+    return (
+      <div className="mx-auto max-w-sm">
+        <ApiErrorState
+          message={error}
+          onRetry={() => setReloadToken((t) => t + 1)}
+        />
+      </div>
+    );
 
   return (
-    <div className="flex justify-center items-center mt-10">
+    <div className="flex justify-center items-center">
       <div className="w-[320px] overflow-hidden">
         <div
           className="flex gap-1 transition-transform duration-300 "

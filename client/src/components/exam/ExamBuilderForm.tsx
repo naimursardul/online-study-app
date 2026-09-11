@@ -3,6 +3,7 @@ import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/Auth-context";
 import { useMasterData } from "@/lib/MasterData-context";
+import { getApiErrorMessage } from "@/lib/api-error";
 import { client, cn } from "@/utils/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -142,8 +143,8 @@ export default function ExamBuilderForm({ onGenerated }: Props) {
         return;
       }
       onGenerated(res.data.data as ExamGenResType);
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Failed to generate exam.");
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Failed to generate exam."));
     } finally {
       setLoading(false);
     }

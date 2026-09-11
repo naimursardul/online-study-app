@@ -9,9 +9,9 @@ export default function ServiceNavbar({ items }: { items: SidebarItemType[] }) {
 
   return (
     <div className="w-full flex justify-between items-center gap-2">
-      <h2 className="text-2xl max-md:text-xl font-semibold">
+      <h1 className="text-2xl max-md:text-xl font-semibold">
         {pathTitle || "Question Bank"}
-      </h2>
+      </h1>
       <NavbarAuth />
     </div>
   );

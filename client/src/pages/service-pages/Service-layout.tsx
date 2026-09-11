@@ -3,6 +3,7 @@ import ServiceNavbar from "@/components/service-bar/service-navbar";
 import SidebarTemplate from "@/components/sidebar-template/SidebarTemplate";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useMasterData } from "@/lib/MasterData-context";
+import ApiErrorState from "@/components/shared/ApiErrorState";
 import type { SidebarItemType } from "@/types/types";
 import {
   Calendar,
@@ -52,7 +53,8 @@ export default function ServiceLayout() {
     },
   ];
 
-  const { masterDataLoading } = useMasterData();
+  const { masterDataLoading, masterDataError, refetchMasterData } =
+    useMasterData();
   return (
     <SidebarProvider>
       <div className="max-w-50">
@@ -64,7 +66,18 @@ export default function ServiceLayout() {
           <ServiceNavbar items={items} />
         </div>
         <main className="mx-6 mt-8 mb-16">
-          {masterDataLoading ? <Loader /> : <Outlet />}
+          {masterDataLoading ? (
+            <Loader />
+          ) : masterDataError ? (
+            // Every service page's dropdowns and slugs resolve against master
+            // data; a failed fetch used to render them silently empty.
+            <ApiErrorState
+              message={masterDataError}
+              onRetry={refetchMasterData}
+            />
+          ) : (
+            <Outlet />
+          )}
         </main>
       </div>
     </SidebarProvider>

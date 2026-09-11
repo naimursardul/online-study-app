@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Select,
@@ -8,6 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import ApiErrorState from "@/components/shared/ApiErrorState";
 import { client, extractIdTo_ } from "@/utils/utils";
 import type { IMasterData } from "@/types/types";
 
@@ -80,33 +82,52 @@ export default function WeakTopics({
 }) {
   const [topics, setTopics] = useState<WeakTopic[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<unknown>(null);
   const [selectedSubject, setSelectedSubject] = useState("all");
   const [limit, setLimit] = useState("5");
+  // Bumped by the error state's retry button to re-run the fetch.
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
+    // Filter-driven refetch: abort the superseded request so a slow older
+    // response cannot overwrite a newer filter's list.
+    const controller = new AbortController();
+
     const fetchWeakTopics = async () => {
       try {
         setLoading(true);
-        setError("");
+        setError(null);
 
         const params = new URLSearchParams({ limit });
         if (selectedSubject !== "all") params.set("subjectId", selectedSubject);
 
         const response = await client.get(
           `/analytics/weak-topics?${params.toString()}`,
+          { signal: controller.signal },
         );
 
+        // Keep-both-paths: the old server answered 200 with success:false.
+        if (!response.data?.success || !Array.isArray(response.data?.data)) {
+          setError(
+            response.data?.message
+              ? new Error(response.data.message)
+              : undefined,
+          );
+          return;
+        }
         setTopics(response.data.data);
-      } catch (err: any) {
-        setError(err.response?.data?.message || "Failed to load weak topics");
+      } catch (err) {
+        if (axios.isCancel(err)) return;
+        setError(err);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
 
     fetchWeakTopics();
-  }, [selectedSubject, limit]);
+
+    return () => controller.abort();
+  }, [selectedSubject, limit, reloadToken]);
 
   const selectedSubjectName =
     allSubjects.find((s) => s._id === selectedSubject)?.name ?? null;
@@ -176,15 +197,13 @@ export default function WeakTopics({
               ),
             )}
           </div>
-        ) : error ? (
-          <div className="flex flex-col items-center justify-center py-10 text-center gap-2">
-            <p className="text-sm text-red-500">{error}</p>
-            <button
-              onClick={() => setSelectedSubject("all")}
-              className="text-xs underline underline-offset-2 text-muted-foreground hover:text-foreground"
-            >
-              Reset filters
-            </button>
+        ) : error !== null ? (
+          <div className="py-4">
+            <ApiErrorState
+              error={error}
+              message="Failed to load weak topics."
+              onRetry={() => setReloadToken((t) => t + 1)}
+            />
           </div>
         ) : topics.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-center gap-1">

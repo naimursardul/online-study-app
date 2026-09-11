@@ -12,9 +12,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-import SiteBrand from "@/components/layout/SiteBrand";
 import type { SidebarItemType } from "@/types/types";
-
 function SidebarTemplate({ items }: { items: SidebarItemType[] }) {
   const location = useLocation();
   const pathname = location.pathname;
@@ -23,7 +21,20 @@ function SidebarTemplate({ items }: { items: SidebarItemType[] }) {
       <SidebarHeader className="mt-3">
         {/* Rendered outside SidebarMenuButton on purpose: that renders a
             <button>, and SiteBrand is a <Link>. */}
-        <SiteBrand className="px-2" />
+        <SidebarMenuButton>
+          <Link to="/" className="w-full flex gap-2">
+            <img
+              src="/favicon.svg"
+              alt=""
+              aria-hidden="true"
+              className="size-6"
+            />
+
+            <span className="text-base font-semibold tracking-tight text-foreground">
+              Poruya
+            </span>
+          </Link>
+        </SidebarMenuButton>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>

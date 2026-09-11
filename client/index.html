@@ -15,38 +15,40 @@
       media="(prefers-color-scheme: dark)"
       content="#252525"
     />
+    <!-- Site-wide social constants — identical on every route, so they are
+         never touched by the SEO writers (browser or edge). -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Poruya" />
+    <meta property="og:image" content="https://poruya.com/og.png" />
+    <meta property="og:image:alt" content="Poruya" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="manifest" href="/site.webmanifest" />
 
+    <!--
+      The block between the seo sentinels is REWRITTEN PER REQUEST by
+      client/middleware.ts on Vercel (see src/lib/seo/), and per navigation by
+      RouteSeo in the browser. The static tags below are the no-edge fallback
+      for anything that bypasses both — do NOT "clean them up" by deleting
+      them; the writers update these exact elements in place.
+    -->
+    <!--seo:start-->
     <title>Poruya — Practise real board questions</title>
     <meta
       name="description"
       content="A Bangladeshi board and admission question bank organised by subject, chapter and topic, with timed MCQ mock exams that target your weak topics. Free during early access."
     />
     <link rel="canonical" href="https://poruya.com/" />
-
-    <!--
-      This is a client-rendered SPA, so these tags are static and identical for
-      every route. Social crawlers don't run JS, so per-route previews would
-      need prerendering or react-helmet-async.
-    -->
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Poruya" />
     <meta property="og:title" content="Poruya — Practise real board questions" />
     <meta
       property="og:description"
       content="Past board and admission questions organised by subject, chapter and topic, plus timed MCQ mock exams that target your weak topics."
     />
     <meta property="og:url" content="https://poruya.com/" />
-
-    <!--
-      No og:image yet. vercel.json rewrites everything to index.html, so
-      pointing at a file that doesn't exist would serve HTML with a 200 status
-      and render a broken preview card. Once a 1200x630 client/public/og.png
-      exists, add:
-        meta property="og:image" content="https://poruya.com/og.png"
-        meta property="og:image:alt" content="Poruya"
-      and switch twitter:card below to summary_large_image.
-    -->
-    <meta name="twitter:card" content="summary" />
     <meta
       name="twitter:title"
       content="Poruya — Practise real board questions"
@@ -55,6 +57,7 @@
       name="twitter:description"
       content="Past board and admission questions organised by subject, chapter and topic, plus timed MCQ mock exams that target your weak topics."
     />
+    <!--seo:end-->
   </head>
   <body>
     <div id="root"></div>

@@ -11,6 +11,7 @@ import { validate } from "../middlewares/validate";
 import { adminOnly } from "../middlewares/require-role";
 import { objectIdParam } from "../validations/common";
 import {
+  chapterCreateSchema,
   chapterListSchema,
   chapterUpdateSchema,
 } from "../validations/crud.validation";
@@ -21,7 +22,12 @@ const router = express.Router();
 // are admin-only.
 
 // Create a new Chapter
-router.post("/create", ...adminOnly, createChapter);
+router.post(
+  "/create",
+  ...adminOnly,
+  validate(chapterCreateSchema),
+  createChapter,
+);
 
 // Get all Chapters (with optional level, background, subject filters)
 router.get("/", validate(chapterListSchema), getAllChapters);

@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { IUser } from "../type/type";
 import { Types } from "mongoose";
+import { env } from "../config/env";
 
 export const createJWT = (
   user: IUser & {
@@ -13,7 +14,7 @@ export const createJWT = (
       role: user.role,
       userCategory: user.userCategory,
     },
-    process.env.JWT_SECRET!,
+    env.JWT_SECRET,
     { expiresIn: "7d" },
   );
 };

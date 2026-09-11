@@ -12,7 +12,7 @@ export const createTopic = async (req: Request, res: Response) => {
     const { name, levelId, backgroundId, subjectId, chapterId } = req.body;
 
     if (!name || !levelId || !backgroundId || !subjectId || !chapterId) {
-      res.status(200).json({
+      res.status(400).json({
         success: false,
         message:
           "Name, levelId, backgroundId, subjectId, and chapterId are required.",
@@ -29,7 +29,7 @@ export const createTopic = async (req: Request, res: Response) => {
     });
 
     if (existing) {
-      res.status(200).json({
+      res.status(409).json({
         success: false,
         message: "Topic already exists with this level, subject, and chapter.",
         data: null,
@@ -47,7 +47,7 @@ export const createTopic = async (req: Request, res: Response) => {
 
     await newTopic.save();
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "Topic created successfully.",
       data: newTopic,

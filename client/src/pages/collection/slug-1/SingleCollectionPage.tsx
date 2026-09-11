@@ -4,8 +4,10 @@ import { useAuth } from "@/lib/Auth-context";
 import { Loader2, ChevronLeft, ChevronRight, BookmarkX } from "lucide-react";
 import { client } from "@/utils/utils";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/api-error";
 import { useMasterData } from "@/lib/MasterData-context";
 import SingleMcqQuestion from "@/components/qb/institution-question/single-question/single-mcq-question";
+import ApiErrorState from "@/components/shared/ApiErrorState";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -52,6 +54,9 @@ export default function SingleCollectionPage() {
 
   const [questions, setQuestions] = useState<CollectionQuestion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  // A failed fetch must not render the "No questions found" empty state —
+  // that is indistinguishable from an actually-empty collection.
+  const [loadError, setLoadError] = useState<unknown>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   // Bumped after a dead bookmark is cleared, to re-run the questions fetch.
@@ -83,7 +88,10 @@ export default function SingleCollectionPage() {
           setCollections(res.data.data);
         }
       } catch (err) {
+        // Not fatal — the question list below still works — but the collection
+        // switcher silently rendering empty deserves a mention.
         console.error(err);
+        toast.error("Failed to load your collections.");
       }
     }
 
@@ -105,6 +113,7 @@ export default function SingleCollectionPage() {
 
     async function fetchQuestions() {
       setIsLoading(true);
+      setLoadError(null);
       try {
         const params: Record<string, string> = { page: String(page) };
         if (selectedSubject) params.subjectId = selectedSubject;
@@ -116,11 +125,11 @@ export default function SingleCollectionPage() {
 
         if (res.data.success) {
           setQuestions(res.data.data);
-          setTotalPages(res.data.pagination.totalPages);
+          setTotalPages(res.data.pagination?.totalPages ?? 1);
         }
       } catch (error) {
         console.error(error);
-        toast.error("Failed to load questions");
+        setLoadError(error);
       } finally {
         setIsLoading(false);
       }
@@ -151,7 +160,7 @@ export default function SingleCollectionPage() {
       }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to remove question");
+      toast.error(getApiErrorMessage(error, "Failed to remove question"));
     } finally {
       setRemovingId(null);
     }
@@ -247,6 +256,12 @@ export default function SingleCollectionPage() {
         <div className="flex justify-center py-10">
           <Loader2 className="size-6 animate-spin" />
         </div>
+      ) : loadError !== null ? (
+        <ApiErrorState
+          error={loadError}
+          message="Failed to load questions."
+          onRetry={() => setReloadToken((t) => t + 1)}
+        />
       ) : questions.length === 0 ? (
         <div className="text-center py-10 text-muted-foreground">
           No questions found.

@@ -57,7 +57,7 @@ app.use(cookieParser());
 // their keyGenerators read sanitized values.
 app.use(sanitizeRequest);
 
-app.get("/", (req: Request, res: Response) => {
+app.get("/", (_req: Request, res: Response) => {
   res.json("Hello world! bro");
 });
 
@@ -81,6 +81,16 @@ app.use("/analytics", AnalyticsRouter);
 app.use("/img-upload", ImgUploadRoutes);
 app.use("/extraction", ExtractionRouter);
 app.use("/contact", ContactRouter);
+
+// 404 catch-all: unknown paths get the JSON envelope instead of Express's
+// default HTML "Cannot GET /x". Must sit after the last router mount and
+// before errorHandler.
+app.use((req: Request, res: Response) => {
+  res.status(404).json({
+    success: false,
+    message: `Route not found: ${req.method} ${req.path}`,
+  });
+});
 
 // Global error handler (should be after routes)
 app.use(errorHandler);

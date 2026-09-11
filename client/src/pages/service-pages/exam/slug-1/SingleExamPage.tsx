@@ -3,10 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Clock, ListChecks, MousePointerClick, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { client } from "@/utils/utils";
-import { useAuth } from "@/lib/Auth-context";
 import SingleMcqQuestion from "@/components/qb/institution-question/single-question/single-mcq-question";
 import { Button } from "@/components/ui/button";
 import { McqQuestionSkeleton } from "@/components/skeleton/McqQuestionSkeleton";
+import ApiErrorState from "@/components/shared/ApiErrorState";
 
 import type {
   ExamSessionType,
@@ -24,9 +24,11 @@ type TakeState = "ready" | "started" | "finished";
 function SingleExamPage() {
   const { examId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   const [loading, setLoading] = useState(true);
+  // A failed load renders an error state with retry here; navigating back to
+  // /exam ejected the user from the page over a transient blip.
+  const [loadError, setLoadError] = useState<unknown>(null);
   const [exam, setExam] = useState<ExamSessionType | null>(null);
   const [mode, setMode] = useState<"take" | "review">("take");
 
@@ -36,6 +38,9 @@ function SingleExamPage() {
   const [takeState, setTakeState] = useState<TakeState>("ready");
   const [timeRemaining, setTimeRemaining] = useState(0); // ms
   const [summary, setSummary] = useState<ExamResultSummary | null>(null);
+  // A failed submit must offer a retry, not strand the user at 00:00 with no
+  // viable action — this is the one client path that can destroy user work.
+  const [submitError, setSubmitError] = useState<unknown>(null);
 
   // review-mode data
   const [reviewItems, setReviewItems] = useState<ExamReviewItemType[]>([]);
@@ -44,61 +49,93 @@ function SingleExamPage() {
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isSubmittingRef = useRef(false);
 
+  // The in-progress answer script is persisted here so a reload (or the failed
+  // auto-submit at 00:00) cannot silently lose a completed exam.
+  const storageKey = examId ? `exam-answers-${examId}` : null;
+
   useEffect(() => {
     answerScriptRef.current = answerScript;
-  }, [answerScript]);
+    if (storageKey && takeState === "started" && answerScript.length > 0) {
+      sessionStorage.setItem(storageKey, JSON.stringify(answerScript));
+    }
+  }, [answerScript, takeState, storageKey]);
 
   // =========================
   // FETCH EXAM
   // =========================
-  useEffect(() => {
-    const fetchExam = async () => {
-      setLoading(true);
-      try {
-        const res = await client.get(`/exam/${examId}`);
-        if (!res.data?.success) {
-          toast.error(res.data?.message || "Failed to load exam.");
-          navigate("/exam");
-          return;
-        }
-        const data = res.data.data;
-        setExam(data.exam);
-        setMode(data.mode);
-
-        if (data.mode === "take") {
-          const qs = data.questions as (IMCQ & { _id: string })[];
-          setQuestions(qs);
-          const initial = qs.map((q) => ({
-            questionId: q._id,
-            givenAns: "",
-          }));
-          setAnswerScript(initial);
-          answerScriptRef.current = initial;
-          setTimeRemaining((data.exam.totalTime || 0) * 1000);
-        } else {
-          setReviewItems(data.questions as ExamReviewItemType[]);
-          setSummary(
-            data.result
-              ? {
-                  correctCount: data.result.correctCount,
-                  wrongCount: data.result.wrongCount,
-                  obtainedMarks: data.result.obtainedMarks,
-                  totalMarks: data.exam.totalMarks,
-                  totalQuestions: data.result.totalQuestions,
-                  percentage: data.result.percentage,
-                }
-              : null,
-          );
-        }
-      } catch (error) {
-        console.error(error);
-        toast.error("Failed to load exam.");
+  const fetchExam = async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const res = await client.get(`/exam/${examId}`);
+      if (!res.data?.success) {
+        toast.error(res.data?.message || "Failed to load exam.");
         navigate("/exam");
-      } finally {
-        setLoading(false);
+        return;
       }
-    };
+      const data = res.data.data;
+      setExam(data.exam);
+      setMode(data.mode);
 
+      if (data.mode === "take") {
+        const qs = data.questions as (IMCQ & { _id: string })[];
+        setQuestions(qs);
+        // Restore any answers persisted before a reload of this exam.
+        const savedMap = new Map<string, string>();
+        if (storageKey) {
+          try {
+            const saved: unknown = JSON.parse(
+              sessionStorage.getItem(storageKey) ?? "[]",
+            );
+            if (Array.isArray(saved)) {
+              for (const entry of saved) {
+                if (
+                  entry &&
+                  typeof entry === "object" &&
+                  typeof (entry as SingleMcqAnswerType).questionId === "string"
+                ) {
+                  savedMap.set(
+                    (entry as SingleMcqAnswerType).questionId,
+                    (entry as SingleMcqAnswerType).givenAns ?? "",
+                  );
+                }
+              }
+            }
+          } catch {
+            // A corrupt entry is not worth failing the exam over — start fresh.
+          }
+        }
+        const initial = qs.map((q) => ({
+          questionId: q._id,
+          givenAns: savedMap.get(q._id) ?? "",
+        }));
+        setAnswerScript(initial);
+        answerScriptRef.current = initial;
+        setTimeRemaining((data.exam.totalTime || 0) * 1000);
+      } else {
+        setReviewItems(data.questions as ExamReviewItemType[]);
+        setSummary(
+          data.result
+            ? {
+                correctCount: data.result.correctCount,
+                wrongCount: data.result.wrongCount,
+                obtainedMarks: data.result.obtainedMarks,
+                totalMarks: data.exam.totalMarks,
+                totalQuestions: data.result.totalQuestions,
+                percentage: data.result.percentage,
+              }
+            : null,
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      setLoadError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     if (examId) fetchExam();
 
     return () => clearTimer();
@@ -124,15 +161,10 @@ function SingleExamPage() {
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
     try {
-      console.log({
-        u_id: user?._id,
-        examId,
-        answers: answerScriptRef.current,
-        timeTaken: totalTime - timeRemaining / 1000,
-      });
+      // u_id is derived from the session server-side; sending it from client
+      // state posted `undefined` whenever the auth context had not resolved.
       clearTimer();
       const res = await client.post("/exam/create-answer", {
-        u_id: user?._id,
         examId,
         answers: answerScriptRef.current,
         timeTaken: totalTime - timeRemaining / 1000,
@@ -140,6 +172,7 @@ function SingleExamPage() {
 
       if (!res.data?.success) {
         toast.error(res.data?.message || "Failed to submit exam.");
+        setSubmitError(res.data?.message || "Failed to submit exam.");
         return;
       }
 
@@ -153,13 +186,13 @@ function SingleExamPage() {
         percentage: answer?.percentage,
       });
       setTakeState("finished");
+      setSubmitError(null);
+      // The exam is graded and stored server-side; the draft is no longer needed.
+      if (storageKey) sessionStorage.removeItem(storageKey);
       toast.success("Exam submitted successfully!");
-    } catch (error: any) {
-      console.error(error?.response?.data?.message);
-      toast.error(
-        error?.response?.data?.message ||
-          "An error occurred while submitting the exam.",
-      );
+    } catch (error) {
+      console.error(error);
+      setSubmitError(error);
     } finally {
       isSubmittingRef.current = false;
     }
@@ -193,6 +226,17 @@ function SingleExamPage() {
         <McqQuestionSkeleton />
         <McqQuestionSkeleton />
       </div>
+    );
+  }
+
+  // ---- LOAD FAILED ----
+  if (loadError !== null) {
+    return (
+      <ApiErrorState
+        error={loadError}
+        message="Failed to load exam."
+        onRetry={fetchExam}
+      />
     );
   }
 
@@ -282,7 +326,19 @@ function SingleExamPage() {
         />
       ))}
 
-      <Button className="w-full" onClick={handleSubmit}>
+      {submitError !== null && (
+        <ApiErrorState
+          error={submitError}
+          message="Your answers are still here — submitting failed, but you can try again."
+          onRetry={handleSubmit}
+        />
+      )}
+
+      <Button
+        className="w-full"
+        onClick={handleSubmit}
+        disabled={timeRemaining <= 0 && submitError === null}
+      >
         Submit
       </Button>
     </div>

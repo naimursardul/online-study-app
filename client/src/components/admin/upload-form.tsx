@@ -2,6 +2,7 @@ import { useMemo, useState, type RefObject } from "react";
 import { toast } from "sonner";
 import type { IField, IFormInfo } from "@/types/types";
 import { client, getQuestionDataOption } from "@/utils/utils";
+import { getApiErrorMessage } from "@/lib/api-error";
 import { useMasterData } from "@/lib/MasterData-context";
 import SubmitBtn from "../submit-btn/submit-btn";
 import DataField from "./data-field";
@@ -14,6 +15,9 @@ export default function UploadForm<T>({
   closeRef?: RefObject<HTMLButtonElement | null>;
 }) {
   const [formData, setFormData] = useState<T>(formInfo?.initData);
+  // Without this the submit button stays enabled and a second click creates
+  // a duplicate taxonomy row while the first request is in flight.
+  const [loading, setLoading] = useState(false);
 
   const { masterData } = useMasterData();
 
@@ -21,10 +25,8 @@ export default function UploadForm<T>({
   // Show toast on Responses
   // =========================================
   function showToastOnRes(data: { success: boolean; message: string }) {
-    console.log(data);
     if (!data.success) {
-      console.log(data.message);
-      return toast.warning(data.message);
+      return toast.error(data.message);
     }
     if (closeRef?.current) {
       closeRef.current.click();
@@ -38,7 +40,6 @@ export default function UploadForm<T>({
   // =========================================
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("data", formData);
 
     for (const field of updatedFields) {
       if (!field?.req) field.req = true;
@@ -47,6 +48,7 @@ export default function UploadForm<T>({
         return toast.warning(`${field?.name.toUpperCase()} must be filled in.`);
       }
     }
+    setLoading(true);
     try {
       if (formInfo.method === "POST" || formInfo.method === "PUT") {
         const res = await client({
@@ -58,9 +60,10 @@ export default function UploadForm<T>({
       }
       return;
     } catch (error) {
-      console.log(error);
-      toast.error("There is an error in server side.");
+      toast.error(getApiErrorMessage(error, "Something went wrong. Please try again."));
       return;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -73,12 +76,10 @@ export default function UploadForm<T>({
     [formData, masterData, formInfo.fields],
   );
 
-  // console.log(formData);
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {updatedFields?.length > 0 &&
-        updatedFields.map((field: IField, i) => (
+        updatedFields.map((field: IField, i: number) => (
           <DataField
             key={i}
             formData={formData}
@@ -86,7 +87,7 @@ export default function UploadForm<T>({
             field={field}
           />
         ))}
-      <SubmitBtn />
+      <SubmitBtn loading={loading} />
     </form>
   );
 }

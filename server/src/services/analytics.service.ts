@@ -226,11 +226,10 @@ export const getWeakTopics = async (
       { topicStats: 1 },
     ).lean();
 
-    if (!analytics) {
-      throw new Error("Analytics not found");
-    }
-
-    const weakTopics = analytics.topicStats
+    // A brand-new user has no analytics document — that is an empty state,
+    // not a failure. (It used to throw "Analytics not found", which the
+    // controller surfaced as a 500 with the raw message.)
+    const weakTopics = (analytics?.topicStats ?? [])
       .map((topic: any) => ({
         topicId: topic.topicId,
         subjectId: topic.subjectId,
@@ -263,11 +262,9 @@ export const getDashboardStats = async (u_id: string, subjectId?: string) => {
   try {
     const analytics = await UserAnalytics.findOne({ u_id }).lean();
 
-    if (!analytics) {
-      throw new Error("Analytics not found");
-    }
-
-    let topicStats = analytics.topicStats || [];
+    // Empty state for a brand-new user, not a failure (was: "Analytics not
+    // found" → 500 with the raw message in the body).
+    let topicStats: any[] = analytics?.topicStats ?? [];
 
     if (subjectId) {
       topicStats = topicStats.filter(
@@ -307,11 +304,8 @@ export const getSubjectPerformance = async (u_id: string) => {
   try {
     const analytics = await UserAnalytics.findOne({ u_id }).lean();
 
-    if (!analytics) {
-      throw new Error("Analytics not found");
-    }
-
-    const topicStats = analytics.topicStats || [];
+    // Empty state for a brand-new user, not a failure.
+    const topicStats: any[] = analytics?.topicStats ?? [];
 
     const subjectMap: Record<string, { correct: number; total: number }> = {};
 
@@ -370,8 +364,20 @@ export const getPerformanceGraph = async (
       .limit(limit)
       .lean();
 
+    // No exam history yet is an empty state, not a failure (was: "No exam
+    // history found" → 500). graphData and summary degrade to empty/zero.
     if (!answers.length) {
-      throw new Error("No exam history found");
+      return {
+        graphData: [],
+        summary: {
+          totalExams: 0,
+          averageScore: 0,
+          bestScore: 0,
+          worstScore: 0,
+          latestScore: 0,
+          improvement: 0,
+        },
+      };
     }
 
     const graphData = answers.map((exam: any) => ({

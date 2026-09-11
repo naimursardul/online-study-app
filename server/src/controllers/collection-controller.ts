@@ -23,7 +23,7 @@ export async function createCollection(req: Request, res: Response) {
 
     if (!name || !name.trim()) {
       res
-        .status(200)
+        .status(400)
         .json({ success: false, message: "Collection name is required" });
       return;
     }
@@ -48,7 +48,7 @@ export async function renameCollection(req: Request, res: Response) {
 
     if (!name || !name.trim()) {
       res
-        .status(200)
+        .status(400)
         .json({ success: false, message: "Collection name is required" });
       return;
     }

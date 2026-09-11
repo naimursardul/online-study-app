@@ -3,7 +3,7 @@ import { User } from "lucide-react";
 
 export default function About() {
   return (
-    <div className="my-10 flex flex-col gap-12 w-150 max-md:w-[80%] mx-auto text-foreground">
+    <div className="flex flex-col gap-12 w-150 max-md:w-[80%] mx-auto text-foreground">
       <h1 className="flex gap-2 items-center text-primary text-4xl font-normal mb-5">
         <User size={28} /> <span>About us</span>
       </h1>

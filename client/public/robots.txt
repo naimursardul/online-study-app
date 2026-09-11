@@ -1,0 +1,11 @@
+# Deliberately minimal. Disallow blocks *crawling*, which means a noindex on
+# the path is never read. Private surfaces (/dashboard, /exam*, /collection*,
+# /question-explorer) are covered by the edge middleware's X-Robots-Tag:
+# noindex instead, which is the correct signal. /admin is Disallowed because
+# nothing there should ever be fetched at all.
+
+User-agent: *
+Allow: /
+Disallow: /admin
+
+Sitemap: https://poruya.com/sitemap.xml

@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import axios from "axios";
 import {
   Form,
   FormControl,
@@ -15,6 +14,10 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { client } from "@/utils/utils";
 import SubmitBtn from "../submit-btn/submit-btn";
+import {
+  applyApiFieldErrors,
+  getApiErrorMessage,
+} from "@/lib/api-error";
 
 // min(6) mirrors the server's password rule so the two can't disagree.
 const formSchema = z
@@ -64,11 +67,19 @@ export default function NewPasswordForm({
       navigate("/login", { replace: true });
       return;
     } catch (error) {
-      console.log(error);
-      const message = axios.isAxiosError(error)
-        ? error.response?.data?.message
-        : undefined;
-      toast.error(message || "There is a problem with the server.");
+      // A field-level issue lands under its input; only a genuinely generic
+      // failure reaches the toast.
+      if (
+        !applyApiFieldErrors(
+          error,
+          ["password", "confirmPassword"],
+          form.setError,
+        )
+      ) {
+        toast.error(
+          getApiErrorMessage(error, "Something went wrong. Please try again."),
+        );
+      }
       return;
     }
   };

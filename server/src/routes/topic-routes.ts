@@ -11,6 +11,7 @@ import { validate } from "../middlewares/validate";
 import { adminOnly } from "../middlewares/require-role";
 import { objectIdParam } from "../validations/common";
 import {
+  topicCreateSchema,
   topicListSchema,
   topicUpdateSchema,
 } from "../validations/crud.validation";
@@ -21,7 +22,12 @@ const router = express.Router();
 // are admin-only.
 
 // Create a new topic
-router.post("/create", ...adminOnly, createTopic);
+router.post(
+  "/create",
+  ...adminOnly,
+  validate(topicCreateSchema),
+  createTopic,
+);
 
 // Get all topics (with optional query filters)
 router.get("/", validate(topicListSchema), getAllTopics);

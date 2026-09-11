@@ -1,10 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import axios from "axios";
 import { Contact2 } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -18,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import SubmitBtn from "@/components/submit-btn/submit-btn";
 import { client } from "@/utils/utils";
 import { toast } from "sonner";
+import { applyApiFieldErrors, getApiErrorMessage } from "@/lib/api-error";
 
 // Bounds mirror the server's contact schema so the two can't disagree.
 const formSchema = z.object({
@@ -49,21 +49,27 @@ export default function Contact() {
       }
       toast.error(data.message || "Something went wrong. Please try again.");
     } catch (error) {
-      console.log(error);
-      const message = axios.isAxiosError(error)
-        ? error.response?.data?.message
-        : undefined;
-      toast.error(message || "There is a problem with the server.");
+      // A field-level issue lands under its input; only a genuinely generic
+      // failure reaches the toast.
+      if (
+        !applyApiFieldErrors(error, ["name", "email", "message"], form.setError)
+      ) {
+        toast.error(
+          getApiErrorMessage(error, "Something went wrong. Please try again."),
+        );
+      }
     }
   };
 
   return (
-    <Card className="my-10 w-125 max-sm:w-[80%] mx-auto bg-card border-border">
+    <Card className=" w-125 max-sm:w-[80%] mx-auto bg-card border-border">
       <CardHeader>
-        <CardTitle className="flex gap-2 items-center text-primary text-3xl font-normal">
+        {/* shadcn's CardTitle is a div; rendered as an h1 because this page has
+            no other heading element. */}
+        <h1 className="flex gap-2 items-center text-primary text-3xl font-normal">
           <Contact2 />
           <span>Contact us</span>
-        </CardTitle>
+        </h1>
       </CardHeader>
 
       <CardContent>

@@ -1172,23 +1172,28 @@ NODE_ENV=development                           → 200  (never redirects)
 From `src/config/cookie.ts`:
 
 ```ts
-const cookieDomain = process.env.COOKIE_DOMAIN;
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
-export const cookieOptions = {
+export const authCookieOptions = {
   httpOnly: true,
-  secure: isProduction,
-  sameSite: isProduction ? "none" : "lax",
-  maxAge: 7 * 24 * 60 * 60 * 1000,
+  secure: true,
+  sameSite: isProduction ? "lax" : "none",
+  path: "/",
+  maxAge: SEVEN_DAYS_MS, // matches the JWT's own expiresIn: "7d"
   ...(isProduction && cookieDomain ? { domain: cookieDomain } : {}),
 };
 ```
+
+(The file also exports `signupGrantCookieOptions` — a 15-minute, single-use cookie
+proving `verify-otp` succeeded, consumed by `create-user`. Same flag rules; see
+change #43 below.)
 
 Each flag, and what it defends against:
 
 | Flag                   | Meaning                           | Attack it stops                                                     |
 | ---------------------- | --------------------------------- | ------------------------------------------------------------------- |
 | `httpOnly: true`       | JavaScript cannot read the cookie | **XSS token theft** — injected scripts can't exfiltrate the session |
-| `secure: isProduction` | Only sent over HTTPS              | Network sniffing of the token                                       |
+| `secure: true`         | Only sent over HTTPS              | Network sniffing of the token                                       |
 | `sameSite`             | Controls cross-site sending       | **CSRF** — another site making requests as your user                |
 | `maxAge`               | Expiry in **milliseconds**        | Limits the window of a stolen token                                 |
 
@@ -1200,10 +1205,19 @@ for later reuse.
 expression on purpose: `604800000` is unreadable and easy to typo by a factor of ten.
 (Careful — `Max-Age` in the raw HTTP header is in _seconds_; Express converts for you.)
 
-**`sameSite: "none"` in production** — required because your client and API are on
-different subdomains, which browsers treat as cross-site. Note that `"none"` _mandates_
-`secure: true`; browsers reject the combination otherwise. `"lax"` in development is the
-sensible default when everything is on localhost.
+**`sameSite: "lax"` in production** — correct for this deployment, and stronger than the
+alternative. The client is `poruya.com` and the API is `api.poruya.com`; browsers compare
+the _registrable domain_ (`poruya.com`), not the subdomain, so the cookie is **same-site**
+and `"lax"` is allowed while still blocking cross-site POSTs from attacker pages. `"none"`
+is only needed when client and API are on genuinely different sites (e.g. `*.onrender.com`
+vs `*.vercel.app`) — if the API ever moves to one, `sameSite` must flip back to `"none"` or
+production auth silently breaks. `"none"` in development exists because local development
+has run against cross-site hosts; note `"none"` mandates `secure: true`, and browsers
+treat `http://localhost` as a secure context so this still works locally.
+
+**`secure: true` unconditionally** (not `secure: isProduction`) — required, because
+`sameSite: "none"` is rejected by browsers unless the cookie is `Secure`, and localhost is
+a secure context anyway.
 
 **`...(isProduction && cookieDomain ? { domain: cookieDomain } : {})`** — conditional
 spread. If both conditions hold, spread `{ domain }` into the object; otherwise spread
@@ -1492,6 +1506,24 @@ unhandled floating Promise. It documents intent rather than looking like an over
 | 32  | Env validation with `process.exit(1)` | Fail at boot, not at 3am with `undefined` config          |
 | 33  | Health route above the limiter        | Render's health checks don't consume the budget           |
 
+### API correctness and route protection (Part A)
+
+The next pass fixed error paths, status codes and authorization gaps. The two headline
+items (#38, #39) were live on production.
+
+| #   | Change                                              | Why                                                          |
+| --- | --------------------------------------------------- | ------------------------------------------------------------ |
+| 34  | Removed `console.log(req.body)` from `validate`     | Plaintext passwords and OTPs were logged on every auth call |
+| 35  | `AppError` class + error-type mapping + 404 catch-all | Driver internals (`jwt expired`, CastError text, index names) no longer reach clients |
+| 36  | 33 `res.status(200).json({ success: false })` → real 4xx/5xx | Monitors, CDNs and retry policies no longer read failures as successes |
+| 37  | `optionalAuth` middleware                           | Same verify + DB load + `passwordChangedAt` check as `requireAuth`; attaches `req.user` only when the cookie is valid, continues otherwise |
+| 38  | `GET /master-data` skips the Collection query when anonymous | **Every user's collections were returned to anonymous callers.** Also fixed the stale-cookie `500 "jwt expired"` — `jwt.verify` now sits inside the same handled path |
+| 39  | Signup grant cookie required by `create-user`       | **Account takeover:** POST any registered phone + two public ObjectIds minted a 7-day session for that account, overwriting its profile on the way in. `verify-otp` now issues a single-use 15-minute grant; `create-user` requires and consumes it, and rejects already-complete profiles |
+| 40  | `correctAnswer` / `explanation` / `answer` excluded from anonymous question reads | The public question API handed out the answer key; exam takers could look answers up by `questionId` in another tab |
+| 41  | Ownership check in `toggleSavedQuestion`            | IDOR: a user could insert rows into another user's collection |
+| 42  | `adminOnly` + a fail-closed limiter on `/img-upload/*` | Any logged-in user could mint unlimited presigned R2 PUT URLs and paid `enhance` calls |
+| 43  | `signupGrantCookieOptions` in `config/cookie.ts`    | The grant cookie of #39, with the same domain/path/sameSite/secure rules as the session cookie so clearing works |
+
 ---
 
 ## 11. How to verify security work
@@ -1600,19 +1632,16 @@ the truth.
 **Hardcoded OTP** (`auth-controller.ts`) — `const otp = "123456"`, with the random version
 commented out above it. This is a real vulnerability: anyone can verify any phone number.
 It stays because **no SMS provider is wired up**; randomising it would break signup
-entirely. Fix it when you integrate SMS, not before.
-
-**`requireAuth` returns `200` for unauthenticated requests** — unusual (should be `401`),
-but your client depends on the current shape. Worth revisiting alongside a frontend change.
-Note it would also silently break `skipSuccessfulRequests` on any future limiter mounted
-behind it.
+entirely. Note that the signup grant of #39 means the OTP is no longer load-bearing for
+account takeover — but it still lets an attacker claim an unregistered phone. Fix it when
+you integrate SMS, not before.
 
 **Dead config** — `FRONTEND_URL`, `BACKEND_URL`, `DEV_FRONTEND_URL`, `DEV_BACKEND_URL` are
 in `.env` but read by zero lines of `src`. Harmless, but they mislead the next reader.
 
 **~25 simple `GET /:id` routes** still lack validation. Lower risk (a bad id yields a Mongo
-cast error, not a breach). The `objectIdParam` schema in `validations/common.ts` is ready
-for a follow-up pass.
+cast error, not a breach). The remaining ones are covered by the error-type mapping of #35
+(a clean `400 "Invalid id."`); the high-traffic routes already validate via `objectIdParam`.
 
 ### Not yet addressed
 
@@ -1620,8 +1649,11 @@ for a follow-up pass.
 - **Refresh-token rotation** — a 7-day JWT can't be revoked before expiry.
 - **Account lockout** — rate limiting slows guessing but never locks an account.
 - **Audit logging** — no record of who changed what.
-- **Automated tests** — everything here was verified manually. These checks belong in a
-  test suite so a future change can't silently undo them.
+- **Full exam integrity** — #40 stops the trivial lookup bypass, but a logged-out tab
+  still reaches the questions and any account can read any answer.
+- **Running the test suite on this machine** — `server/tests/` exists (vitest + supertest,
+  change #36 and the two takeover tests) but needs a local Redis; until then it runs only
+  where one exists.
 
 ### What was already right
 

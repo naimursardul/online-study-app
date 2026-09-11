@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
-import axios from "axios";
 import {
   Form,
   FormControl,
@@ -16,6 +15,10 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { IBackground, IField, ILevel, IOptionData } from "@/types/types";
 import { client } from "@/utils/utils";
+import {
+  applyApiFieldErrors,
+  getApiErrorMessage,
+} from "@/lib/api-error";
 import { useNavigate } from "react-router-dom";
 import SubmitBtn from "../submit-btn/submit-btn";
 import {
@@ -107,16 +110,12 @@ export default function AfterOtpForm({
 
   // OPTIONS FILTERING BASED ON DEPENDENCIES
   useEffect(() => {
-    console.log(watchedValues);
-
     for (const child in dependencies) {
       const parent = dependencies[child];
 
       if (parent && !(watchedValues as Record<string, string>)[parent]) {
         break;
       }
-      console.log(child);
-      console.log(dependencies[child]);
 
       const newFieldOptions: IOptionData[] = !parent
         ? fieldData[child]
@@ -141,8 +140,6 @@ export default function AfterOtpForm({
 
   // ON SUBMIT HANDLER
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log("Final user info:", values);
-
     try {
       const res = await client.post(`/auth/create-user`, { phone, ...values });
 
@@ -158,11 +155,10 @@ export default function AfterOtpForm({
       navigate("/", { replace: true });
       return;
     } catch (error) {
-      console.log(error);
-      const message = axios.isAxiosError(error)
-        ? error.response?.data?.message
-        : undefined;
-      toast.error(message || "Problem with the server.");
+      const fieldNames = fields.map((f) => f.name);
+      if (!applyApiFieldErrors(error, fieldNames, form.setError)) {
+        toast.error(getApiErrorMessage(error, "Something went wrong. Please try again."));
+      }
       return;
     }
   };

@@ -98,7 +98,9 @@ router.post(
   validate(resetPasswordSchema),
   resetPassword,
 );
-router.get("/logout", requireAuth, logout);
+// POST: a state-changing GET is prefetch- and CSRF-triggerable — browsers and
+// link previewers happily follow GETs, silently logging the user out.
+router.post("/logout", requireAuth, logout);
 router.get("/check-auth", requireAuth, checkAuth);
 
 export default router;

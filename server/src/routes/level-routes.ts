@@ -11,6 +11,7 @@ import { validate } from "../middlewares/validate";
 import { adminOnly } from "../middlewares/require-role";
 import { objectIdParam } from "../validations/common";
 import {
+  levelCreateSchema,
   levelListSchema,
   levelUpdateSchema,
 } from "../validations/crud.validation";
@@ -22,7 +23,12 @@ const router = Router();
 // its whole tree with it.
 
 // CREATE a new level
-router.post("/create", ...adminOnly, createLevel);
+router.post(
+  "/create",
+  ...adminOnly,
+  validate(levelCreateSchema),
+  createLevel,
+);
 
 // READ all levels
 router.get("/", validate(levelListSchema), getAllLevels);

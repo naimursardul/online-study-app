@@ -8,6 +8,7 @@ import type {
 import axios from "axios";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { parseBoardSlug } from "./board-slug";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -19,7 +20,46 @@ const client = axios.create({
       ? import.meta.env.VITE_PRODUCTION_API
       : import.meta.env.VITE_DEVELOPMENT_API,
   withCredentials: true,
+  // Render's free tier sleeps; a cold start can take tens of seconds, and
+  // without a timeout a hung request never resolves at all.
+  timeout: 30000,
 });
+
+// Registered by AuthProvider (see Auth-context.tsx): the interceptor lives at
+// module scope where hooks are unavailable, so the provider injects the
+// "session died, log in" behaviour from React-land.
+let unauthorizedHandler: (() => void) | null = null;
+export function setUnauthorizedHandler(fn: (() => void) | null) {
+  unauthorizedHandler = fn;
+}
+
+// These legitimately answer 401 and handle it themselves — a global logout
+// redirect on top of their own handling would bounce a user mid-login.
+const AUTH_401_ALLOWLIST = [
+  "/auth/check-auth",
+  "/auth/login-with-phone",
+  "/auth/send-otp",
+  "/auth/verify-otp",
+  "/auth/create-user",
+  "/auth/logout",
+  "/auth/forgot-password",
+  "/auth/verify-reset-otp",
+  "/auth/reset-password",
+];
+
+client.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      const url = error.config?.url ?? "";
+      if (unauthorizedHandler && !AUTH_401_ALLOWLIST.includes(url)) {
+        unauthorizedHandler();
+      }
+    }
+    return Promise.reject(error);
+  },
+);
+
 export { client };
 
 export function createFormInfo<T extends { _id: string }>(
@@ -79,15 +119,10 @@ export const getBoardQusetonDetails = (
   masterData: IMasterData,
   slug: string,
 ): IqDetails => {
-  // HSC_Physics-1st_mcq_dhaka_2024
-  const obj: Record<string, string | undefined> = {};
   if (!slug) return {} as IqDetails;
-  const arr = slug.split("_");
-  if (arr[0]) obj.level = arr[0];
-  if (arr[1]) obj.subject = arr[1];
-  if (arr[2]) obj.questionType = arr[2];
-  if (arr[3]) obj.institution = arr[3];
-  if (arr[4]) obj.year = arr[4];
+  // HSC_Physics-1st_mcq_dhaka_2024 — the grammar lives in board-slug.ts so the
+  // SEO resolver can share it without importing this axios-bearing module.
+  const obj = parseBoardSlug(slug);
 
   const update: Record<string, string | string[]> = {};
   if (obj?.level) {

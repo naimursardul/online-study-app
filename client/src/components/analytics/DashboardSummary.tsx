@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 import { CheckCircle2, XCircle, Activity } from "lucide-react";
 import {
   Select,
@@ -10,6 +11,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import ApiErrorState from "@/components/shared/ApiErrorState";
 import type { ISubject } from "@/types/types";
 import { client } from "@/utils/utils";
 
@@ -108,30 +110,45 @@ export default function DashboardStats({
 }) {
   const [stats, setStats] = useState<DashboardStatsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const [selectedSubject, setSelectedSubject] = useState<string>("all");
-
-  const fetchStats = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params = new URLSearchParams();
-      if (selectedSubject !== "all") params.set("subjectId", selectedSubject);
-
-      const { data } = await client.get(
-        `analytics/dashboard-stats?${params.toString()}`,
-      );
-      setStats(data.data);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to load stats");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Bumped by the error state's retry button to re-run the fetch.
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
+    // Filter-driven refetch: abort the superseded request so a slow older
+    // response cannot overwrite a newer subject's numbers.
+    const controller = new AbortController();
+
+    const fetchStats = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams();
+        if (selectedSubject !== "all") params.set("subjectId", selectedSubject);
+
+        const { data } = await client.get(
+          `analytics/dashboard-stats?${params.toString()}`,
+          { signal: controller.signal },
+        );
+        // Keep-both-paths: the old server answered 200 with success:false.
+        if (!data?.success || !data?.data) {
+          setError(data?.message ? new Error(data.message) : true);
+          return;
+        }
+        setStats(data.data);
+      } catch (err) {
+        if (axios.isCancel(err)) return;
+        setError(err);
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    };
+
     fetchStats();
-  }, [selectedSubject]);
+
+    return () => controller.abort();
+  }, [selectedSubject, reloadToken]);
 
   const handleSubjectChange = (value: string) => {
     setSelectedSubject(value);
@@ -187,52 +204,59 @@ export default function DashboardStats({
         </div>
       </div>
 
-      {/* Error */}
-      {error && (
-        <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {error}
-        </div>
+      {/* Error — rendered instead of the numbers, so a failed load can never
+          present fabricated zeros as real analytics. */}
+      {error !== null ? (
+        <ApiErrorState
+          error={error === true ? undefined : error}
+          message="Failed to load stats."
+          onRetry={() => setReloadToken((t) => t + 1)}
+        />
+      ) : (
+        <>
+          {/* Accuracy Ring + Badge */}
+          <Card>
+            <CardContent className="pt-6 pb-5 flex flex-col items-center gap-3">
+              {loading ? (
+                <Skeleton className="w-36 h-36 rounded-full" />
+              ) : (
+                <AccuracyRing value={stats?.overallAccuracy ?? 0} />
+              )}
+              {accuracyLabel && (
+                <Badge variant={accuracyLabel.variant}>
+                  {accuracyLabel.label}
+                </Badge>
+              )}
+              <p className="text-sm text-muted-foreground">Overall Accuracy</p>
+            </CardContent>
+          </Card>
+
+          {/* Stat Cards */}
+          <div className="flex gap-3 flex-wrap">
+            <StatCard
+              icon={Activity}
+              label="Total Attempts"
+              value={stats?.totalAttempts ?? 0}
+              color="bg-blue-500/10 text-blue-500"
+              loading={loading}
+            />
+            <StatCard
+              icon={CheckCircle2}
+              label="Correct"
+              value={stats?.correctAttempts ?? 0}
+              color="bg-green-500/10 text-green-500"
+              loading={loading}
+            />
+            <StatCard
+              icon={XCircle}
+              label="Wrong"
+              value={stats?.wrongAttempts ?? 0}
+              color="bg-red-500/10 text-red-500"
+              loading={loading}
+            />
+          </div>
+        </>
       )}
-
-      {/* Accuracy Ring + Badge */}
-      <Card>
-        <CardContent className="pt-6 pb-5 flex flex-col items-center gap-3">
-          {loading ? (
-            <Skeleton className="w-36 h-36 rounded-full" />
-          ) : (
-            <AccuracyRing value={stats?.overallAccuracy ?? 0} />
-          )}
-          {accuracyLabel && (
-            <Badge variant={accuracyLabel.variant}>{accuracyLabel.label}</Badge>
-          )}
-          <p className="text-sm text-muted-foreground">Overall Accuracy</p>
-        </CardContent>
-      </Card>
-
-      {/* Stat Cards */}
-      <div className="flex gap-3 flex-wrap">
-        <StatCard
-          icon={Activity}
-          label="Total Attempts"
-          value={stats?.totalAttempts ?? 0}
-          color="bg-blue-500/10 text-blue-500"
-          loading={loading}
-        />
-        <StatCard
-          icon={CheckCircle2}
-          label="Correct"
-          value={stats?.correctAttempts ?? 0}
-          color="bg-green-500/10 text-green-500"
-          loading={loading}
-        />
-        <StatCard
-          icon={XCircle}
-          label="Wrong"
-          value={stats?.wrongAttempts ?? 0}
-          color="bg-red-500/10 text-red-500"
-          loading={loading}
-        />
-      </div>
     </div>
   );
 }

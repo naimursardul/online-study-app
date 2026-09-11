@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import jwt, { JwtPayload } from "jsonwebtoken";
 import Background from "../models/background-model";
 import Chapter from "../models/chapter-model";
 import Level from "../models/level-model";
@@ -9,15 +8,10 @@ import Topic from "../models/topic-model";
 import Collection from "../models/collection-model";
 
 export const getMasterQuestionData = async (req: Request, res: Response) => {
-  const token = req.cookies.token;
-
-  const collectionFilter: { userId?: string } = {};
-  if (token) {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload & {
-      userId: string;
-    };
-    collectionFilter["userId"] = decoded.userId;
-  }
+  // Mounted behind optionalAuth, so req.user is set only for a valid session.
+  // Anonymous callers must not query Collection at all: the filter used to
+  // default to {}, which returned every user's collections (userId included).
+  const userId = req.user?._id;
 
   try {
     const [
@@ -35,7 +29,7 @@ export const getMasterQuestionData = async (req: Request, res: Response) => {
       Chapter.find().select("name subjectId levelId backgroundId"),
       Topic.find().select("name chapterId subjectId"),
       Record.find().select("institution year recordType"),
-      Collection.find(collectionFilter),
+      userId ? Collection.find({ userId }) : Promise.resolve([]),
     ]);
 
     res.status(200).json({

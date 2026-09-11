@@ -1,6 +1,5 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import axios from "axios";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   InputOTP,
@@ -18,8 +17,13 @@ import {
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 import SubmitBtn from "../submit-btn/submit-btn";
 import { client } from "@/utils/utils";
+import {
+  applyApiFieldErrors,
+  getApiErrorMessage,
+} from "@/lib/api-error";
 
 const otpSchema = z.object({
   otp: z.string().min(6, "OTP must be 6 digits").max(6, "OTP must be 6 digits"),
@@ -34,6 +38,8 @@ export default function ResetOtpForm({
   setOtp: Dispatch<SetStateAction<string>>;
   phone: string;
 }) {
+  const [resending, setResending] = useState(false);
+
   const form = useForm<z.infer<typeof otpSchema>>({
     resolver: zodResolver(otpSchema),
     defaultValues: {
@@ -60,16 +66,18 @@ export default function ResetOtpForm({
       toast.success("OTP verified successfully!");
       return;
     } catch (error) {
-      console.log(error);
-      const message = axios.isAxiosError(error)
-        ? error.response?.data?.message
-        : undefined;
-      toast.error(message || "There is a problem with the server.");
+      // A wrong OTP is a field-level issue — it belongs under the input.
+      if (!applyApiFieldErrors(error, ["otp"], form.setError)) {
+        toast.error(
+          getApiErrorMessage(error, "Something went wrong. Please try again."),
+        );
+      }
     }
   };
 
   // Re-request a fresh OTP for the same phone number.
   const handleResend = async () => {
+    setResending(true);
     try {
       const res = await client.post(`/auth/forgot-password`, { phone });
       if (res.data.success) {
@@ -78,11 +86,9 @@ export default function ResetOtpForm({
       }
       toast.error(res.data.message || "Failed to resend the code.");
     } catch (error) {
-      console.log(error);
-      const message = axios.isAxiosError(error)
-        ? error.response?.data?.message
-        : undefined;
-      toast.error(message || "There is a problem with the server.");
+      toast.error(getApiErrorMessage(error, "Failed to resend the code."));
+    } finally {
+      setResending(false);
     }
   };
 
@@ -143,10 +149,11 @@ export default function ResetOtpForm({
             {"Didn't get the code? "}
             <button
               type="button"
-              className="text-primary underline hover:opacity-80"
+              className="text-primary underline hover:opacity-80 disabled:opacity-50"
+              disabled={resending}
               onClick={handleResend}
             >
-              Resend
+              {resending ? "Resending…" : "Resend"}
             </button>
           </p>
         </form>

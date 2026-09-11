@@ -39,8 +39,9 @@ export function FileUploader({ files, setFiles }: Props) {
         }}
       />
 
-      {files?.length &&
-        files.map((file, i) => (
+      {/* `files?.length &&` would render a literal 0 when the list is empty. */}
+      {(files?.length ?? 0) > 0 &&
+        files?.map((file, i) => (
           <div key={i} className="mt-4 text-sm">
             {file.name}
           </div>

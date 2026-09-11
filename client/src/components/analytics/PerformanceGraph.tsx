@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 import {
   LineChart,
   Line,
@@ -17,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import ApiErrorState from "@/components/shared/ApiErrorState";
 import { client } from "@/utils/utils";
 
 interface GraphItem {
@@ -49,29 +51,48 @@ export default function PerformanceGraph({
 }) {
   const [data, setData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<unknown>(null);
   const [selectedSubject, setSelectedSubject] = useState<string>("all");
+  // Bumped by the error state's retry button to re-run the fetch.
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
+    // Filter-driven refetch: abort the superseded request so a slow older
+    // response cannot overwrite a newer filter's graph.
+    const controller = new AbortController();
+
     const fetchGraph = async () => {
       try {
         setLoading(true);
-        setError("");
+        setError(null);
 
         const response = await client.get(
           `/analytics/performance-graph${selectedSubject !== "all" ? `?subjectId=${selectedSubject}` : ""}`,
+          { signal: controller.signal },
         );
 
+        // Keep-both-paths: the old server answered 200 with success:false.
+        if (!response.data?.success || !response.data?.data) {
+          setError(
+            response.data?.message
+              ? new Error(response.data.message)
+              : undefined,
+          );
+          return;
+        }
         setData(response.data.data);
-      } catch (err: any) {
-        setError(err.response?.data?.message || "Failed to load graph");
+      } catch (err) {
+        if (axios.isCancel(err)) return;
+        setError(err);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
 
     fetchGraph();
-  }, [selectedSubject]);
+
+    return () => controller.abort();
+  }, [selectedSubject, reloadToken]);
 
   const selectedSubjectName = allSubjects.find(
     (s) => s._id === selectedSubject,
@@ -117,10 +138,12 @@ export default function PerformanceGraph({
             Loading performance...
           </CardContent>
         </Card>
-      ) : error ? (
-        <Card>
-          <CardContent className="p-6 text-red-500">{error}</CardContent>
-        </Card>
+      ) : error !== null ? (
+        <ApiErrorState
+          error={error}
+          message="Failed to load performance graph."
+          onRetry={() => setReloadToken((t) => t + 1)}
+        />
       ) : data ? (
         <>
           {/* Summary Cards */}

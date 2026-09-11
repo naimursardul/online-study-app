@@ -6,6 +6,10 @@ dotenv.config();
 const envSchema = z
   .object({
     NODE_ENV: z.string().optional(),
+    // Validated here rather than read as process.env.X! at the call sites, so a
+    // deploy missing either fails at startup instead of at the first login.
+    JWT_SECRET: z.string().min(1),
+    MONGO_URI: z.string().min(1),
     R2_ACCOUNT_ID: z.string(),
     R2_ACCESS_KEY_ID: z.string(),
     R2_SECRET_ACCESS_KEY: z.string(),

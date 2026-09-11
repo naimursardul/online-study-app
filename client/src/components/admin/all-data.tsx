@@ -38,8 +38,10 @@ import {
 import { toast } from "sonner";
 import UploadForm from "./upload-form";
 import { client, createFormInfo, getQuestionDataOption } from "@/utils/utils";
+import { getApiErrorMessage } from "@/lib/api-error";
 import { useMasterData } from "@/lib/MasterData-context";
 import DataField from "./data-field";
+import ApiErrorState from "@/components/shared/ApiErrorState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "../ui/card";
@@ -133,7 +135,9 @@ function DeleteRowDialog({
       .catch((error) => {
         if (cancelled) return;
         console.error(error);
-        toast.error("Failed to load delete impact.");
+        toast.error(
+          getApiErrorMessage(error, "Failed to load delete impact."),
+        );
       })
       .finally(() => {
         if (!cancelled) setLoadingImpact(false);
@@ -293,6 +297,10 @@ export default function AllData({
 }) {
   const [allData, setAllData] = useState<DataType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  // A failed fetch must not fall through to the "No data available" table row.
+  const [loadError, setLoadError] = useState<unknown>(null);
+  // Bumped by the error state's retry button to re-run the fetch.
+  const [reloadToken, setReloadToken] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const closeRef = useRef<HTMLButtonElement | null>(null);
   const [queryFormData, setQueryFormData] = useState<IQueryFormData>({});
@@ -325,18 +333,19 @@ export default function AllData({
       }
       const allDataQueryString = query.length ? "?" + query.join("&") : "";
       try {
+        setLoadError(null);
         const res = await client.get(`${route}${allDataQueryString}`);
         const { data } = res;
         if (data.success) setAllData(data.data);
       } catch (error) {
         console.error(error);
-        toast.error("Failed to load data.");
+        setLoadError(error);
       } finally {
         setLoading(false);
       }
     }
     getAllData();
-  }, [route, queryFormData]);
+  }, [route, queryFormData, reloadToken]);
 
   async function deleteData(id: string) {
     try {
@@ -349,8 +358,8 @@ export default function AllData({
       }
       toast.error(data.message);
       return false;
-    } catch {
-      toast.error("Server Error!");
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Failed to delete."));
       return false;
     }
   }
@@ -488,136 +497,144 @@ export default function AllData({
       )}
 
       {/* ── Table ───────────────────────────────────────────────── */}
-      <Card className="rounded-xl border overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead className="w-10 text-center font-semibold text-xs uppercase tracking-wide">
-                  #
-                </TableHead>
-                {fields.map((field, i) => (
-                  <TableHead
-                    key={i}
-                    className="font-semibold text-xs uppercase tracking-wide whitespace-nowrap"
-                  >
-                    {field.label}
+      {loadError !== null ? (
+        <ApiErrorState
+          error={loadError}
+          message="Failed to load data."
+          onRetry={() => setReloadToken((t) => t + 1)}
+        />
+      ) : (
+        <Card className="rounded-xl border overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="w-10 text-center font-semibold text-xs uppercase tracking-wide">
+                    #
                   </TableHead>
-                ))}
-                <TableHead className="font-semibold text-xs uppercase tracking-wide text-right pr-4">
-                  Actions
-                </TableHead>
-              </TableRow>
-            </TableHeader>
+                  {fields.map((field, i) => (
+                    <TableHead
+                      key={i}
+                      className="font-semibold text-xs uppercase tracking-wide whitespace-nowrap"
+                    >
+                      {field.label}
+                    </TableHead>
+                  ))}
+                  <TableHead className="font-semibold text-xs uppercase tracking-wide text-right pr-4">
+                    Actions
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
 
-            <TableBody>
-              {loading ? (
-                [...Array(5)].map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell colSpan={fields.length + 2}>
-                      <Skeleton className="h-5 w-full bg-muted" />
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : paginatedData.length > 0 ? (
-                paginatedData.map((data, index) => (
-                  <TableRow
-                    key={index}
-                    className="hover:bg-muted/40 transition-colors group"
-                  >
-                    <TableCell className="text-center text-xs text-muted-foreground">
-                      {(currentPage - 1) * PAGE_SIZE + index + 1}
-                    </TableCell>
+              <TableBody>
+                {loading ? (
+                  [...Array(5)].map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell colSpan={fields.length + 2}>
+                        <Skeleton className="h-5 w-full bg-muted" />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : paginatedData.length > 0 ? (
+                  paginatedData.map((data, index) => (
+                    <TableRow
+                      key={index}
+                      className="hover:bg-muted/40 transition-colors group"
+                    >
+                      <TableCell className="text-center text-xs text-muted-foreground">
+                        {(currentPage - 1) * PAGE_SIZE + index + 1}
+                      </TableCell>
 
-                    {fields.map((field, i) => {
-                      const raw = data[field.name as keyof DataType];
-                      const display = resolveCellValue(raw);
-                      const isBadge =
-                        field.inputType === "select" ||
-                        field.inputType === "checkbox";
-                      return (
-                        <TableCell
-                          key={i}
-                          className="whitespace-pre-wrap max-w-55 truncate text-sm"
-                          title={display}
-                        >
-                          {isBadge && display !== "—" ? (
-                            <Badge
-                              variant="secondary"
-                              className="text-xs font-normal"
-                            >
-                              {display}
-                            </Badge>
-                          ) : (
-                            display
-                          )}
-                        </TableCell>
-                      );
-                    })}
+                      {fields.map((field, i) => {
+                        const raw = data[field.name as keyof DataType];
+                        const display = resolveCellValue(raw);
+                        const isBadge =
+                          field.inputType === "select" ||
+                          field.inputType === "checkbox";
+                        return (
+                          <TableCell
+                            key={i}
+                            className="whitespace-pre-wrap max-w-55 truncate text-sm"
+                            title={display}
+                          >
+                            {isBadge && display !== "—" ? (
+                              <Badge
+                                variant="secondary"
+                                className="text-xs font-normal"
+                              >
+                                {display}
+                              </Badge>
+                            ) : (
+                              display
+                            )}
+                          </TableCell>
+                        );
+                      })}
 
-                    <TableCell className="text-right pr-4">
-                      <div className="flex gap-2 justify-end opacity-70 group-hover:opacity-100 transition-opacity">
-                        {/* Edit */}
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
-                              ref={closeRef}
-                              aria-label="Edit"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="sm:max-w-lg w-[95vw]">
-                            <DialogHeader>
-                              <DialogTitle>Update {heading}</DialogTitle>
-                              <DialogDescription>
-                                Changes will reflect immediately.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <UploadForm
-                              formInfo={createFormInfo(
-                                "PUT",
-                                route,
-                                fields,
-                                data,
-                              )}
-                              closeRef={closeRef}
-                            />
-                          </DialogContent>
-                        </Dialog>
+                      <TableCell className="text-right pr-4">
+                        <div className="flex gap-2 justify-end opacity-70 group-hover:opacity-100 transition-opacity">
+                          {/* Edit */}
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+                                ref={closeRef}
+                                aria-label="Edit"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-lg w-[95vw]">
+                              <DialogHeader>
+                                <DialogTitle>Update {heading}</DialogTitle>
+                                <DialogDescription>
+                                  Changes will reflect immediately.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <UploadForm
+                                formInfo={createFormInfo(
+                                  "PUT",
+                                  route,
+                                  fields,
+                                  data,
+                                )}
+                                closeRef={closeRef}
+                              />
+                            </DialogContent>
+                          </Dialog>
 
-                        {/* Delete */}
-                        <DeleteRowDialog
-                          heading={heading}
-                          route={route}
-                          id={data._id}
-                          name={String(data["name" as keyof DataType] ?? "")}
-                          onConfirm={deleteData}
-                        />
+                          {/* Delete */}
+                          <DeleteRowDialog
+                            heading={heading}
+                            route={route}
+                            id={data._id}
+                            name={String(data["name" as keyof DataType] ?? "")}
+                            onConfirm={deleteData}
+                          />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={fields.length + 2}
+                      className="text-center py-14 text-muted-foreground"
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        <ArchiveX className="w-8 h-8 opacity-30" />
+                        <span className="text-sm">No data available</span>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={fields.length + 2}
-                    className="text-center py-14 text-muted-foreground"
-                  >
-                    <div className="flex flex-col items-center gap-2">
-                      <ArchiveX className="w-8 h-8 opacity-30" />
-                      <span className="text-sm">No data available</span>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </Card>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </Card>
+      )}
 
       {/* ── Pagination ──────────────────────────────────────────── */}
       {!loading && allData.length > PAGE_SIZE && (

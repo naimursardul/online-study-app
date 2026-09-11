@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { processSubmission } from "../services/analytics.service";
 import { updateUserAnalytics } from "../services/analytics.service";
 import Answer from "../models/answer-model";
@@ -18,8 +18,11 @@ import Exam from "../models/exam-model";
 // =========================================
 // GENERATE EXAM
 // =========================================
-export const createExam = async (req: Request, res: Response) => {
-  console.log(req?.body);
+export const createExam = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const u_id = String(req.user?._id);
     const {
@@ -34,7 +37,7 @@ export const createExam = async (req: Request, res: Response) => {
     const examCategory: ExamCategoryType = req.body.examCategory;
 
     if (!examCategory) {
-      res.status(200).json({
+      res.status(400).json({
         success: false,
         message: "Missing required fields: examCategory.",
         data: null,
@@ -52,7 +55,7 @@ export const createExam = async (req: Request, res: Response) => {
     switch (examCategory) {
       case "personal": {
         if (!examName || !subjectId || !difficulty || !mode || !size) {
-          res.status(200).json({
+          res.status(400).json({
             success: false,
             message:
               "Missing required fields: examName, subjectId, difficulty, mode, size.",
@@ -61,7 +64,7 @@ export const createExam = async (req: Request, res: Response) => {
           return;
         }
         if (typeof size !== "number" || size < 1 || size > 100) {
-          res.status(200).json({
+          res.status(400).json({
             success: false,
             message: "Exam size must be between 1 and 100.",
             data: null,
@@ -82,7 +85,7 @@ export const createExam = async (req: Request, res: Response) => {
       }
       case "record": {
         if (typeof filter !== "object") {
-          res.status(200).json({
+          res.status(400).json({
             success: false,
             message: "Missing required fields: filter.",
             data: null,
@@ -91,7 +94,7 @@ export const createExam = async (req: Request, res: Response) => {
         }
         const { levelId, recordId } = filter;
         if (!examName || !levelId || !subjectId || !recordId) {
-          res.status(200).json({
+          res.status(400).json({
             success: false,
             message:
               "Missing required fields: examname, subjectId, levelId, recordId.",
@@ -99,6 +102,32 @@ export const createExam = async (req: Request, res: Response) => {
           });
           return;
         }
+
+       
+        const pending = await Exam.countDocuments({
+          u_id,
+          status: "generated",
+        });
+        if (pending >= 2) {
+          res.status(409).json({
+            success: false,
+            message:
+              "You already have 2 pending exams. Finish or delete one first.",
+            data: null,
+          });
+          return;
+        }
+        const examLabel = String(examName).trim() + `(${examNo})`;
+        const dup = await Exam.findOne({ u_id, examName: examLabel });
+        if (dup) {
+          res.status(409).json({
+            success: false,
+            message: "An exam with this name already exists.",
+            data: null,
+          });
+          return;
+        }
+
         const query: any = {};
         if (typeof levelId === "string") query.levelId = levelId;
         if (typeof subjectId === "string") query.subjectId = subjectId;
@@ -110,12 +139,14 @@ export const createExam = async (req: Request, res: Response) => {
 
         if (recordIdArray.length > 0) query.recordId = { $in: recordIdArray };
 
-        const recordQuestions = await MCQ.find({ ...query });
+        // Bound the result set — matches the personal branch's 100-question
+        // ceiling instead of storing every matching id in one document.
+        const recordQuestions = await MCQ.find({ ...query }).limit(100);
         if (
           !Array.isArray(recordQuestions) ||
           (Array.isArray(recordQuestions) && recordQuestions.length <= 0)
         ) {
-          res.status(200).json({
+          res.status(404).json({
             success: false,
             message: "No Questions found!",
             data: null,
@@ -142,27 +173,27 @@ export const createExam = async (req: Request, res: Response) => {
       }
     }
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "Exam generated successfully.",
       data,
     });
     return;
-  } catch (error: any) {
-    console.error("createExam Error:", error.message);
-    res.status(200).json({
-      success: false,
-      message: error.message || "Failed to generate exam.",
-      data: null,
-    });
-    return;
+  } catch (error) {
+    // Sentinels from the service (pending cap, duplicate name, no questions)
+    // arrive as AppError with their status; the central handler maps them.
+    next(error);
   }
 };
 
 // =========================================
 // LIST EXAMS
 // =========================================
-export const listExams = async (req: Request, res: Response) => {
+export const listExams = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const u_id = String(req.user?._id);
     const data = await listUserExams(u_id);
@@ -172,19 +203,19 @@ export const listExams = async (req: Request, res: Response) => {
       data,
     });
     return;
-  } catch (error: any) {
-    console.error("listExams Error:", error.message);
-    res
-      .status(500)
-      .json({ success: false, message: error.message, data: null });
-    return;
+  } catch (error) {
+    next(error);
   }
 };
 
 // =========================================
 // GET SINGLE EXAM (take or review)
 // =========================================
-export const getExam = async (req: Request, res: Response) => {
+export const getExam = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const u_id = String(req.user?._id);
     const { examId } = req.params;
@@ -195,19 +226,19 @@ export const getExam = async (req: Request, res: Response) => {
       data,
     });
     return;
-  } catch (error: any) {
-    console.error("getExam Error:", error.message);
-    res
-      .status(200)
-      .json({ success: false, message: error.message, data: null });
-    return;
+  } catch (error) {
+    next(error);
   }
 };
 
 // =========================================
 // DELETE EXAM (un-submitted only)
 // =========================================
-export const removeExam = async (req: Request, res: Response) => {
+export const removeExam = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const u_id = String(req.user?._id);
     const { examId } = req.params;
@@ -218,25 +249,27 @@ export const removeExam = async (req: Request, res: Response) => {
       data: null,
     });
     return;
-  } catch (error: any) {
-    console.error("removeExam Error:", error.message);
-    res
-      .status(200)
-      .json({ success: false, message: error.message, data: null });
-    return;
+  } catch (error) {
+    // "Exam not found." (404), "Not authorized." (403), "Submitted exams
+    // cannot be deleted." (409) — sentinels from the service.
+    next(error);
   }
 };
 
 // =========================================
 // SUBMIT EXAM (grade + save answer + close exam)
 // =========================================
-export const createAnswer = async (req: Request, res: Response) => {
+export const createAnswer = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const u_id = String(req.user?._id);
     const { examId, answers, timeTaken } = req.body;
 
     if (!examId || !answers || timeTaken === undefined) {
-      res.status(200).json({
+      res.status(400).json({
         success: false,
         message: "Missing field: examId, answers, timeTaken.",
         data: null,
@@ -283,19 +316,16 @@ export const createAnswer = async (req: Request, res: Response) => {
     // 🔹 Step 4: Update analytics
     await updateUserAnalytics(u_id, result.topicStats);
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "Exam submitted successfully",
       data: { examId, answer: savedAnswer },
     });
     return;
-  } catch (error: any) {
-    console.error("createAnswer Error:", error.message);
-    res.status(200).json({
-      success: false,
-      message: error.message || "Something went wrong",
-      data: null,
-    });
-    return;
+  } catch (error) {
+    // The one that matters most: a failed grade-and-save used to answer 200
+    // as if the submission had succeeded. AppErrors from the service keep
+    // their status; anything else becomes a 500 with a generic message.
+    next(error);
   }
 };

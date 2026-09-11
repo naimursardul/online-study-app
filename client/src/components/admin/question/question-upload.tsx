@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/api-error";
 import type { IMCQ, IBaseQuestion, ICQ, IField, IWritten } from "@/types/types";
 import SubmitBtn from "@/components/submit-btn/submit-btn";
 import { useMasterData } from "@/lib/MasterData-context";
@@ -115,7 +116,6 @@ export default function QuestionUpload() {
     [masterData, formData],
   );
 
-  console.log(filteredFields);
   const selectedSubject = useMemo(
     () => masterData.subjects.find((s) => s._id === formData.subjectId),
     [masterData.subjects, formData.subjectId],
@@ -190,11 +190,10 @@ export default function QuestionUpload() {
       if (data.success) {
         toast.success(data.message);
       } else {
-        toast.warning(data.message);
+        toast.error(data.message || "Failed to create the question.");
       }
     } catch (error) {
-      console.log(error);
-      toast.error("Server error.");
+      toast.error(getApiErrorMessage(error, "Failed to create the question."));
     } finally {
       setLoading(false);
       setIsQuestionReady(false);

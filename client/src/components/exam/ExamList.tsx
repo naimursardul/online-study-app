@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { BookOpen, Clock, ListChecks, Play, Trash2, Eye } from "lucide-react";
 import { client, extractIdTo_ } from "@/utils/utils";
 import { useMasterData } from "@/lib/MasterData-context";
+import { getApiErrorMessage } from "@/lib/api-error";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -26,8 +28,12 @@ type Props = {
 export default function ExamList({ exams, onChanged }: Props) {
   const navigate = useNavigate();
   const { masterData } = useMasterData();
+  // Guards the delete against double-fire: without it the confirm dialog can
+  // be re-opened and re-clicked while the first request is in flight.
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   async function handleDelete(examId: string) {
+    setDeletingId(examId);
     try {
       const res = await client.delete(`/exam/${examId}`);
       if (!res.data?.success) {
@@ -36,8 +42,10 @@ export default function ExamList({ exams, onChanged }: Props) {
       }
       toast.success("Exam deleted.");
       onChanged();
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Failed to delete exam.");
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Failed to delete exam."));
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -113,7 +121,12 @@ export default function ExamList({ exams, onChanged }: Props) {
               {isPending && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button size="sm" variant="outline">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={deletingId === exam._id}
+                      className="disabled:opacity-50"
+                    >
                       <Trash2 className="size-4" />
                     </Button>
                   </AlertDialogTrigger>

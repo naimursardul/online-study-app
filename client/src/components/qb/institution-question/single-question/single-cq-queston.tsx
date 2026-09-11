@@ -11,6 +11,7 @@ import { extractIdTo_ } from "@/utils/utils";
 import { useMasterData } from "@/lib/MasterData-context";
 import SaveToCollectionButton from "@/components/collection/saveToCollectionBtn";
 import ProtectedComponent from "@/lib/Protected.component";
+import LoginAnswerPrompt from "@/components/qb/LoginAnswerPrompt";
 
 export default function SingleCqQuestion({
   q,
@@ -77,7 +78,10 @@ export default function SingleCqQuestion({
                   </CollapsibleTrigger>
                 </div>
                 <CollapsibleContent className="px-4 py-3 max-sm:text-sm text-chart-2">
-                  <ReactMarkdownRender text={sq?.answer} />
+                  <ProtectedComponent
+                    component={<ReactMarkdownRender text={sq?.answer} />}
+                    fallback={<LoginAnswerPrompt />}
+                  />
                 </CollapsibleContent>
               </Collapsible>
             );

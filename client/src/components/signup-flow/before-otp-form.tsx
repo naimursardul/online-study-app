@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import axios from "axios";
 import {
   Form,
   FormControl,
@@ -14,6 +13,10 @@ import { Input } from "../ui/input";
 import { toast } from "sonner";
 import type { Dispatch, SetStateAction } from "react";
 import { client } from "@/utils/utils";
+import {
+  applyApiFieldErrors,
+  getApiErrorMessage,
+} from "@/lib/api-error";
 import SubmitBtn from "../submit-btn/submit-btn";
 import { Link } from "react-router-dom";
 
@@ -75,11 +78,11 @@ export default function BeforeOtpForm({
       toast.error(data.message || "Something went wrong. Please try again.");
       return;
     } catch (error) {
-      console.log(error);
-      const message = axios.isAxiosError(error)
-        ? error.response?.data?.message
-        : undefined;
-      toast.error(message || "There is a problem with the server.");
+      // A field-level issue lands under its input; only a genuinely generic
+      // failure reaches the toast.
+      if (!applyApiFieldErrors(error, ["phone", "password"], form.setError)) {
+        toast.error(getApiErrorMessage(error, "Something went wrong. Please try again."));
+      }
       return;
     }
   };
@@ -87,7 +90,7 @@ export default function BeforeOtpForm({
   return (
     <Form {...form}>
       {/* 🔽 Form heading */}
-      <h2 className="text-xl font-semibold text-center mb-3">Signup Form</h2>
+      <h1 className="text-xl font-semibold text-center mb-3">Signup Form</h1>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {fields.map((fieldConfig) => (
           <FormField

@@ -11,6 +11,7 @@ import { validate } from "../middlewares/validate";
 import { adminOnly } from "../middlewares/require-role";
 import { objectIdParam } from "../validations/common";
 import {
+  backgroundCreateSchema,
   backgroundListSchema,
   backgroundUpdateSchema,
 } from "../validations/crud.validation";
@@ -21,7 +22,12 @@ const router = express.Router();
 // are admin-only.
 
 // Create Background
-router.post("/create", ...adminOnly, createBackground);
+router.post(
+  "/create",
+  ...adminOnly,
+  validate(backgroundCreateSchema),
+  createBackground,
+);
 
 // Get All Backgrounds (Optional query for levelId)
 router.get("/", validate(backgroundListSchema), getAllBackgrounds);

@@ -11,6 +11,7 @@ import { validate } from "../middlewares/validate";
 import { adminOnly } from "../middlewares/require-role";
 import { objectIdParam } from "../validations/common";
 import {
+  subjectCreateSchema,
   subjectListSchema,
   subjectUpdateSchema,
 } from "../validations/crud.validation";
@@ -21,7 +22,12 @@ const router = express.Router();
 // are admin-only.
 
 // Route to create a new subject
-router.post("/create", ...adminOnly, createSubject);
+router.post(
+  "/create",
+  ...adminOnly,
+  validate(subjectCreateSchema),
+  createSubject,
+);
 
 // Route to get all subjects (with optional level or background filter)
 router.get("/", validate(subjectListSchema), getAllSubjects);

@@ -11,18 +11,42 @@ import {
   getQuestionsInCollection,
 } from "../controllers/saved-question-controller";
 import { requireAuth } from "../controllers/auth-controller";
+import { validate } from "../middlewares/validate";
+import {
+  collectionIdParam,
+  collectionQuestionsParam,
+  createCollectionSchema,
+  savedStatusParam,
+  toggleSavedQuestionSchema,
+} from "../validations/collection.validation";
 
 const router = Router();
 
 router.use(requireAuth);
 
 router.get("/", getCollections);
-router.post("/", createCollection);
-router.patch("/:id", renameCollection);
-router.delete("/:id", deleteCollection);
+router.post("/", validate(createCollectionSchema), createCollection);
+router.patch(
+  "/:id",
+  validate(collectionIdParam),
+  renameCollection,
+);
+router.delete("/:id", validate(collectionIdParam), deleteCollection);
 
-router.post("/saved-question/toggle", toggleSavedQuestion);
-router.get("/saved-question/status/:questionId", getSavedStatus);
-router.get("/:collectionId/questions", getQuestionsInCollection);
+router.post(
+  "/saved-question/toggle",
+  validate(toggleSavedQuestionSchema),
+  toggleSavedQuestion,
+);
+router.get(
+  "/saved-question/status/:questionId",
+  validate(savedStatusParam),
+  getSavedStatus,
+);
+router.get(
+  "/:collectionId/questions",
+  validate(collectionQuestionsParam),
+  getQuestionsInCollection,
+);
 
 export default router;

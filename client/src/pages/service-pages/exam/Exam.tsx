@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import ExamBuilderForm from "../../../components/exam/ExamBuilderForm";
 import ExamList from "../../../components/exam/ExamList";
+import ApiErrorState from "@/components/shared/ApiErrorState";
 import type { ExamGenResType, ExamListItemType } from "@/types/types";
 import { Separator } from "@/components/ui/separator";
 
@@ -19,6 +20,9 @@ function Exam() {
   const navigate = useNavigate();
   const [exams, setExams] = useState<ExamListItemType[]>([]);
   const [loading, setLoading] = useState(true);
+  // A failed load must not fall through to ExamList's "No exams yet" empty
+  // state — that told users with exams that they had none.
+  const [loadError, setLoadError] = useState<unknown>(null);
   const [open, setOpen] = useState(false);
   // When set, the dialog shows the generated-exam details step
   const [generated, setGenerated] = useState<ExamGenResType | null>(null);
@@ -27,10 +31,12 @@ function Exam() {
 
   async function fetchExams() {
     try {
+      setLoadError(null);
       const res = await client.get("/exam/list");
       if (res.data?.success) setExams(res.data.data);
     } catch (error) {
       console.error(error);
+      setLoadError(error);
     } finally {
       setLoading(false);
     }
@@ -75,6 +81,8 @@ function Exam() {
       {/* LIST */}
       {loading ? (
         <div className="text-center text-muted-foreground py-12">Loading…</div>
+      ) : loadError !== null ? (
+        <ApiErrorState error={loadError} onRetry={fetchExams} />
       ) : (
         <ExamList exams={exams} onChanged={fetchExams} />
       )}

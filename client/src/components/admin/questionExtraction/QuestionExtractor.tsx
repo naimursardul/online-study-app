@@ -11,6 +11,7 @@ import {
 import { Loader2, FileQuestion } from "lucide-react";
 import { FileUploader } from "./FileUploader";
 import { client } from "@/utils/utils";
+import { getApiErrorMessage } from "@/lib/api-error";
 import { toast } from "sonner";
 import MCQCard from "./MCQCard";
 import CQCard from "./CQCard";
@@ -33,14 +34,6 @@ import {
 
 // Any extracted question, whatever its shape family.
 type ExtractedQuestion = IMCQ | ICQ | IWritten;
-
-// Axios puts the server's own message on the response body.
-function errorMessage(err: unknown, fallback: string): string {
-  const data = (
-    err as { response?: { data?: { error?: string; message?: string } } }
-  )?.response?.data;
-  return data?.error || data?.message || fallback;
-}
 
 // -------------------------
 // Default meta state
@@ -270,12 +263,12 @@ export default function QuestionExtractor() {
         toast.error(res.data.message || "Failed to extract questions");
         return;
       }
-      const response: IExtractionResponse = res.data;
+      const response: IExtractionResponse = res.data.data;
       setExtractedQuestionType(response.questionType);
       setQuestions(enrichQuestions(response, meta));
     } catch (err) {
       console.error(err);
-      toast.error(errorMessage(err, "Failed to extract questions"));
+      toast.error(getApiErrorMessage(err, "Failed to extract questions"));
     } finally {
       setLoading(false);
     }
@@ -394,7 +387,7 @@ export default function QuestionExtractor() {
         setQuestions([]);
       }
     } catch (err) {
-      toast.error(errorMessage(err, "Bulk upload failed."));
+      toast.error(getApiErrorMessage(err, "Bulk upload failed."));
     } finally {
       setUploadLoading(false);
     }

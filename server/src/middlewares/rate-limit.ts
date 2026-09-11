@@ -180,11 +180,66 @@ export const resetPasswordLimiter = failClosed(
 );
 
 // POST /img-upload/enhance triggers a paid kie.ai call per request. Keyed by
-// user id, so it must be mounted after requireAuth.
-export const enhanceLimiter = rateLimit({
-  ...common,
-  store: createStore("enhance:"),
-  keyGenerator: (req: Request) => String(req.user!._id),
-  limit: 40,
-  passOnStoreError: true,
-});
+// user id, so it must be mounted after requireAuth. Fails CLOSED: a Redis
+// outage must not become an open door to the paid API.
+export const enhanceLimiter = failClosed(
+  rateLimit({
+    ...common,
+    store: createStore("enhance:"),
+    keyGenerator: (req: Request) => String(req.user!._id),
+    limit: 40,
+    passOnStoreError: false,
+  }),
+);
+
+// POST /img-upload/generate-upload-url mints presigned R2 PUT URLs into the
+// questions bucket. Keyed by user id (after adminOnly), and fails CLOSED for
+// the same reason: with no limit at all, a Redis outage would leave the
+// bucket wide open to unlimited uploads.
+export const uploadUrlLimiter = failClosed(
+  rateLimit({
+    ...common,
+    store: createStore("uploadurl:"),
+    keyGenerator: (req: Request) => String(req.user!._id),
+    limit: 60,
+    passOnStoreError: false,
+  }),
+);
+
+// POST /extraction/extract-questions buffers up to 4×20MB in memory and makes
+// a billable Gemini call with a 300s timeout. Single-digit per user: an admin
+// hammering the button must not stack a dozen concurrent extractions.
+export const extractionLimiter = failClosed(
+  rateLimit({
+    ...common,
+    store: createStore("extraction:"),
+    keyGenerator: (req: Request) => String(req.user!._id),
+    limit: 8,
+    passOnStoreError: false,
+  }),
+);
+
+// Exam writes. generate runs a $sample aggregation per attempt; create-answer
+// grades the submission and writes an Answer + analytics update. Both are
+// user-keyed (after requireAuth) and generous enough for real use — the point
+// is a bound, not a squeeze.
+export const examGenerateLimiter = failClosed(
+  rateLimit({
+    ...common,
+    store: createStore("examgen:"),
+    keyGenerator: (req: Request) => String(req.user!._id),
+    limit: 20,
+    passOnStoreError: false,
+  }),
+);
+
+export const examSubmitLimiter = failClosed(
+  rateLimit({
+    ...common,
+    store: createStore("examsub:"),
+    keyGenerator: (req: Request) => String(req.user!._id),
+    limit: 30,
+    skipSuccessfulRequests: true,
+    passOnStoreError: false,
+  }),
+);

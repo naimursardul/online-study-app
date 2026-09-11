@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useMasterData } from "@/lib/MasterData-context";
 import { typesForSubject } from "@/utils/questionTypes";
+import ApiErrorState from "@/components/shared/ApiErrorState";
 
 export default function SingleQuestionBankSidebar({
   slug,
@@ -13,6 +14,10 @@ export default function SingleQuestionBankSidebar({
 }) {
   const [allData, setAllData] = useState<(IRecord & { _id: string })[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  // A failed board-list fetch used to render an empty sidebar — a paper page
+  // with no way to reach any paper.
+  const [loadError, setLoadError] = useState<unknown>(null);
+  const [reloadToken, setReloadToken] = useState(0);
   const { pathname } = useLocation();
   const { masterData } = useMasterData();
 
@@ -28,6 +33,7 @@ export default function SingleQuestionBankSidebar({
   useEffect(() => {
     async function getAllData() {
       setLoading(true);
+      setLoadError(null);
       try {
         const res = await client.get(`/record?recordType=Board`);
 
@@ -36,15 +42,16 @@ export default function SingleQuestionBankSidebar({
         if (data?.success) {
           setAllData(data?.data);
         }
-        setLoading(false);
       } catch (error) {
-        console.log(error);
+        console.error(error);
+        setLoadError(error);
+      } finally {
         setLoading(false);
       }
     }
 
     getAllData();
-  }, []);
+  }, [reloadToken]);
 
   return (
     <div className="md:sticky top-1.25 md:min-w-47.5 md:max-h-[calc(100vh-15px)] bg-background rounded-lg px-4 py-5 border border-sidebar-border">
@@ -56,8 +63,14 @@ export default function SingleQuestionBankSidebar({
         />
       </form>
       <div className="md:overflow-y-auto max-md:overflow-x-auto md:h-[calc(100vh-110px)] flex md:flex-col gap-2 text-[13px] max-md:text-xs  ">
-        {(!loading && Array.isArray(allData)) ||
-        (loading && Array.isArray(allData) && allData.length > 0)
+        {loadError !== null ? (
+          <ApiErrorState
+            error={loadError}
+            message="Failed to load the board list."
+            onRetry={() => setReloadToken((t) => t + 1)}
+          />
+        ) : (!loading && Array.isArray(allData)) ||
+          (loading && Array.isArray(allData) && allData.length > 0)
           ? allData.map((d, i) => (
               <div key={i} className="flex md:flex-col gap-2">
                 {questionTypes.map((type) => {

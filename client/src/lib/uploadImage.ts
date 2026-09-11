@@ -1,6 +1,7 @@
 import axios from "axios";
 import imageCompression from "browser-image-compression";
 import { client } from "../utils/utils";
+import { getApiErrorMessage } from "./api-error";
 import { uploadTempImage } from "./uploadTempImage";
 import { enhanceImage } from "./enhanceImage";
 
@@ -16,12 +17,9 @@ export const uploadImage = async ({
   folder = "questions",
 }: UploadImagePayload) => {
   let fileToCompress = file;
-  console.log(isEnhanched);
   try {
     if (isEnhanched) {
       const tempUrl = await uploadTempImage(file);
-
-      console.log(tempUrl);
       fileToCompress = await enhanceImage(tempUrl);
     }
     // Compress + convert to webp
@@ -32,7 +30,6 @@ export const uploadImage = async ({
       fileType: "image/webp",
     });
 
-    console.log(compressedFile);
     // Get upload URL
     const uploadRes = await client.post(`/img-upload/generate-upload-url`, {
       folder,
@@ -43,8 +40,6 @@ export const uploadImage = async ({
       throw new Error(uploadRes.data.message);
     }
     const { key, uploadUrl } = uploadRes.data.data;
-
-    console.log(uploadRes.data.data);
 
     // Upload to R2
     await axios.put(uploadUrl, compressedFile, {
@@ -60,6 +55,13 @@ export const uploadImage = async ({
     };
   } catch (error) {
     console.error(error);
-    throw new Error("Image upload failed.");
+    // Keep the specific cause (too large, quota, auth, R2 outage) instead of
+    // collapsing every failure into one string. Errors thrown by our own
+    // helpers already carry the server's message; axios errors get the
+    // status-mapped wording.
+    if (axios.isAxiosError(error)) {
+      throw new Error(getApiErrorMessage(error, "Image upload failed."));
+    }
+    throw error;
   }
 };

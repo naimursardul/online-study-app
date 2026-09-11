@@ -12,7 +12,7 @@ export const createSubject = async (req: Request, res: Response) => {
     const { name, levelId, backgroundId, questionTypes } = req.body;
 
     if (!name || !levelId || !backgroundId) {
-      res.status(200).json({
+      res.status(400).json({
         success: false,
         message: "Name, levelId, and backgroundId are required.",
         data: null,
@@ -27,7 +27,7 @@ export const createSubject = async (req: Request, res: Response) => {
     });
 
     if (existing) {
-      res.status(200).json({
+      res.status(409).json({
         success: false,
         message: "Subject already exists with this level and background.",
         data: null,
@@ -45,7 +45,7 @@ export const createSubject = async (req: Request, res: Response) => {
 
     await newSubject.save();
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "Subject created successfully.",
       data: newSubject,
@@ -111,7 +111,7 @@ export const getSingleSubject = async (req: Request, res: Response) => {
       .populate("backgroundId", "name");
 
     if (!subject) {
-      res.status(200).json({
+      res.status(404).json({
         success: false,
         message: "Subject not found.",
         data: null,

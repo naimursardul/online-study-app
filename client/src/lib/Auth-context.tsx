@@ -5,7 +5,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { client } from "../utils/utils";
+import axios from "axios";
+import { client, setUnauthorizedHandler } from "../utils/utils";
 import type { IPopulatedData } from "@/types/types";
 
 // 👉 Define your user type
@@ -55,9 +56,13 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
         localStorage.removeItem("userExisted");
       }
     } catch (error) {
-      console.log(error);
-      setUser(null);
-      localStorage.removeItem("userExisted");
+      // Only a real 401 means "no session". A network failure or a 5xx (the
+      // API cold-starting on Render) must NOT log the user out: leave the
+      // cached identity alone and let the next request decide.
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        setUser(null);
+        localStorage.removeItem("userExisted");
+      }
     } finally {
       setAuthLoader(false);
     }
@@ -65,6 +70,17 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
   useEffect(() => {
     checkAuth();
+  }, []);
+
+  // The axios interceptor's 401 hook: any request outside the auth endpoints
+  // failing with 401 clears the session once, here, instead of each call site
+  // raising its own local toast.
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      setUser(null);
+      localStorage.removeItem("userExisted");
+    });
+    return () => setUnauthorizedHandler(null);
   }, []);
 
   return (

@@ -6,7 +6,7 @@ import { Section } from "./Section";
 
 export function CTASection() {
   return (
-    <Section width="4xl">
+    <Section width="4xl" className="pb-0">
       <FadeIn>
         <div className="relative overflow-hidden rounded-3xl bg-primary px-8 py-16 text-center text-primary-foreground md:px-16">
           {/* subtle dot pattern */}

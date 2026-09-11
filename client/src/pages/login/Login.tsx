@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import axios from "axios";
 
 import { toast } from "sonner";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -9,6 +8,10 @@ import type { IRegistrationFormField } from "@/types/types";
 import { Card } from "@/components/ui/card";
 import SubmitBtn from "@/components/submit-btn/submit-btn";
 import { client } from "@/utils/utils";
+import {
+  applyApiFieldErrors,
+  getApiErrorMessage,
+} from "@/lib/api-error";
 import {
   Form,
   FormControl,
@@ -50,7 +53,6 @@ export default function LoginForm() {
   // =========================================
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log(values);
     try {
       const res = await client.post(`/auth/login-with-phone`, { ...values });
 
@@ -64,11 +66,11 @@ export default function LoginForm() {
       navigate(from, { replace: true });
       return;
     } catch (error) {
-      console.log(error);
-      const message = axios.isAxiosError(error)
-        ? error.response?.data?.message
-        : undefined;
-      toast.error(message || "Problem with the server.");
+      // A field-level issue lands under its input; only a genuinely generic
+      // failure reaches the toast.
+      if (!applyApiFieldErrors(error, ["phone", "password"], form.setError)) {
+        toast.error(getApiErrorMessage(error, "Failed to log in."));
+      }
       return;
     }
   };
@@ -89,11 +91,11 @@ export default function LoginForm() {
     },
   ];
   return (
-    <div className="flex justify-center mt-20">
+    <div className="flex justify-center ">
       <Form {...form}>
         <Card className="w-87.5 p-8 max-md:w-[320px] max-md:px-6">
           {/* 🔽 Form heading */}
-          <h2 className="text-xl font-semibold text-center mb-3">Login Form</h2>
+          <h1 className="text-xl font-semibold text-center mb-3">Login Form</h1>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {fields.map((fieldConfig) => (
               <FormField

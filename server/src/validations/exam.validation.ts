@@ -41,3 +41,9 @@ export const createAnswerSchema = z.object({
     timeTaken: z.number().int().nonnegative(),
   }),
 });
+
+// GET|DELETE /exam/:examId — a junk id used to become a Mongoose CastError
+// (a 500) inside the service; this makes it a clean 400 at the edge.
+export const examIdParam = z.object({
+  params: z.object({ examId: objectId }),
+});

@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import type { QuestionTypeCode } from "@/utils/questionTypes";
+import type { QuestionTypeCode } from "../utils/questionTypes";
 
 export interface ScriptResType {
   correct: number;
@@ -422,3 +422,15 @@ export interface IqDetails {
   withId: Record<string, string | undefined>;
   withName: Record<string, string | undefined>;
 }
+
+// The positional `_`-delimited parts of a question-bank slug
+// (e.g. "HSC_Physics-1st_MCQ_Dhaka_2024"). A type, not an interface, so it
+// keeps the implicit index signature that the `withName: obj` assignment in
+// getBoardQusetonDetails relies on.
+export type BoardSlugParts = {
+  level?: string;
+  subject?: string;
+  questionType?: string;
+  institution?: string;
+  year?: string;
+};

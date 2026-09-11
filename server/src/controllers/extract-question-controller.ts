@@ -191,10 +191,12 @@ export const extractQuestionsHandler = [
 
       return res.json({
         success: true,
-        questionType: resolvedType,
-        questions,
-        fileType: isPDF ? "application/pdf" : "image",
-        fileCount: isPDF ? 1 : imageFiles.length,
+        data: {
+          questionType: resolvedType,
+          questions,
+          fileType: isPDF ? "application/pdf" : "image",
+          fileCount: isPDF ? 1 : imageFiles.length,
+        },
         message: "Questions extracted successfully.",
       });
     } catch (error: any) {

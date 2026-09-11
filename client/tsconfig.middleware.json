@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "types": []
+  },
+  "include": [
+    "middleware.ts",
+    "src/lib/seo/seo-config.ts",
+    "src/lib/seo/seo-routes.ts",
+    "src/lib/seo/seo-serialize.ts",
+    "src/utils/board-slug.ts",
+    "src/utils/questionTypes.ts"
+  ]
+}

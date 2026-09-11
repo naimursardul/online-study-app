@@ -27,7 +27,7 @@ function HomeLayout() {
         </div>
       </header>
 
-      <main className="flex-1">
+      <main className="flex-1 py-16">
         <Outlet />
       </main>
 

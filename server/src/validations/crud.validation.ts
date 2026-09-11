@@ -56,6 +56,50 @@ export const topicUpdateSchema = updateBody({
   chapterId: objectId,
 });
 
+// Create shapes for the six admin taxonomy endpoints. Without these, a
+// non-ObjectId parent id reached the controller raw and became a Mongoose
+// cast error (a 500), and string lengths were unbounded.
+const createBody = <T extends z.ZodRawShape>(shape: T) =>
+  z.object({ body: z.object(shape).strip() });
+
+export const levelCreateSchema = createBody({
+  name,
+  details: z.string().trim().min(1).max(1000),
+});
+
+export const backgroundCreateSchema = createBody({
+  name,
+  levelId: objectId,
+});
+
+export const subjectCreateSchema = createBody({
+  name,
+  levelId: objectId,
+  backgroundId: objectIdList,
+  questionTypes: z.array(z.enum(QUESTION_TYPE_CODES)).optional(),
+});
+
+export const chapterCreateSchema = createBody({
+  name,
+  levelId: objectId,
+  backgroundId: objectIdList,
+  subjectId: objectId,
+});
+
+export const topicCreateSchema = createBody({
+  name,
+  levelId: objectId,
+  backgroundId: objectIdList,
+  subjectId: objectId,
+  chapterId: objectId,
+});
+
+export const recordCreateSchema = createBody({
+  recordType: z.string().trim().min(1).max(100),
+  institution: z.string().trim().min(1).max(200),
+  year: z.string().trim().min(1).max(20),
+});
+
 // Search params feed a $regex; bounding them stops operator objects and
 // catastrophic-backtracking patterns.
 const listQuery = <T extends z.ZodRawShape>(shape: T) =>

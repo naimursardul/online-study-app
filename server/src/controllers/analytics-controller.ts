@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import {
   getDashboardStats,
   getPerformanceGraph,
@@ -10,9 +10,12 @@ import {
 // GET WEAK TOPICS
 // =========================================
 
-export const weakTopicsController = async (req: Request, res: Response) => {
+export const weakTopicsController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-    const user = req?.user;
     const limit = Number(req.query.limit) || 5;
     const subjectId = req.query.subjectId as string | undefined;
 
@@ -23,9 +26,8 @@ export const weakTopicsController = async (req: Request, res: Response) => {
       .status(200)
       .json({ success: true, data, message: "Data retrived successfully." });
     return;
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
-    return;
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -35,15 +37,14 @@ export const weakTopicsController = async (req: Request, res: Response) => {
 export const getDashboardStatsController = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const userId = req.user?._id;
     const { subjectId } = req.query;
 
-    console.log(subjectId);
-
     if (!userId) {
-      res.status(200).json({ success: false, message: "Unauthorized" });
+      res.status(401).json({ success: false, message: "Unauthorized" });
       return;
     }
     const data = await getDashboardStats(
@@ -56,10 +57,8 @@ export const getDashboardStatsController = async (
       data,
     });
     return;
-  } catch (error: any) {
-    console.error("getDashboardStatsController Error:", error.message);
-    res.status(500).json({ success: false, message: error.message });
-    return;
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -69,12 +68,13 @@ export const getDashboardStatsController = async (
 export const getSubjectPerformanceController = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const userId = req.user?._id;
 
     if (!userId) {
-      res.status(200).json({ success: false, message: "Unauthorized" });
+      res.status(401).json({ success: false, message: "Unauthorized" });
       return;
     }
 
@@ -85,10 +85,8 @@ export const getSubjectPerformanceController = async (
       data,
     });
     return;
-  } catch (error: any) {
-    console.error("getSubjectPerformanceController Error:", error.message);
-    res.status(500).json({ success: false, message: error.message });
-    return;
+  } catch (error) {
+    next(error);
   }
 };
 // =========================================
@@ -99,6 +97,7 @@ export const getSubjectPerformanceController = async (
 export const performanceGraphController = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const userId = req.user?._id;
@@ -113,12 +112,7 @@ export const performanceGraphController = async (
       data,
     });
     return;
-  } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-      data: [],
-    });
-    return;
+  } catch (error) {
+    next(error);
   }
 };

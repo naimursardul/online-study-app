@@ -12,6 +12,7 @@ import Answer from "../models/answer-model";
 import Exam from "../models/exam-model";
 import { getScopedTopicStats } from "./analytics.service";
 import { ExamCategoryType, IExamResult } from "../type/type";
+import { AppError } from "../middlewares/errorHandler";
 
 const MAX_PENDING = 2;
 const MASTERY_THRESHOLD = 80; // accuracy % at/above which a topic is "mastered"
@@ -68,7 +69,8 @@ export const generateExam = async (input: GenerateExamInput) => {
   // 1. Pending cap
   const pending = await Exam.countDocuments({ u_id, status: "generated" });
   if (pending >= MAX_PENDING) {
-    throw new Error(
+    throw new AppError(
+      409,
       "You already have 2 pending exams. Finish or delete one first.",
     );
   }
@@ -76,7 +78,7 @@ export const generateExam = async (input: GenerateExamInput) => {
   // 2. Unique name per user
   const dup = await Exam.findOne({ u_id, examName });
   if (dup) {
-    throw new Error("An exam with this name already exists.");
+    throw new AppError(409, "An exam with this name already exists.");
   }
 
   // 3. Base filter
@@ -155,7 +157,7 @@ export const generateExam = async (input: GenerateExamInput) => {
   }
 
   if (!selected.length) {
-    throw new Error("No questions found for the selected criteria.");
+    throw new AppError(404, "No questions found for the selected criteria.");
   }
 
   const totalMarks = selected.reduce((a, q) => a + (q.marks || 0), 0);
@@ -187,8 +189,9 @@ export const generateExam = async (input: GenerateExamInput) => {
 // --------------------------------
 export const getExamById = async (u_id: string, examId: string) => {
   const exam = await Exam.findById(examId).lean();
-  if (!exam) throw new Error("Exam not found.");
-  if (String(exam.u_id) !== String(u_id)) throw new Error("Not authorized.");
+  if (!exam) throw new AppError(404, "Exam not found.");
+  if (String(exam.u_id) !== String(u_id))
+    throw new AppError(403, "Not authorized.");
 
   const questions = await MCQ.find({ _id: { $in: exam.questionIds } }).lean();
   const qMap: Record<string, any> = {};
@@ -264,10 +267,11 @@ export const listUserExams = async (u_id: string) => {
 // --------------------------------
 export const deleteExam = async (u_id: string, examId: string) => {
   const exam = await Exam.findById(examId);
-  if (!exam) throw new Error("Exam not found.");
-  if (String(exam.u_id) !== String(u_id)) throw new Error("Not authorized.");
+  if (!exam) throw new AppError(404, "Exam not found.");
+  if (String(exam.u_id) !== String(u_id))
+    throw new AppError(403, "Not authorized.");
   if (exam.status !== "generated") {
-    throw new Error("Submitted exams cannot be deleted.");
+    throw new AppError(409, "Submitted exams cannot be deleted.");
   }
   await exam.deleteOne();
   return { deleted: true };
@@ -278,9 +282,11 @@ export const deleteExam = async (u_id: string, examId: string) => {
 // --------------------------------
 export const getPendingExamOrThrow = async (u_id: string, examId: string) => {
   const exam = await Exam.findById(examId);
-  if (!exam) throw new Error("Exam not found.");
-  if (String(exam.u_id) !== String(u_id)) throw new Error("Not authorized.");
-  if (exam.status !== "generated") throw new Error("Exam already submitted.");
+  if (!exam) throw new AppError(404, "Exam not found.");
+  if (String(exam.u_id) !== String(u_id))
+    throw new AppError(403, "Not authorized.");
+  if (exam.status !== "generated")
+    throw new AppError(409, "Exam already submitted.");
   return exam;
 };
 

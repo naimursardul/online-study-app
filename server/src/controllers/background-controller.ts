@@ -12,7 +12,7 @@ export const createBackground = async (req: Request, res: Response) => {
     const { name, levelId } = req.body;
 
     if (!name || !levelId) {
-      res.status(200).json({
+      res.status(400).json({
         success: false,
         message: "Name and levelId are required.",
         data: null,
@@ -26,7 +26,7 @@ export const createBackground = async (req: Request, res: Response) => {
     });
 
     if (existing) {
-      res.status(200).json({
+      res.status(409).json({
         success: false,
         message: "Background already exists for this level.",
         data: null,
@@ -41,7 +41,7 @@ export const createBackground = async (req: Request, res: Response) => {
 
     await newBackground.save();
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "Background created successfully.",
       data: newBackground,
@@ -104,7 +104,7 @@ export const getSingleBackground = async (req: Request, res: Response) => {
     );
 
     if (!background) {
-      res.status(200).json({
+      res.status(404).json({
         success: false,
         message: "Background not found.",
         data: null,

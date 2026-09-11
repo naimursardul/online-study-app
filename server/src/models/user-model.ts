@@ -25,6 +25,10 @@ const UserSchema = new Schema(
     // Same reasoning: these are credentials, not profile data.
     verificationToken: { type: String, select: false },
     resetToken: { type: String, select: false },
+    // Single-use proof that verify-otp succeeded in this session, required by
+    // create-user. Hashed and select:false like the tokens above.
+    signupGrantToken: { type: String, select: false },
+    signupGrantExpireAt: { type: Date },
     level: {
       type: Schema.Types.ObjectId,
       ref: "Level",
