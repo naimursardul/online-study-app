@@ -6,7 +6,7 @@ import { Layers } from "lucide-react";
 import { useMasterData } from "@/lib/MasterData-context";
 import { extractIdTo_ } from "@/utils/utils";
 import { Badge } from "../ui/badge";
-import SubjectTile from "./SubjectTile";
+import Tile from "./Tile";
 
 export default function InstitutionSubject({
   level,
@@ -58,9 +58,7 @@ export default function InstitutionSubject({
             </div>
             <h3 className="text-lg font-bold tracking-tight">{level.name}</h3>
           </div>
-          <Badge variant="secondary">
-            Subjects: {(subjects || []).length}
-          </Badge>
+          <Badge variant="secondary">Subjects: {(subjects || []).length}</Badge>
         </div>
 
         {/* BACKGROUND FILTERS */}
@@ -85,13 +83,22 @@ export default function InstitutionSubject({
       <CardContent>
         {/* SUBJECTS */}
         <div className="flex flex-wrap gap-4 max-lg:gap-2.5">
-          {subjects.map((s) => (
-            <SubjectTile
-              key={s._id}
-              to={`${extractIdTo_(masterData.levels, s.levelId, "name")}_${s.name}`}
-              name={s.name}
-            />
-          ))}
+          {(level?.name === "HSC" || level?.name === "SSC") &&
+            subjects.map((s) => (
+              <Tile
+                key={s._id}
+                to={`${extractIdTo_(masterData.levels, s.levelId, "name")}_${s.name}`}
+                name={s.name}
+              />
+            ))}
+          {level?.name === "JOB" &&
+            subjects.map((s) => (
+              <Tile
+                key={s._id}
+                to={`${extractIdTo_(masterData.levels, s.levelId, "name")}_${s.name}`}
+                name={s.name}
+              />
+            ))}
         </div>
       </CardContent>
     </Card>

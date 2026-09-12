@@ -53,8 +53,8 @@ const PAGE_SIZE = 20;
 const EMPTY_FILTERS: IExplorerFilters = {
   questionType: "",
   subjectId: "",
-  institution: [],
-  year: [],
+  institutionId: [],
+  yearId: [],
   chapterId: [],
   topicId: [],
   difficulty: "",
@@ -85,8 +85,8 @@ export default function QuestionExplorer() {
       questionType: (searchParams.get("questionType") ??
         "") as IExplorerFilters["questionType"],
       subjectId: searchParams.get("subjectId") ?? "",
-      institution: searchParams.getAll("institution"),
-      year: searchParams.getAll("year"),
+      institutionId: searchParams.getAll("institutionId"),
+      yearId: searchParams.getAll("yearId"),
       chapterId: searchParams.getAll("chapterId"),
       topicId: searchParams.getAll("topicId"),
       difficulty: (searchParams.get("difficulty") ??
@@ -109,8 +109,8 @@ export default function QuestionExplorer() {
     const params = new URLSearchParams();
     if (next.questionType) params.set("questionType", next.questionType);
     if (next.subjectId) params.set("subjectId", next.subjectId);
-    (["institution", "year", "chapterId", "topicId"] as const).forEach((key) =>
-      next[key].forEach((value) => params.append(key, value)),
+    (["institutionId", "yearId", "chapterId", "topicId"] as const).forEach(
+      (key) => next[key].forEach((value) => params.append(key, value)),
     );
     if (next.difficulty) params.set("difficulty", next.difficulty);
     if (next.search) params.set("search", next.search);
@@ -172,31 +172,23 @@ export default function QuestionExplorer() {
     return typesForSubject(subject?.questionTypes);
   }, [subjectOptions, filters.subjectId]);
 
-  // institution and year narrow each other, so impossible pairs never show up.
-  // ComboboxMulti keys off `_id`, and the API wants the literal string, so the
-  // name doubles as the id here.
-  const institutionOptions = useMemo(() => {
-    const names = masterData.records
-      .filter(
-        (record) => !filters.year.length || filters.year.includes(record.year),
-      )
-      .map((record) => record.institution);
-    return [...new Set(names)].sort().map((name) => ({ _id: name, name }));
-  }, [masterData.records, filters.year]);
+  // The user's level scopes both lists; the ids go straight to the API, which
+  // matches them against the {institutionId, yearId} pairs on each question.
+  const institutionOptions = useMemo(
+    () =>
+      masterData.institutions
+        .filter((i) => i.levelId === levelId)
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [masterData.institutions, levelId],
+  );
 
-  const yearOptions = useMemo(() => {
-    const years = masterData.records
-      .filter(
-        (record) =>
-          !filters.institution.length ||
-          filters.institution.includes(record.institution),
-      )
-      .map((record) => record.year);
-    return [...new Set(years)]
-      .sort()
-      .reverse()
-      .map((name) => ({ _id: name, name }));
-  }, [masterData.records, filters.institution]);
+  const yearOptions = useMemo(
+    () =>
+      masterData.years
+        .filter((y) => y.levelId === levelId)
+        .sort((a, b) => b.name.localeCompare(a.name)),
+    [masterData.years, levelId],
+  );
 
   const chapterOptions = useMemo(
     () =>
@@ -253,7 +245,7 @@ export default function QuestionExplorer() {
         params.set("levelId", levelId);
         if (backgroundId) params.append("backgroundId", backgroundId);
         params.set("subjectId", filters.subjectId);
-        (["chapterId", "topicId", "institution", "year"] as const).forEach(
+        (["chapterId", "topicId", "institutionId", "yearId"] as const).forEach(
           (key) => filters[key].forEach((v) => params.append(key, v)),
         );
         if (filters.difficulty) params.set("difficulty", filters.difficulty);
@@ -349,8 +341,8 @@ export default function QuestionExplorer() {
     Boolean(filters.subjectId) ||
     Boolean(filters.difficulty) ||
     Boolean(filters.search) ||
-    filters.institution.length > 0 ||
-    filters.year.length > 0 ||
+    filters.institutionId.length > 0 ||
+    filters.yearId.length > 0 ||
     filters.chapterId.length > 0 ||
     filters.topicId.length > 0;
 
@@ -359,8 +351,8 @@ export default function QuestionExplorer() {
   const activeFilterCount =
     [filters.questionType, filters.subjectId, filters.difficulty, filters.search]
       .filter(Boolean).length +
-    filters.institution.length +
-    filters.year.length +
+    filters.institutionId.length +
+    filters.yearId.length +
     filters.chapterId.length +
     filters.topicId.length;
 
@@ -407,13 +399,13 @@ export default function QuestionExplorer() {
       </Select>
 
       <ComboboxMulti<IExplorerFilters>
-        field={comboField("institution", "Institution", institutionOptions)}
+        field={comboField("institutionId", "Institution", institutionOptions)}
         formData={filters}
         setFormData={setFilters}
       />
 
       <ComboboxMulti<IExplorerFilters>
-        field={comboField("year", "Year", yearOptions)}
+        field={comboField("yearId", "Year", yearOptions)}
         formData={filters}
         setFormData={setFilters}
       />

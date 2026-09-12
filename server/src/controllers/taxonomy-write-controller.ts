@@ -86,6 +86,8 @@ const deleteMessage = (kind: TaxonomyKind, report: ImpactReport) => {
   add(report.descendants.subjects, "subject");
   add(report.descendants.chapters, "chapter");
   add(report.descendants.topics, "topic");
+  add(report.descendants.institutions, "institution");
+  add(report.descendants.years, "year");
   add(report.questions, "question");
   add(report.savedQuestions, "saved question");
 

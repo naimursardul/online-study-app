@@ -57,10 +57,14 @@ export default function SingleWrittenQuestion({
 
         {/* RECORDS + META */}
         <div className="flex flex-col items-end gap-2">
-          {q?.record?.length > 0 && (
+          {q?.recordId?.length > 0 && (
             <Badge variant="secondary">
-              {Array.isArray(q?.record) &&
-                q.record.map((r) => `${r.institution}-${r.year}`).join(", ")}
+              {q.recordId
+                .map(
+                  (pair) =>
+                    `${extractIdTo_(masterData.institutions, pair.institutionId, "name")}-${extractIdTo_(masterData.years, pair.yearId, "name")}`,
+                )
+                .join(", ")}
             </Badge>
           )}
           <div className="flex gap-2 flex-wrap justify-end">

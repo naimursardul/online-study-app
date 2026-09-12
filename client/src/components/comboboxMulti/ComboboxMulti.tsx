@@ -12,7 +12,11 @@ import {
   CommandList,
 } from "../ui/command";
 import { useState } from "react";
-import type { DataFieldProps, IRecord } from "@/types/types";
+import type {
+  DataFieldProps,
+  IRecordPair,
+  IRecordPairOption,
+} from "@/types/types";
 
 // ── Multi-select Combobox (replaces checkbox on filter page) ─────
 interface ComboboxMultiProps<T> {
@@ -28,6 +32,10 @@ const DEPENDENT_RESETS: Record<string, string[]> = {
   chapterId: ["topicId"],
 };
 
+// recordId holds {institutionId, yearId} pairs; the composite id is what the
+// option list tracks.
+const pairId = (pair: IRecordPair) => `${pair.institutionId}_${pair.yearId}`;
+
 export default function ComboboxMulti<T>({
   field,
   formData,
@@ -36,60 +44,55 @@ export default function ComboboxMulti<T>({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const fieldName = field.name;
+  const isRecordField = fieldName === "recordId";
 
-  const selectedIds: string[] = (formData[fieldName as keyof T] ||
-    []) as string[];
+  const selectedIds: string[] = isRecordField
+    ? ((formData[fieldName as keyof T] as IRecordPair[]) || []).map(pairId)
+    : ((formData[fieldName as keyof T] || []) as string[]);
 
-  const filtered = (field.optionData || []).filter((o) => {
-    if ("name" in o) {
-      return o.name.toLowerCase().includes(search.toLowerCase());
-    } else if ("recordType" in o && "year" in o && "institution" in o) {
-      return true;
-    }
-  });
+  const filtered = (field.optionData || []).filter((o) =>
+    "name" in o ? o.name.toLowerCase().includes(search.toLowerCase()) : false,
+  );
 
   // =========================================
   // TOGGLE
   // =========================================
   function toggle(id: string) {
     setFormData((prev) => {
+      // recordId toggles whole institution-year pairs, not bare ids.
+      if (isRecordField) {
+        const pairs = [...((prev[fieldName as keyof T] as IRecordPair[]) || [])];
+        const idx = pairs.findIndex((p) => pairId(p) === id);
+        if (idx > -1) pairs.splice(idx, 1);
+        else {
+          const option = (
+            field.optionData as IRecordPairOption[] | undefined
+          )?.find((o) => o._id === id);
+          if (option)
+            pairs.push({
+              institutionId: option.institutionId,
+              yearId: option.yearId,
+            });
+        }
+        return { ...prev, [fieldName]: pairs } as T;
+      }
+
       const ids = [...(prev[fieldName as keyof T] as string[])];
       const idx = ids.indexOf(id);
       if (idx > -1) ids.splice(idx, 1);
       else ids.push(id);
 
-      if (fieldName !== "recordId") {
-        const updated: T = {
-          ...prev,
-          [fieldName]: ids,
-        };
-        // cascade reset dependents, preserving each field's shape (some pages
-        // hold list-shaped filters, e.g. topicId as an array)
-        (DEPENDENT_RESETS[String(fieldName)] as string[])?.forEach((dep) => {
-          updated[dep as keyof T] = (
-            Array.isArray(prev[dep as keyof T]) ? [] : ""
-          ) as T[keyof T];
-        });
-        return updated as T;
-      }
-
-      const records = ids.map((i) => {
-        const x: IRecord = filtered.find((f) => f._id === i) as IRecord;
-        if (x) {
-          return {
-            institution: x.institution,
-            year: x.year,
-            recordType: x.recordType,
-          };
-        }
-      });
-
       const updated: T = {
         ...prev,
-        recordId: ids,
-        record: records,
+        [fieldName]: ids,
       };
-
+      // cascade reset dependents, preserving each field's shape (some pages
+      // hold list-shaped filters, e.g. topicId as an array)
+      (DEPENDENT_RESETS[String(fieldName)] as string[])?.forEach((dep) => {
+        updated[dep as keyof T] = (
+          Array.isArray(prev[dep as keyof T]) ? [] : ""
+        ) as T[keyof T];
+      });
       return updated as T;
     });
   }
@@ -123,20 +126,12 @@ export default function ComboboxMulti<T>({
                   variant="secondary"
                   className="text-xs gap-1 pr-1 font-normal"
                 >
-                  {"name" in o
-                    ? o.name
-                    : "institution" in o && "year" in o
-                      ? o.institution + "-" + o.year
-                      : ""}
+                  {"name" in o ? o.name : o._id}
                   <button
                     onClick={(e) => removeOne(o._id, e)}
                     className="ml-0.5 rounded-full hover:bg-muted-foreground/30 p-0.5 transition-colors"
                     aria-label={`Remove ${
-                      "name" in o
-                        ? o.name
-                        : "institution" in o && "year" in o
-                          ? o.institution + "-" + o.year
-                          : ""
+                      "name" in o ? o.name : o._id
                     }`}
                   >
                     <X className="w-2.5 h-2.5" />
@@ -186,11 +181,7 @@ export default function ComboboxMulti<T>({
                     >
                       {isSelected && <Check className="h-3 w-3" />}
                     </div>
-                    {"name" in option
-                      ? option.name
-                      : "institution" in option && "year" in option
-                        ? option.institution + "-" + option.year
-                        : ""}
+                    {"name" in option ? option.name : option._id}
                   </CommandItem>
                 );
               })}

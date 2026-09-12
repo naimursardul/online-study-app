@@ -21,6 +21,8 @@ import Background from "../models/background-model";
 import Subject from "../models/subject-model";
 import Chapter from "../models/chapter-model";
 import Topic from "../models/topic-model";
+import Institution from "../models/institution-model";
+import Year from "../models/year-model";
 import { BaseQuestion } from "../models/question-model";
 import { SavedQuestion } from "../models/saved-question-model";
 import Exam from "../models/exam-model";
@@ -336,6 +338,9 @@ export type DoomedSet = {
   subjects: IdList;
   chapters: IdList;
   topics: IdList;
+  // Level-scoped exam entities; only a level delete produces these.
+  institutions: IdList;
+  years: IdList;
   questions: IdList;
   // CQs pulled in only because one of their four sub-questions sat on doomed
   // taxonomy. Reported separately: from the admin's point of view the question
@@ -378,6 +383,8 @@ export const collectDoomed = async (
   let subjects: IdList = [];
   let chapters: IdList = [];
   let topics: IdList = [];
+  let institutions: IdList = [];
+  let years: IdList = [];
   const detached: DoomedSet["detached"] = {
     subjects: [],
     chapters: [],
@@ -397,6 +404,12 @@ export const collectDoomed = async (
     );
     topics = ids(
       await Topic.find({ levelId: id }, "_id", opts).lean<LeanId[]>(),
+    );
+    institutions = ids(
+      await Institution.find({ levelId: id }, "_id", opts).lean<LeanId[]>(),
+    );
+    years = ids(
+      await Year.find({ levelId: id }, "_id", opts).lean<LeanId[]>(),
     );
   } else if (kind === "background") {
     backgrounds = [id];
@@ -525,6 +538,8 @@ export const collectDoomed = async (
     subjects,
     chapters,
     topics,
+    institutions,
+    years,
     questions,
     cqViaSubQuestions,
     detached,
@@ -542,6 +557,8 @@ export type ImpactReport = {
     subjects: number;
     chapters: number;
     topics: number;
+    institutions: number;
+    years: number;
   };
   questions: number;
   cqViaSubQuestions: number;
@@ -674,6 +691,8 @@ export const collectImpact = async (
       subjects: doomed.subjects.filter((v) => v !== id).length,
       chapters: doomed.chapters.filter((v) => v !== id).length,
       topics: doomed.topics.filter((v) => v !== id).length,
+      institutions: doomed.institutions.length,
+      years: doomed.years.length,
     },
     questions: doomed.questions.length,
     cqViaSubQuestions: doomed.cqViaSubQuestions,
@@ -785,6 +804,17 @@ export const cascadeDelete = async (
       { _id: { $in: doomed.backgrounds } },
       { session },
     );
+  }
+  // 4b. Level-scoped exam entities. Only a level delete collects these; the
+  //     questions that carried their pairs died in step 3.
+  if (doomed.institutions.length) {
+    await Institution.deleteMany(
+      { _id: { $in: doomed.institutions } },
+      { session },
+    );
+  }
+  if (doomed.years.length) {
+    await Year.deleteMany({ _id: { $in: doomed.years } }, { session });
   }
 
   // 5. Whatever survived a background delete loses one entry from its array. The

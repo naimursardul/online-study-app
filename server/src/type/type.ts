@@ -26,11 +26,22 @@ export interface IUser extends mongoose.Document {
   lastLogin?: Date;
 }
 
-// Record
-export interface IRecord {
-  recordType: string;
-  institution: string;
-  year: string;
+// Institution — an exam institution scoped to a level (e.g. "Dhaka Board" under HSC)
+export interface IInstitution extends Document {
+  name: string;
+  levelId: mongoose.Types.ObjectId;
+}
+
+// Year — an exam year scoped to a level (e.g. "2024" under HSC)
+export interface IYear extends Document {
+  name: string;
+  levelId: mongoose.Types.ObjectId;
+}
+
+// One institution-year pair a question belongs to
+export interface IRecordPair {
+  institutionId: string;
+  yearId: string;
 }
 
 // Base Question
@@ -41,7 +52,7 @@ export interface IBaseQuestion extends Document {
   subjectId: string;
   chapterId: string;
   topicId: string;
-  recordId: string[];
+  recordId: IRecordPair[];
   marks: number;
   timeRequired: number;
   difficulty: "Easy" | "Medium" | "Hard";

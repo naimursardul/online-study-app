@@ -3,7 +3,7 @@ import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { extractIdTo_ } from "@/utils/utils";
 import { useAuth } from "@/lib/Auth-context";
 import { Layers } from "lucide-react";
-import SubjectTile from "@/components/qb/SubjectTile";
+import SubjectTile from "@/components/qb/Tile";
 import InstitutionSubject from "@/components/qb/Institution-subjects";
 import { useMasterData } from "@/lib/MasterData-context";
 import { Badge } from "@/components/ui/badge";

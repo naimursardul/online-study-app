@@ -14,6 +14,14 @@ export interface IOptionData {
   name: string;
 }
 
+// One cartesian institution × year option for the record ("Dhaka-2024") picker.
+// The composite `_id` is what the checkbox tracks; the ids are what the
+// question stores when the option is picked.
+export interface IRecordPairOption extends IOptionData {
+  institutionId: string;
+  yearId: string;
+}
+
 // FIELD INTERFACE
 export interface IField {
   label?: string;
@@ -23,7 +31,7 @@ export interface IField {
   type?: string;
   req?: boolean;
   manualOptionData?: boolean;
-  optionData?: IMasterData[keyof IMasterData];
+  optionData?: IMasterData[keyof IMasterData] | IRecordPairOption[];
   description?: string;
 }
 
@@ -63,11 +71,10 @@ export interface SidebarItemType {
   role?: ("user" | "admin" | "super-admin")[];
 }
 
-// Record
-export interface IRecord {
-  recordType: string;
-  institution: string;
-  year: string;
+// One institution-year pair a question belongs to
+export interface IRecordPair {
+  institutionId: string;
+  yearId: string;
 }
 
 // Base Question
@@ -78,8 +85,7 @@ export interface IBaseQuestion {
   subjectId: string;
   chapterId: string;
   topicId: string;
-  record: IRecord[];
-  recordId: string[];
+  recordId: IRecordPair[];
   marks: number;
   timeRequired: number;
   difficulty: "Easy" | "Medium" | "Hard";
@@ -342,7 +348,8 @@ export interface IMasterData {
     backgroundId: string[];
     levelId: string;
   }[];
-  records: (IRecord & { _id: string })[];
+  institutions: { _id: string; name: string; levelId: string }[];
+  years: { _id: string; name: string; levelId: string }[];
   collections: (ICollection & { _id: string; createdAt: string })[];
 }
 
@@ -368,8 +375,8 @@ export interface IPagination {
 export interface IExplorerFilters {
   questionType: "" | QuestionTypeCode;
   subjectId: string;
-  institution: string[];
-  year: string[];
+  institutionId: string[];
+  yearId: string[];
   chapterId: string[];
   topicId: string[];
   difficulty: "" | "Easy" | "Medium" | "Hard";

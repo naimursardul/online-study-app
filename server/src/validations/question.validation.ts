@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { objectId, objectIdList, safeSearch, safeStringList } from "./common";
+import { objectId, objectIdList, safeSearch } from "./common";
 import { QUESTION_TYPE_CODES } from "../utils/question-types";
 
 const baseQuestion = {
@@ -8,7 +8,10 @@ const baseQuestion = {
   chapterId: objectId,
   topicId: objectId,
   backgroundId: z.array(objectId).min(1),
-  recordId: z.array(objectId).min(1),
+  // One entry per institution-year pair the question belongs to.
+  recordId: z
+    .array(z.object({ institutionId: objectId, yearId: objectId }))
+    .min(1),
   marks: z.coerce.number().int().positive().max(100),
   timeRequired: z.coerce.number().int().positive().max(600),
   difficulty: z.enum(["Easy", "Medium", "Hard"]),
@@ -66,12 +69,7 @@ const question = z.discriminatedUnion("questionType", [
 ]);
 
 export const createQuestionSchema = z.object({
-  // `record` is required by the controller but is not a schema field; allow it
-  // through without persisting expectations.
-  body: z.intersection(
-    question,
-    z.object({ record: z.array(z.unknown()).min(1).optional() }),
-  ),
+  body: question,
 });
 
 // Previously an unvalidated array went straight into insertMany with no cap.
@@ -113,11 +111,10 @@ export const listQuestionSchema = z.object({
       subjectId: objectId.optional(),
       chapterId: objectIdList.optional(),
       topicId: objectIdList.optional(),
-      recordId: objectIdList.optional(),
-      // institution/year live on the Record model as free-form strings, so they
-      // are resolved to recordIds in the controller.
-      institution: safeStringList.optional(),
-      year: safeStringList.optional(),
+      // institutionId/yearId match the {institutionId, yearId} pairs stored on
+      // each question via $elemMatch in the controller.
+      institutionId: objectIdList.optional(),
+      yearId: objectIdList.optional(),
       difficulty: z.enum(["Easy", "Medium", "Hard"]).optional(),
       search: safeSearch.optional(),
       // Pagination is opt-in: without `page` the whole result set is returned,

@@ -23,7 +23,8 @@ import Subject from "./pages/admin/(allUploadPages)/subject/Subject.tsx";
 import Chapter from "./pages/admin/(allUploadPages)/chapter/Chapter.tsx";
 import Topic from "./pages/admin/(allUploadPages)/topic/Topic.tsx";
 import Prompt from "./pages/admin/(allUploadPages)/prompt/Prompt.tsx";
-import Record from "./pages/admin/(allUploadPages)/record/Record.tsx";
+import Institution from "./pages/admin/(allUploadPages)/institution/Institution.tsx";
+import Year from "./pages/admin/(allUploadPages)/year/Year.tsx";
 import Contact from "./pages/contact/Contact.tsx";
 import Dashboard from "./pages/service-pages/dashboard/Dashboard.tsx";
 import Collection from "./pages/collection/Collection.tsx";
@@ -56,7 +57,8 @@ function App() {
             <Route path="question" element={<Question />} />
             <Route path="ai-extractor" element={<AiExtractor />} />
             <Route path="prompt" element={<Prompt />} />
-            <Route path="record" element={<Record />} />
+            <Route path="institution" element={<Institution />} />
+            <Route path="year" element={<Year />} />
             <Route path="level" element={<Level />} />
             <Route path="background" element={<Background />} />
             <Route path="subject" element={<Subject />} />

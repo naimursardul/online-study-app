@@ -120,13 +120,14 @@ function QuestionBankSlug2() {
   async function handleStart() {
     setLoading((prev) => ({ ...prev, generateExam: true }));
     const { institution, year } = qDetails.withName;
-    const { levelId, subjectId, recordId, questionType } = qDetails.withId;
+    const { levelId, subjectId, institutionId, yearId, questionType } =
+      qDetails.withId;
     try {
       const res = await client.post("/exam/generate", {
         examCategory: "record",
         examName: questionType + "-" + institution + "-" + year,
         subjectId,
-        filter: { levelId, recordId },
+        filter: { levelId, institutionId, yearId },
       });
 
       if (!res.data?.success) {

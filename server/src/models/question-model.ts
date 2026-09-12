@@ -48,11 +48,20 @@ const baseQuestionSchema = new Schema<IBaseQuestion>(
       type: String,
       required: true,
     },
+    // One entry per institution-year pair the question belongs to. The ids are
+    // plain strings (not refs), matching levelId/subjectId above.
     recordId: [
       {
-        type: String,
-        required: true,
+        institutionId: {
+          type: String,
+          required: true,
+        },
+        yearId: {
+          type: String,
+          required: true,
+        },
       },
+      { _id: false },
     ],
     marks: {
       type: Number,
@@ -88,7 +97,7 @@ baseQuestionSchema.index({
   chapterId: 1,
   topicId: 1,
 });
-baseQuestionSchema.index({ recordId: 1 });
+baseQuestionSchema.index({ "recordId.institutionId": 1, "recordId.yearId": 1 });
 
 // -----------------------
 // Models

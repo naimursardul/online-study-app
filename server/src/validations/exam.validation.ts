@@ -21,7 +21,8 @@ export const createExamSchema = z.object({
       topicIds: z.array(objectId).default([]),
       filter: z.object({
         levelId: objectId,
-        recordId: z.union([objectId, z.array(objectId).min(1)]),
+        institutionId: objectId,
+        yearId: objectId,
       }),
     }),
   ]),

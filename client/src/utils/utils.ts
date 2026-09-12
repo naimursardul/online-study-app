@@ -4,6 +4,8 @@ import type {
   IMasterData,
   IOptionData,
   IqDetails,
+  IRecordPair,
+  IRecordPairOption,
 } from "@/types/types";
 import axios from "axios";
 import { clsx, type ClassValue } from "clsx";
@@ -137,15 +139,18 @@ export const getBoardQusetonDetails = (
           : s.name === obj.subject,
       )?._id || "";
   }
-  const selectedRecordId: string[] = [];
-  if (obj?.institution && obj?.year) {
-    masterData.records.forEach((r) => {
-      if (obj.institution === r.institution && obj.year === r.year) {
-        selectedRecordId.push(r?._id);
-      }
-    });
+  if (obj?.institution && obj?.level) {
+    update.institutionId =
+      masterData.institutions.find(
+        (i) => i.name === obj.institution && i.levelId === update.levelId,
+      )?._id || "";
   }
-  update.recordId = selectedRecordId;
+  if (obj?.year && obj?.level) {
+    update.yearId =
+      masterData.years.find(
+        (y) => y.name === obj.year && y.levelId === update.levelId,
+      )?._id || "";
+  }
   return {
     withName: obj,
     withId: {
@@ -235,11 +240,28 @@ export function getQuestionDataOption<T>(
             ),
           };
 
-        case "recordId":
+        case "recordId": {
+          // One option per institution × year combination for the chosen
+          // level ("Dhaka-2024"); picking one stores the pair's ids.
+          const levelId = formData["levelId" as keyof T];
+          const institutions = masterData.institutions?.filter(
+            (i) => i.levelId === levelId,
+          );
+          const years = masterData.years?.filter((y) => y.levelId === levelId);
+          const pairOptions: IRecordPairOption[] = (institutions ?? []).flatMap(
+            (inst) =>
+              (years ?? []).map((yr) => ({
+                _id: `${inst._id}_${yr._id}`,
+                name: `${inst.name}-${yr.name}`,
+                institutionId: inst._id,
+                yearId: yr._id,
+              })),
+          );
           return {
             ...field,
-            optionData: masterData.records,
+            optionData: pairOptions,
           };
+        }
 
         default:
           return field;

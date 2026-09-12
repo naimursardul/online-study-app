@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import Background from "../models/background-model";
 import Chapter from "../models/chapter-model";
 import Level from "../models/level-model";
-import Record from "../models/record-model";
+import Institution from "../models/institution-model";
+import Year from "../models/year-model";
 import Subject from "../models/subject-model";
 import Topic from "../models/topic-model";
 import Collection from "../models/collection-model";
@@ -20,7 +21,8 @@ export const getMasterQuestionData = async (req: Request, res: Response) => {
       subjects,
       chapters,
       topics,
-      records,
+      institutions,
+      years,
       collections,
     ] = await Promise.all([
       Level.find().select("name"),
@@ -28,7 +30,8 @@ export const getMasterQuestionData = async (req: Request, res: Response) => {
       Subject.find().select("name levelId backgroundId questionTypes"),
       Chapter.find().select("name subjectId levelId backgroundId"),
       Topic.find().select("name chapterId subjectId"),
-      Record.find().select("institution year recordType"),
+      Institution.find().select("name levelId"),
+      Year.find().select("name levelId"),
       userId ? Collection.find({ userId }) : Promise.resolve([]),
     ]);
 
@@ -41,7 +44,8 @@ export const getMasterQuestionData = async (req: Request, res: Response) => {
         subjects,
         chapters,
         topics,
-        records,
+        institutions,
+        years,
         collections,
       },
     });

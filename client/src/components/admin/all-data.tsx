@@ -23,7 +23,6 @@ import type {
   IField,
   ILevel,
   IQueryFormData,
-  IRecord,
   ISubject,
   ITopic,
 } from "@/types/types";
@@ -47,20 +46,23 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "../ui/card";
 
 const PAGE_SIZE = 10;
+// Level-scoped rows ({ name, levelId }) — the same shape for institutions and
+// years, so one entry covers both.
+type SimpleLevelRow = { name: string; levelId: string };
 type DataType = (
   | ILevel
   | IBackground
   | ISubject
   | IChapter
   | ITopic
-  | IRecord
+  | SimpleLevelRow
 ) & {
   _id: string;
 };
 
-// Routes whose DELETE cascades, and therefore expose GET /:id/impact. Records carry
-// no taxonomy ids, so deleting one only unlinks it from questions and there is
-// nothing to preview.
+// Routes whose DELETE cascades, and therefore expose GET /:id/impact.
+// Institutions and years carry no taxonomy ids, so deleting one only unlinks
+// its pairs from questions and there is nothing to preview.
 const IMPACT_ROUTES = ["/level", "/background", "/subject", "/chapter", "/topic"];
 
 // Columns that are editable but not filterable: no list endpoint filters by
@@ -75,6 +77,8 @@ type ImpactReport = {
     subjects: number;
     chapters: number;
     topics: number;
+    institutions: number;
+    years: number;
   };
   questions: number;
   cqViaSubQuestions: number;
@@ -165,6 +169,8 @@ function DeleteRowDialog({
     if (d.subjects) removed.push(`${d.subjects} subject(s)`);
     if (d.chapters) removed.push(`${d.chapters} chapter(s)`);
     if (d.topics) removed.push(`${d.topics} topic(s)`);
+    if (d.institutions) removed.push(`${d.institutions} institution(s)`);
+    if (d.years) removed.push(`${d.years} year(s)`);
     if (impact.questions)
       removed.push(
         impact.cqViaSubQuestions

@@ -28,10 +28,14 @@ export const levelUpdateSchema = updateBody({
   details: z.string().trim().min(1).max(1000),
 });
 
-export const recordUpdateSchema = updateBody({
-  recordType: z.string().trim().min(1).max(100),
-  institution: z.string().trim().min(1).max(200),
-  year: z.string().trim().min(1).max(20),
+export const institutionUpdateSchema = updateBody({
+  name,
+  levelId: objectId,
+});
+
+export const yearUpdateSchema = updateBody({
+  name: z.string().trim().min(1).max(20),
+  levelId: objectId,
 });
 
 export const subjectUpdateSchema = updateBody({
@@ -94,10 +98,14 @@ export const topicCreateSchema = createBody({
   chapterId: objectId,
 });
 
-export const recordCreateSchema = createBody({
-  recordType: z.string().trim().min(1).max(100),
-  institution: z.string().trim().min(1).max(200),
-  year: z.string().trim().min(1).max(20),
+export const institutionCreateSchema = createBody({
+  name,
+  levelId: objectId,
+});
+
+export const yearCreateSchema = createBody({
+  name: z.string().trim().min(1).max(20),
+  levelId: objectId,
 });
 
 // Search params feed a $regex; bounding them stops operator objects and
@@ -133,8 +141,12 @@ export const topicListSchema = listQuery({
   search: safeSearch,
 });
 
-export const recordListSchema = listQuery({
-  recordType: z.string().trim().min(1).max(100),
-  institution: z.string().trim().min(1).max(200),
-  year: z.string().trim().min(1).max(20),
+export const institutionListSchema = listQuery({
+  levelId: objectId,
+  search: safeSearch,
+});
+
+export const yearListSchema = listQuery({
+  levelId: objectId,
+  search: safeSearch,
 });

@@ -36,7 +36,8 @@ const MasterDataProvider = ({ children }: MasterDataProviderProps) => {
     subjects: [],
     chapters: [],
     topics: [],
-    records: [],
+    institutions: [],
+    years: [],
     collections: [],
   });
   const [masterDataLoading, setMasterDataLoading] = useState(true);

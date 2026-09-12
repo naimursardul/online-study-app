@@ -1,46 +1,79 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { client, getBoardQusetonDetails } from "@/utils/utils";
-import type { IRecord } from "@/types/types";
+import type { IqDetails } from "@/types/types";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useMasterData } from "@/lib/MasterData-context";
 import { typesForSubject } from "@/utils/questionTypes";
 import ApiErrorState from "@/components/shared/ApiErrorState";
 
+// One facet row per (level, subject, type, institution, year) combination that
+// actually has questions — the sitemap's data source, reused here so the
+// sidebar only lists papers that exist.
+type FacetRow = {
+  level: string;
+  subject: string;
+  questionType: string;
+  institution: string;
+  year: string;
+  count: number;
+  lastmod: string;
+};
+
 export default function SingleQuestionBankSidebar({
   slug,
 }: {
   slug: string | undefined;
 }) {
-  const [allData, setAllData] = useState<(IRecord & { _id: string })[]>([]);
+  const [paperPairs, setPaperPairs] = useState<
+    { institution: string; year: string }[]
+  >([]);
   const [loading, setLoading] = useState<boolean>(false);
-  // A failed board-list fetch used to render an empty sidebar — a paper page
+  // A failed facets fetch used to render an empty sidebar — a paper page
   // with no way to reach any paper.
   const [loadError, setLoadError] = useState<unknown>(null);
   const [reloadToken, setReloadToken] = useState(0);
   const { pathname } = useLocation();
   const { masterData } = useMasterData();
 
+  const details: IqDetails = useMemo(
+    () => getBoardQusetonDetails(masterData, slug ?? ""),
+    [masterData, slug],
+  );
+
   // One link per type the slug's subject offers, so a subject that only has
   // MCQ and SQ never advertises a CQ paper.
   const questionTypes = useMemo(() => {
-    const subjectId = getBoardQusetonDetails(masterData, slug ?? "")?.withId
-      ?.subjectId;
-    const subject = masterData.subjects.find((s) => s._id === subjectId);
+    const subject = masterData.subjects.find(
+      (s) => s._id === details?.withId?.subjectId,
+    );
     return typesForSubject(subject?.questionTypes);
-  }, [masterData, slug]);
+  }, [masterData, details]);
 
   useEffect(() => {
     async function getAllData() {
       setLoading(true);
       setLoadError(null);
       try {
-        const res = await client.get(`/record?recordType=Board`);
+        const res = await client.get(`/question/facets`);
 
         const { data } = res;
 
         if (data?.success) {
-          setAllData(data?.data);
+          // Only pairs for this slug's level + subject, deduped — each facet
+          // row is per question type, but the sidebar lists the pair once.
+          const level = details?.withName?.level;
+          const subject = details?.withName?.subject;
+          const seen = new Set<string>();
+          const pairs: { institution: string; year: string }[] = [];
+          for (const row of data.data as FacetRow[]) {
+            if (row.level !== level || row.subject !== subject) continue;
+            const key = `${row.institution}_${row.year}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            pairs.push({ institution: row.institution, year: row.year });
+          }
+          setPaperPairs(pairs);
         }
       } catch (error) {
         console.error(error);
@@ -51,7 +84,7 @@ export default function SingleQuestionBankSidebar({
     }
 
     getAllData();
-  }, [reloadToken]);
+  }, [reloadToken, details]);
 
   return (
     <div className="md:sticky top-1.25 md:min-w-47.5 md:max-h-[calc(100vh-15px)] bg-background rounded-lg px-4 py-5 border border-sidebar-border">
@@ -69,9 +102,9 @@ export default function SingleQuestionBankSidebar({
             message="Failed to load the board list."
             onRetry={() => setReloadToken((t) => t + 1)}
           />
-        ) : (!loading && Array.isArray(allData)) ||
-          (loading && Array.isArray(allData) && allData.length > 0) ? (
-          allData.map((d, i) => (
+        ) : (!loading && Array.isArray(paperPairs)) ||
+          (loading && Array.isArray(paperPairs) && paperPairs.length > 0) ? (
+          paperPairs.map((d, i) => (
             <div key={i} className="flex md:flex-col gap-2">
               {questionTypes.map((type) => {
                 const to = `/question-bank/${slug}/${type.code}_${d?.institution}_${d?.year}`;

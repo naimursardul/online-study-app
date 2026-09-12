@@ -9,9 +9,9 @@ import { Request, Response, NextFunction } from "express";
 import { BaseQuestion, questionModels } from "../models/question-model";
 import LevelModel from "../models/level-model";
 import SubjectModel from "../models/subject-model";
+import InstitutionModel from "../models/institution-model";
+import YearModel from "../models/year-model";
 import { redisClient } from "../config/redis";
-// Aliased so it doesn't shadow TypeScript's built-in `Record<K, V>` utility type.
-import RecordModel from "../models/record-model";
 import {
   QUESTION_TYPE_CODES,
   QuestionTypeCode,
@@ -32,7 +32,6 @@ async function createQuestion(req: Request, res: Response) {
       subjectId,
       chapterId,
       topicId,
-      record,
       recordId,
       timeRequired,
       marks,
@@ -59,6 +58,12 @@ async function createQuestion(req: Request, res: Response) {
     }
 
     // Check for the fields every question type shares
+    const hasPairs =
+      Array.isArray(recordId) &&
+      recordId.length > 0 &&
+      recordId.every(
+        (pair: any) => pair?.institutionId && pair?.yearId,
+      );
     if (
       !levelId ||
       !Array.isArray(backgroundId) ||
@@ -66,10 +71,7 @@ async function createQuestion(req: Request, res: Response) {
       !subjectId ||
       !chapterId ||
       !topicId ||
-      !Array.isArray(record) ||
-      record.length <= 0 ||
-      !Array.isArray(recordId) ||
-      recordId.length <= 0 ||
+      !hasPairs ||
       !timeRequired ||
       !marks ||
       !difficulty
@@ -77,7 +79,7 @@ async function createQuestion(req: Request, res: Response) {
       res.status(400).json({
         success: false,
         message:
-          "Missing required fields: levelId, backgroundId, subjectId, chapterId, topicId, record, recordId, timeRequired, marks, and difficulty.",
+          "Missing required fields: levelId, backgroundId, subjectId, chapterId, topicId, recordId (institutionId + yearId pairs), timeRequired, marks, and difficulty.",
         data: null,
       });
       return;
@@ -191,7 +193,7 @@ async function createQuestion(req: Request, res: Response) {
 // Redis: the collection-wide $group is not served by any index, and the cache
 // is what keeps it cheap. Computed directly when Redis is down (fail-open,
 // matching the generalLimiter policy).
-const FACETS_CACHE_KEY = "question-facets:v1";
+const FACETS_CACHE_KEY = "question-facets:v2";
 const FACETS_CACHE_TTL_S = 3600;
 
 interface FacetRow {
@@ -200,21 +202,21 @@ interface FacetRow {
   questionType: string;
   institution: string;
   year: string;
-  recordType: string;
   count: number;
   lastmod: string;
 }
 
 async function computeFacets(): Promise<FacetRow[]> {
-  // levelId/subjectId are plain strings and recordId is [String] on the
-  // documents — no refs — so this is string grouping, then name resolution
-  // via lean lookups into Maps.
+  // levelId/subjectId are plain strings and recordId is an array of
+  // {institutionId, yearId} pairs on the documents — no refs — so this is
+  // string grouping, then name resolution via lean lookups into Maps.
   const grouped = await BaseQuestion.aggregate<{
     _id: {
       levelId: string;
       subjectId: string;
       questionType: string;
-      recordId: string;
+      institutionId: string;
+      yearId: string;
     };
     count: number;
     lastmod: Date;
@@ -226,7 +228,8 @@ async function computeFacets(): Promise<FacetRow[]> {
           levelId: "$levelId",
           subjectId: "$subjectId",
           questionType: "$questionType",
-          recordId: "$recordId",
+          institutionId: "$recordId.institutionId",
+          yearId: "$recordId.yearId",
         },
         count: { $sum: 1 },
         lastmod: { $max: "$updatedAt" },
@@ -235,11 +238,13 @@ async function computeFacets(): Promise<FacetRow[]> {
   ]);
 
   // lean() returns plain objects; only these fields are read below.
-  const [levels, subjects, records]: readonly unknown[][] = await Promise.all([
-    LevelModel.find().lean(),
-    SubjectModel.find().lean(),
-    RecordModel.find().lean(),
-  ]);
+  const [levels, subjects, institutions, years]: readonly unknown[][] =
+    await Promise.all([
+      LevelModel.find().lean(),
+      SubjectModel.find().lean(),
+      InstitutionModel.find().lean(),
+      YearModel.find().lean(),
+    ]);
   const levelNames = new Map(
     (levels as { _id: unknown; name: string }[]).map((l) => [
       String(l._id),
@@ -252,17 +257,16 @@ async function computeFacets(): Promise<FacetRow[]> {
       s.name,
     ]),
   );
-  const recordById = new Map(
-    (
-      records as {
-        _id: unknown;
-        institution: string;
-        year: string;
-        recordType: string;
-      }[]
-    ).map((r) => [
-      String(r._id),
-      { institution: r.institution, year: r.year, recordType: r.recordType },
+  const institutionNames = new Map(
+    (institutions as { _id: unknown; name: string }[]).map((i) => [
+      String(i._id),
+      i.name,
+    ]),
+  );
+  const yearNames = new Map(
+    (years as { _id: unknown; name: string }[]).map((y) => [
+      String(y._id),
+      y.name,
     ]),
   );
 
@@ -270,14 +274,15 @@ async function computeFacets(): Promise<FacetRow[]> {
   for (const g of grouped) {
     const level = levelNames.get(g._id.levelId);
     const subject = subjectNames.get(g._id.subjectId);
-    const record = recordById.get(g._id.recordId);
-    if (!level || !subject || !record) continue; // unresolvable names — skip
+    const institution = institutionNames.get(g._id.institutionId);
+    const year = yearNames.get(g._id.yearId);
+    if (!level || !subject || !institution || !year) continue; // unresolvable names — skip
 
     // The slug grammar is positional on "_", so a name containing "_" or "/"
     // would corrupt every URL built from it. Drop those rows rather than
     // emit broken URLs.
     if (
-      [level, subject, record.institution, record.year].some(
+      [level, subject, institution, year].some(
         (v) => v.includes("_") || v.includes("/"),
       )
     ) {
@@ -288,9 +293,8 @@ async function computeFacets(): Promise<FacetRow[]> {
       level,
       subject,
       questionType: g._id.questionType,
-      institution: record.institution,
-      year: record.year,
-      recordType: record.recordType,
+      institution,
+      year,
       count: g.count,
       lastmod: g.lastmod.toISOString(),
     });
@@ -333,8 +337,8 @@ const getQuestionFacets = async (
 
 // GET ALL QUESTIONS
 // Values arriving here have already been through `listQuestionSchema`, so the
-// list-shaped params (backgroundId, chapterId, topicId, recordId, institution,
-// year) are normalised arrays.
+// list-shaped params (backgroundId, chapterId, topicId, institutionId, yearId)
+// are normalised arrays.
 const escapeRegex = (value: string) =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -358,9 +362,8 @@ const getAllQuestions = async (req: Request, res: Response) => {
       subjectId,
       chapterId,
       topicId,
-      recordId,
-      institution,
-      year,
+      institutionId,
+      yearId,
       difficulty,
       search,
       page,
@@ -395,38 +398,27 @@ const getAllQuestions = async (req: Request, res: Response) => {
     const backgroundIds = toArray(backgroundId);
     const chapterIds = toArray(chapterId);
     const topicIds = toArray(topicId);
-    const recordIdArray = toArray(recordId);
-    const institutions = toArray(institution);
-    const years = toArray(year);
+    const institutionIds = toArray(institutionId);
+    const yearIds = toArray(yearId);
 
     const query: Record<string, any> = { questionType, levelId };
-    // backgroundId/recordId are arrays on the document; $in matches a document
-    // whose array contains any of the listed values.
+    // backgroundId is an array on the document; $in matches a document whose
+    // array contains any of the listed values.
     if (backgroundIds.length > 0) query.backgroundId = { $in: backgroundIds };
     if (typeof subjectId === "string") query.subjectId = subjectId;
     if (chapterIds.length > 0) query.chapterId = { $in: chapterIds };
     if (topicIds.length > 0) query.topicId = { $in: topicIds };
     if (typeof difficulty === "string") query.difficulty = difficulty;
 
-    // institution/year are stored on Record, not on the question, so resolve
-    // them to recordIds first. An empty resolution correctly yields no results.
-    if (institutions.length > 0 || years.length > 0) {
-      const recordFilter: Record<string, any> = {};
-      if (institutions.length > 0)
-        recordFilter.institution = { $in: institutions };
-      if (years.length > 0) recordFilter.year = { $in: years };
+    // recordId holds {institutionId, yearId} pairs; $elemMatch matches a
+    // question with at least one pair inside both lists.
+    if (institutionIds.length > 0 || yearIds.length > 0) {
+      const elemMatch: Record<string, any> = {};
+      if (institutionIds.length > 0)
+        elemMatch.institutionId = { $in: institutionIds };
+      if (yearIds.length > 0) elemMatch.yearId = { $in: yearIds };
 
-      const matchedRecords = await RecordModel.find(recordFilter)
-        .select("_id")
-        .lean();
-      let resolvedIds = matchedRecords.map((record) => String(record._id));
-      // An explicit recordId narrows the resolution rather than widening it.
-      if (recordIdArray.length > 0)
-        resolvedIds = resolvedIds.filter((id) => recordIdArray.includes(id));
-
-      query.recordId = { $in: resolvedIds };
-    } else if (recordIdArray.length > 0) {
-      query.recordId = { $in: recordIdArray };
+      query.recordId = { $elemMatch: elemMatch };
     }
 
     if (typeof search === "string") {

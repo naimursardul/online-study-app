@@ -19,7 +19,11 @@ const fields: IField[] = [
   { label: "Subject", inputType: "select", name: "subjectId" },
   { label: "Chapter", inputType: "select", name: "chapterId" },
   { label: "Topic", inputType: "select", name: "topicId" },
-  { label: "Record", inputType: "checkbox", name: "record" },
+  {
+    label: "Record (Institution-Year)",
+    inputType: "checkbox",
+    name: "recordId",
+  },
   {
     label: "Difficulty",
     inputType: "select",
@@ -80,10 +84,12 @@ export default function QuestionMetaSection({
         {meta.timeRequired > 0 && (
           <Badge variant="secondary">Time: {meta.timeRequired} min</Badge>
         )}
-        {meta.record?.length > 0 &&
-          meta.record.map((r, i) => (
+        {meta.recordId?.length > 0 &&
+          meta.recordId.map((pair, i) => (
             <Badge key={i} variant="outline">
-              {r.institution} - {r.year}
+              {extractIdTo_(masterData.institutions, pair.institutionId, "name")}{" "}
+              -{" "}
+              {extractIdTo_(masterData.years, pair.yearId, "name")}
             </Badge>
           ))}
       </div>

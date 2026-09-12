@@ -92,12 +92,18 @@ export const createExam = async (
           });
           return;
         }
-        const { levelId, recordId } = filter;
-        if (!examName || !levelId || !subjectId || !recordId) {
+        const { levelId, institutionId, yearId } = filter;
+        if (
+          !examName ||
+          !levelId ||
+          !subjectId ||
+          !institutionId ||
+          !yearId
+        ) {
           res.status(400).json({
             success: false,
             message:
-              "Missing required fields: examname, subjectId, levelId, recordId.",
+              "Missing required fields: examname, subjectId, levelId, institutionId, yearId.",
             data: null,
           });
           return;
@@ -131,13 +137,12 @@ export const createExam = async (
         const query: any = {};
         if (typeof levelId === "string") query.levelId = levelId;
         if (typeof subjectId === "string") query.subjectId = subjectId;
-        const recordIdArray = recordId
-          ? Array.isArray(recordId)
-            ? recordId
-            : [recordId]
-          : [];
 
-        if (recordIdArray.length > 0) query.recordId = { $in: recordIdArray };
+        // One paper = one institution-year pair; $elemMatch finds questions
+        // carrying that pair in their recordId array.
+        query.recordId = {
+          $elemMatch: { institutionId, yearId },
+        };
 
         // Bound the result set — matches the personal branch's 100-question
         // ceiling instead of storing every matching id in one document.
