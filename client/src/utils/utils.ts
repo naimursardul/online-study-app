@@ -4,7 +4,6 @@ import type {
   IMasterData,
   IOptionData,
   IqDetails,
-  IRecordPair,
   IRecordPairOption,
 } from "@/types/types";
 import axios from "axios";
