@@ -16,6 +16,7 @@ import MasterDataRouter from "./routes/master-question-data-routes";
 import ExamRouter from "./routes/exam-routes";
 import AnalyticsRouter from "./routes/analytics-routes";
 import ExtractionRouter from "./routes/extraction-routes";
+import PromptRouter from "./routes/prompt-routes";
 import ImgUploadRoutes from "./routes/imageUpload.routes";
 import ContactRouter from "./routes/contact-routes";
 import { errorHandler } from "./middlewares/errorHandler";
@@ -80,6 +81,7 @@ app.use("/exam", ExamRouter);
 app.use("/analytics", AnalyticsRouter);
 app.use("/img-upload", ImgUploadRoutes);
 app.use("/extraction", ExtractionRouter);
+app.use("/extraction-prompt", PromptRouter);
 app.use("/contact", ContactRouter);
 
 // 404 catch-all: unknown paths get the JSON envelope instead of Express's

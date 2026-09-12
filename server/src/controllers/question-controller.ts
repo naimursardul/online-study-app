@@ -308,9 +308,7 @@ const getQuestionFacets = async (
     try {
       const cached = await redisClient.get(FACETS_CACHE_KEY);
       if (cached) {
-        res
-          .status(200)
-          .json({ success: true, data: JSON.parse(cached) });
+        res.status(200).json({ success: true, data: JSON.parse(cached) });
         return;
       }
     } catch {
@@ -688,6 +686,7 @@ async function bulkCreateQuestions(req: Request, res: Response) {
   // -------------------------
   // Response
   // -------------------------
+
   const allFailed = inserted === 0 && failed > 0;
 
   if (allFailed) {

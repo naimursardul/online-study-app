@@ -11,6 +11,7 @@ export default function AdminLayout() {
       icon: <Upload />,
       subItem: [
         { title: "AI Extractor", url: "/admin/ai-extractor" },
+        { title: "AI Prompts", url: "/admin/prompt" },
         { title: "Question", url: "/admin/question" },
         { title: "Record", url: "/admin/record" },
         { title: "Level", url: "/admin/level" },

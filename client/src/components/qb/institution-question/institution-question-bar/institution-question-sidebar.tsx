@@ -70,31 +70,33 @@ export default function SingleQuestionBankSidebar({
             onRetry={() => setReloadToken((t) => t + 1)}
           />
         ) : (!loading && Array.isArray(allData)) ||
-          (loading && Array.isArray(allData) && allData.length > 0)
-          ? allData.map((d, i) => (
-              <div key={i} className="flex md:flex-col gap-2">
-                {questionTypes.map((type) => {
-                  const to = `/question-bank/${slug}/${type.code}_${d?.institution}_${d?.year}`;
+          (loading && Array.isArray(allData) && allData.length > 0) ? (
+          allData.map((d, i) => (
+            <div key={i} className="flex md:flex-col gap-2">
+              {questionTypes.map((type) => {
+                const to = `/question-bank/${slug}/${type.code}_${d?.institution}_${d?.year}`;
 
-                  return (
-                    <Link
-                      key={type.code}
-                      className={
-                        to === pathname
-                          ? "bg-muted px-3 py-2 rounded-lg border-none outline-none"
-                          : "hover:bg-muted px-3 py-2 rounded-lg border-none outline-none "
-                      }
-                      to={to}
-                    >
-                      {`${d?.institution}-${d?.year} (${type.label})`}
-                    </Link>
-                  );
-                })}
-              </div>
-            ))
-          : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-              <Skeleton key={i} className="w-full h-8" />
-            ))}
+                return (
+                  <Link
+                    key={type.code}
+                    className={
+                      to === pathname
+                        ? "bg-muted px-3 py-2 rounded-lg border-none outline-none"
+                        : "hover:bg-muted px-3 py-2 rounded-lg border-none outline-none "
+                    }
+                    to={to}
+                  >
+                    {`${d?.institution}-${d?.year} (${type.label})`}
+                  </Link>
+                );
+              })}
+            </div>
+          ))
+        ) : (
+          [1, 2, 3, 4, 5, 6].map((i) => (
+            <Skeleton key={i} className="w-full h-8" />
+          ))
+        )}
       </div>
     </div>
   );

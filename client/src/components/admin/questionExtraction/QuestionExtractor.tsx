@@ -368,7 +368,7 @@ export default function QuestionExtractor() {
         return;
       }
 
-      const { inserted, failed } = res.data;
+      const { inserted, failed } = res.data.data;
 
       if (inserted > 0) {
         toast.success(

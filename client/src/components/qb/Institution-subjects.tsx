@@ -1,12 +1,12 @@
 import type { IMasterData } from "@/types/types";
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { Card, CardContent, CardTitle } from "../ui/card";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
-import { BookOpen, Layers } from "lucide-react";
+import { Layers } from "lucide-react";
 import { useMasterData } from "@/lib/MasterData-context";
 import { extractIdTo_ } from "@/utils/utils";
 import { Badge } from "../ui/badge";
+import SubjectTile from "./SubjectTile";
 
 export default function InstitutionSubject({
   level,
@@ -50,25 +50,31 @@ export default function InstitutionSubject({
 
   return (
     <Card className="px-5 py-6">
-      <CardTitle className="flex flex-col gap-3">
-        <div className="flex justify-between gap-5">
-          <div className="flex gap-2">
-            <Layers size={"22px"} />
-            <h2 className="font-bold ">{level.name}</h2>
+      <CardTitle className="flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex size-11 items-center justify-center rounded-xl bg-secondary text-foreground">
+              <Layers className="size-5" aria-hidden="true" />
+            </div>
+            <h3 className="text-lg font-bold tracking-tight">{level.name}</h3>
           </div>
-          <Badge>Subjects: {(subjects || []).length}</Badge>
+          <Badge variant="secondary">
+            Subjects: {(subjects || []).length}
+          </Badge>
         </div>
 
         {/* BACKGROUND FILTERS */}
         <ToggleGroup
           type="multiple"
+          spacing={2}
+          className="flex-wrap gap-2"
           onValueChange={(value) => setFilter(value)}
         >
           {backgrounds.map((b) => (
             <ToggleGroupItem
               key={b._id}
               value={b._id}
-              className="px-4 py-3 max-md:text-xs font-medium border bg-popover text-chart-2 cursor-pointer"
+              className="h-auto rounded-full border border-input px-3.5 py-1.5 text-xs max-md:text-[11px] font-medium text-muted-foreground cursor-pointer hover:border-primary/40 hover:text-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:border-primary data-[state=on]:hover:bg-primary"
             >
               {extractIdTo_(masterData.backgrounds, b._id, "name")}
             </ToggleGroupItem>
@@ -80,14 +86,11 @@ export default function InstitutionSubject({
         {/* SUBJECTS */}
         <div className="flex flex-wrap gap-4 max-lg:gap-2.5">
           {subjects.map((s) => (
-            <Link
+            <SubjectTile
               key={s._id}
               to={`${extractIdTo_(masterData.levels, s.levelId, "name")}_${s.name}`}
-            >
-              <Card className="bg-input flex flex-col gap-1.5 justify-center items-center text-xs max-lg:text-[11px] font-semibold p-1 w-40 max-lg:w-27 h-25 max-lg:h-20 border cursor-pointer hover:scale-105 transition-transform">
-                <BookOpen size="20" /> {s.name}
-              </Card>
-            </Link>
+              name={s.name}
+            />
           ))}
         </div>
       </CardContent>

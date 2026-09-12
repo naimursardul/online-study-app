@@ -1,12 +1,9 @@
 import multer from "multer";
 
 import { generateContent } from "../services/kie";
+import { getExtractionPrompt } from "../services/extraction-prompt.service";
 import { buildParts } from "../utils/buildParts";
 
-import {
-  EXTRACTION_PROMPTS,
-  BULK_MCQ_EXTRACTION_PROMPT,
-} from "../prompts/extractionPrompt";
 import {
   QuestionTypeCode,
   isQuestionTypeCode,
@@ -140,10 +137,11 @@ export const extractQuestionsHandler = [
       // ====================================================
       // Prompt Selection
       // ====================================================
-      // One prompt per question type, resolved from the registry.
+      // One prompt per question type, resolved from MongoDB (admin-editable,
+      // see /extraction-prompt). Falls back to the hardcoded default when no
+      // edited copy exists.
 
-      const systemPrompt =
-        EXTRACTION_PROMPTS[questionType] ?? BULK_MCQ_EXTRACTION_PROMPT;
+      const systemPrompt = await getExtractionPrompt(questionType);
 
       const typeLabel = QUESTION_TYPES[questionType].label;
 

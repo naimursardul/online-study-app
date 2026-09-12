@@ -132,6 +132,14 @@ export interface IBackground {
   levelId: string | IPopulatedData;
 }
 
+// The admin-editable AI extraction prompt for one question type (one doc per type).
+export interface IExtractionPrompt {
+  _id?: string;
+  questionType: QuestionTypeCode;
+  prompt: string;
+  updatedAt?: string;
+}
+
 // Subject
 export interface ISubject {
   name: string;

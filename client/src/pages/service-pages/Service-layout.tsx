@@ -14,6 +14,7 @@ import {
   Search,
 } from "lucide-react";
 import { Outlet } from "react-router-dom";
+import NavbarAuth from "@/components/NavbarAuth/NavbarAuth";
 
 export default function ServiceLayout() {
   // Menu items.
@@ -61,9 +62,10 @@ export default function ServiceLayout() {
         <SidebarTemplate items={items} />
       </div>
       <div className="w-full py-5 bg-sidebar-accent">
-        <div className="w-full flex gap-4 max-md:gap-3 pl-6 pr-10 ">
+        <div className="w-full flex gap-4 justify-between items-center max-md:gap-3 pl-6 pr-10 ">
           <SidebarTrigger className="mt-1 cursor-pointer" />
-          <ServiceNavbar items={items} />
+          {/* <ServiceNavbar items={items} />    */}
+          <NavbarAuth />
         </div>
         <main className="mx-6 mt-8 mb-16">
           {masterDataLoading ? (

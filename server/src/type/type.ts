@@ -100,6 +100,13 @@ export interface IBackground extends Document {
   levelId: mongoose.Types.ObjectId;
 }
 
+// The admin-editable AI extraction prompt for one question type. Exactly one
+// document per type — questionType is the natural key.
+export interface IExtractionPrompt extends Document {
+  questionType: QuestionTypeCode;
+  prompt: string;
+}
+
 // Subject
 export interface ISubject extends Document {
   name: string;
