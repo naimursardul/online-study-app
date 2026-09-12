@@ -24,7 +24,7 @@ type ApiResponse = {
 export default function Prompt() {
   const [prompts, setPrompts] = useState<Record<string, string>>({});
   const [selectedType, setSelectedType] = useState<QuestionTypeCode>(
-    QUESTION_TYPE_LIST[0].code
+    QUESTION_TYPE_LIST[0].code,
   );
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(true);
@@ -42,13 +42,17 @@ export default function Prompt() {
           throw new Error(res.data.message || "Failed to load prompts.");
         }
         const byType: Record<string, string> = {};
-        for (const row of res.data.data) {
+        const rows = Array.isArray(res.data.data)
+          ? res.data.data
+          : [res.data.data];
+
+        for (const row of rows) {
           byType[row.questionType] = row.prompt;
         }
         setPrompts(byType);
       } catch (error) {
         toast.error(
-          getApiErrorMessage(error, "Failed to load extraction prompts.")
+          getApiErrorMessage(error, "Failed to load extraction prompts."),
         );
       } finally {
         setLoading(false);
@@ -74,7 +78,7 @@ export default function Prompt() {
     try {
       const res = await client.put<ApiResponse>(
         `/extraction-prompt/${selectedType}`,
-        { prompt: draft }
+        { prompt: draft },
       );
       if (!res.data.success) {
         throw new Error(res.data.message || "Failed to save prompt.");
@@ -95,7 +99,7 @@ export default function Prompt() {
     setSaving(true);
     try {
       const res = await client.post<ApiResponse>(
-        `/extraction-prompt/${selectedType}/reset`
+        `/extraction-prompt/${selectedType}/reset`,
       );
       if (!res.data.success || !("prompt" in (res.data.data ?? {}))) {
         throw new Error(res.data.message || "Failed to reset prompt.");

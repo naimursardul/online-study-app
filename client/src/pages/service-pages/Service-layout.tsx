@@ -1,5 +1,4 @@
 import Loader from "@/components/loader/Loader";
-import ServiceNavbar from "@/components/service-bar/service-navbar";
 import SidebarTemplate from "@/components/sidebar-template/SidebarTemplate";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useMasterData } from "@/lib/MasterData-context";
