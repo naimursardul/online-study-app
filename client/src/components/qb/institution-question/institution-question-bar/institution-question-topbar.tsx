@@ -20,8 +20,12 @@ function InstitutionQuestionTopbar({
       <div className="flex gap-3 justify-between items-center">
         <div>
           <h2 className="font-semibold">
-            {qDetails?.withName?.level} Board Question /{" "}
-            {qDetails?.withName?.subject}
+            {[
+              qDetails?.withName?.level + " Question",
+              qDetails?.withName?.subject,
+            ]
+              .filter(Boolean)
+              .join(" — ")}
           </h2>
           <p className="text-xs text-chart-2 font-semibold">
             {qDetails?.withName?.institution &&
