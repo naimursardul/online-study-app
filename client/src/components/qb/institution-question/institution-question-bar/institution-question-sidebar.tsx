@@ -1,5 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { client, getBoardQusetonDetails } from "@/utils/utils";
+import { client } from "@/utils/utils";
 import type { IqDetails } from "@/types/types";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -22,8 +22,10 @@ type FacetRow = {
 
 export default function SingleQuestionBankSidebar({
   slug,
+  details,
 }: {
   slug: string | undefined;
+  details: IqDetails;
 }) {
   const [paperPairs, setPaperPairs] = useState<
     { institution: string; year: string }[]
@@ -36,11 +38,6 @@ export default function SingleQuestionBankSidebar({
   const { pathname } = useLocation();
   const { masterData } = useMasterData();
 
-  const details: IqDetails = useMemo(
-    () => getBoardQusetonDetails(masterData, slug ?? ""),
-    [masterData, slug],
-  );
-
   // One link per type the slug's subject offers, so a subject that only has
   // MCQ and SQ never advertises a CQ paper.
   const questionTypes = useMemo(() => {
@@ -49,6 +46,28 @@ export default function SingleQuestionBankSidebar({
     );
     return typesForSubject(subject?.questionTypes);
   }, [masterData, details]);
+
+  // The slug's level's institutions, so each paper pair can be narrowed to
+  // the types its institution actually offers.
+  const levelInstitutions = useMemo(() => {
+    const levelId = masterData.levels.find(
+      (l) => l.name === details?.withName?.level,
+    )?._id;
+    return levelId
+      ? masterData.institutions.filter((i) => i.levelId === levelId)
+      : [];
+  }, [masterData, details]);
+
+  // Subject types minus the ones this institution excludes. An institution
+  // with no configured types (pre-feature rows included) offers them all.
+  function typesForPair(institutionName: string) {
+    const instTypes =
+      levelInstitutions.find((inst) => inst.name === institutionName)
+        ?.questionTypes ?? [];
+    return instTypes.length
+      ? questionTypes.filter((t) => instTypes.includes(t.code))
+      : questionTypes;
+  }
 
   useEffect(() => {
     async function getAllData() {
@@ -63,15 +82,29 @@ export default function SingleQuestionBankSidebar({
           // Only pairs for this slug's level + subject, deduped — each facet
           // row is per question type, but the sidebar lists the pair once.
           const level = details?.withName?.level;
+          const isDisplayInstitution =
+            details?.withName?.level === "HSC" ||
+            details?.withName?.level === "SSC";
+          const institution = details?.withName?.institution;
+
           const subject = details?.withName?.subject;
           const seen = new Set<string>();
           const pairs: { institution: string; year: string }[] = [];
           for (const row of data.data as FacetRow[]) {
-            if (row.level !== level || row.subject !== subject) continue;
-            const key = `${row.institution}_${row.year}`;
-            if (seen.has(key)) continue;
-            seen.add(key);
-            pairs.push({ institution: row.institution, year: row.year });
+            if (isDisplayInstitution) {
+              if (row.level !== level || row.subject !== subject) continue;
+              const key = `${row.institution}_${row.year}`;
+              if (seen.has(key)) continue;
+              seen.add(key);
+              pairs.push({ institution: row.institution, year: row.year });
+            } else {
+              if (row.level !== level || row.institution !== institution)
+                continue;
+              const key = `${row.institution}_${row.year}`;
+              if (seen.has(key)) continue;
+              seen.add(key);
+              pairs.push({ institution: row.institution, year: row.year });
+            }
           }
           setPaperPairs(pairs);
         }
@@ -104,27 +137,33 @@ export default function SingleQuestionBankSidebar({
           />
         ) : (!loading && Array.isArray(paperPairs)) ||
           (loading && Array.isArray(paperPairs) && paperPairs.length > 0) ? (
-          paperPairs.map((d, i) => (
-            <div key={i} className="flex md:flex-col gap-2">
-              {questionTypes.map((type) => {
-                const to = `/question-bank/${slug}/${type.code}_${d?.institution}_${d?.year}`;
+          paperPairs.map((d, i) => {
+            // Types the pair's institution offers; a pair left with none
+            // (institution and subject share no type) isn't listed at all.
+            const pairTypes = typesForPair(d.institution);
+            if (pairTypes.length === 0) return null;
+            return (
+              <div key={i} className="flex md:flex-col gap-2">
+                {pairTypes.map((type) => {
+                  const to = `/question-bank/${slug}/${details?.withName.level === "HSC" || details?.withName.level === "SSC" ? `${type.code}_${d?.institution}_${d?.year}` : `${d?.year}_${type.code}`}`;
 
-                return (
-                  <Link
-                    key={type.code}
-                    className={
-                      to === pathname
-                        ? "bg-muted px-3 py-2 rounded-lg border-none outline-none"
-                        : "hover:bg-muted px-3 py-2 rounded-lg border-none outline-none "
-                    }
-                    to={to}
-                  >
-                    {`${d?.institution}-${d?.year} (${type.label})`}
-                  </Link>
-                );
-              })}
-            </div>
-          ))
+                  return (
+                    <Link
+                      key={type.code}
+                      className={
+                        to === pathname
+                          ? "bg-muted px-3 py-2 rounded-lg border-none outline-none"
+                          : "hover:bg-muted px-3 py-2 rounded-lg border-none outline-none "
+                      }
+                      to={to}
+                    >
+                      {`${d?.institution}-${d?.year} (${type.label})`}
+                    </Link>
+                  );
+                })}
+              </div>
+            );
+          })
         ) : (
           [1, 2, 3, 4, 5, 6].map((i) => (
             <Skeleton key={i} className="w-full h-8" />

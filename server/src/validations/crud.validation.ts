@@ -31,6 +31,8 @@ export const levelUpdateSchema = updateBody({
 export const institutionUpdateSchema = updateBody({
   name,
   levelId: objectId,
+  subjectId: objectIdList,
+  questionTypes: z.array(z.enum(QUESTION_TYPE_CODES)),
 });
 
 export const yearUpdateSchema = updateBody({
@@ -101,6 +103,8 @@ export const topicCreateSchema = createBody({
 export const institutionCreateSchema = createBody({
   name,
   levelId: objectId,
+  subjectId: objectIdList.optional(),
+  questionTypes: z.array(z.enum(QUESTION_TYPE_CODES)).optional(),
 });
 
 export const yearCreateSchema = createBody({
@@ -143,6 +147,7 @@ export const topicListSchema = listQuery({
 
 export const institutionListSchema = listQuery({
   levelId: objectId,
+  subjectId: objectIdList,
   search: safeSearch,
 });
 

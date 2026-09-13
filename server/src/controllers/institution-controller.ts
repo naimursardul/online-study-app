@@ -5,7 +5,7 @@ import { BaseQuestion } from "../models/question-model";
 // Create Institution
 export const createInstitution = async (req: Request, res: Response) => {
   try {
-    const { name, levelId } = req.body;
+    const { name, levelId, subjectId, questionTypes } = req.body;
 
     if (!name || !levelId) {
       res.status(400).json({
@@ -26,7 +26,12 @@ export const createInstitution = async (req: Request, res: Response) => {
       return;
     }
 
-    const newInstitution = new Institution({ name, levelId });
+    const newInstitution = new Institution({
+      name,
+      levelId,
+      subjectId: subjectId ?? [],
+      questionTypes: questionTypes ?? [],
+    });
     await newInstitution.save();
 
     res.status(201).json({
@@ -49,14 +54,19 @@ export const createInstitution = async (req: Request, res: Response) => {
 // Get All Institutions
 export const getAllInstitutions = async (req: Request, res: Response) => {
   try {
-    const { levelId, search } = req.query;
+    const { levelId, subjectId, search } = req.query;
 
     const filter: any = {};
     if (levelId) filter.levelId = levelId;
+    // objectIdList always yields an array; any institution covering at least
+    // one of the selected subjects matches.
+    if (Array.isArray(subjectId) && subjectId.length > 0)
+      filter.subjectId = { $in: subjectId };
     if (search) filter.name = { $regex: search, $options: "i" };
 
     const institutions = await Institution.find(filter)
       .populate("levelId", "name")
+      .populate("subjectId", "name")
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -81,10 +91,9 @@ export const getSingleInstitution = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const institution = await Institution.findById(id).populate(
-      "levelId",
-      "name",
-    );
+    const institution = await Institution.findById(id)
+      .populate("levelId", "name")
+      .populate("subjectId", "name");
 
     if (!institution) {
       res.status(404).json({

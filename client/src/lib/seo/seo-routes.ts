@@ -21,11 +21,8 @@ import {
   clampDescription,
   type SeoHead,
 } from "./seo-config";
-import { parseBoardSlug } from "../../utils/board-slug";
-import {
-  isQuestionTypeCode,
-  labelOf,
-} from "../../utils/questionTypes";
+import { parseSlug } from "../../utils/parse-slug";
+import { isQuestionTypeCode, labelOf } from "../../utils/questionTypes";
 
 // ---------------------------------------------------------------------------
 // Local path matcher
@@ -149,11 +146,10 @@ const YEAR_RE = /^(19|20)\d{2}$/;
  * canonical.
  */
 function questionBankSlug1(slug1: string): SeoHead {
-  const { level, subject } = parseBoardSlug(slug1);
+  const { level, subject } = parseSlug(slug1);
   const parts = slug1.split("_").filter(Boolean);
 
-  const valid =
-    parts.length === 2 && Boolean(level) && Boolean(subject);
+  const valid = parts.length === 2 && Boolean(level) && Boolean(subject);
   if (!valid) {
     return head({
       title: "Page not found",
@@ -183,12 +179,9 @@ function questionBankSlug1(slug1: string): SeoHead {
  * indexable under arbitrarily many URLs.
  */
 function questionBankSlug2(slug1: string, slug2: string): SeoHead {
-  const { level, subject } = parseBoardSlug(slug1);
+  const { level, subject } = parseSlug(slug1);
   // slug2 continues the grammar at position 2: type, institution, year.
-  const { questionType, institution, year } = parseBoardSlug(
-    slug2,
-    "questionType",
-  );
+  const { questionType, institution, year } = parseSlug(slug2, "questionType");
   const parts = slug2.split("_").filter(Boolean);
 
   const valid =
@@ -222,9 +215,9 @@ function questionBankSlug2(slug1: string, slug2: string): SeoHead {
 /** BreadcrumbList built from the same slug parts as the title. */
 function breadcrumbJsonLd(slug1: string, slug2: string | null): object {
   // slug1 and slug2 continue one grammar: level_subject + type_institution_year.
-  const { level, subject } = parseBoardSlug(slug1);
+  const { level, subject } = parseSlug(slug1);
   const { questionType, institution, year } = slug2
-    ? parseBoardSlug(slug2, "questionType")
+    ? parseSlug(slug2, "questionType")
     : {};
 
   const items: object[] = [
@@ -400,10 +393,7 @@ const ROUTES: RouteEntry[] = [
   },
   {
     pattern: "/exam",
-    head: noIndexHead(
-      "Mock Exams",
-      "Take exams and track your performance.",
-    ),
+    head: noIndexHead("Mock Exams", "Take exams and track your performance."),
   },
   {
     pattern: "/exam/:examId",
@@ -423,19 +413,11 @@ const ROUTES: RouteEntry[] = [
   },
   {
     pattern: "/dashboard",
-    head: noIndexHead(
-      "Dashboard",
-      "Your Poruya performance analytics.",
-      true,
-    ),
+    head: noIndexHead("Dashboard", "Your Poruya performance analytics.", true),
   },
   {
     pattern: "/collection",
-    head: noIndexHead(
-      "Collections",
-      "Your saved question collections.",
-      true,
-    ),
+    head: noIndexHead("Collections", "Your saved question collections.", true),
   },
   {
     pattern: "/collections/:id",

@@ -40,7 +40,7 @@ export default function QuestionBank() {
           Question Bank
         </p>
         <h1 className="text-2xl max-md:text-xl font-bold tracking-tight text-foreground">
-          Board questions, by level
+          Board, Job, Admission questions, by level
         </h1>
         <p className="mt-3 text-muted-foreground">
           Browse past board questions by level, background and subject.

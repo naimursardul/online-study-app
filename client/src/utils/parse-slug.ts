@@ -1,4 +1,4 @@
-import type { BoardSlugParts } from "../types/types";
+import type { SlugParts } from "../types/types";
 
 /*
  * The positional grammar of question-bank slugs:
@@ -7,27 +7,24 @@ import type { BoardSlugParts } from "../types/types";
  * The two route params continue one grammar — level_subject_type_institution_year —
  * so slug2's parts sit at positions 2-4, not 0-2. Pass the start position.
  *
- * Extracted from getBoardQusetonDetails so the SEO resolver (which runs on the
+ * Extracted from getSlugDetails so the SEO resolver (which runs on the
  * Vercel edge and in the browser) can parse slugs without importing utils.ts —
  * that file creates an axios instance at module scope from import.meta.env,
  * neither of which exists at the edge. Keep this file dependency-free apart
  * from the type import.
  */
-export function parseBoardSlug(
+export function parseSlug(
   slug: string,
-  startAt: keyof BoardSlugParts = "level",
-): BoardSlugParts {
-  const keys: (keyof BoardSlugParts)[] = [
-    "level",
-    "subject",
-    "questionType",
-    "institution",
-    "year",
-  ];
-  const parts: BoardSlugParts = {};
+  startAt: keyof SlugParts = "level",
+): SlugParts {
+  const parts: SlugParts = {};
   if (!slug) return parts;
-  const offset = keys.indexOf(startAt);
   const arr = slug.split("_");
+  const keys: (keyof SlugParts)[] =
+    arr[0] === "HSC" || arr[0] === "SSC"
+      ? ["level", "subject", "questionType", "institution", "year"]
+      : ["level", "institution", "year", "questionType"];
+  const offset = keys.indexOf(startAt);
   keys.slice(offset).forEach((key, i) => {
     const value = arr[i];
     if (value) parts[key] = value;

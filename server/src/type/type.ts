@@ -30,6 +30,12 @@ export interface IUser extends mongoose.Document {
 export interface IInstitution extends Document {
   name: string;
   levelId: mongoose.Types.ObjectId;
+  // Subjects this institution covers. Empty means "not configured yet", and
+  // readers fall back to offering it for every subject.
+  subjectId: mongoose.Types.ObjectId[];
+  // Which question types this institution offers. Empty means "not configured
+  // yet", and readers fall back to offering every type.
+  questionTypes: QuestionTypeCode[];
 }
 
 // Year — an exam year scoped to a level (e.g. "2024" under HSC)

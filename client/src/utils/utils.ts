@@ -9,7 +9,7 @@ import type {
 import axios from "axios";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { parseBoardSlug } from "./board-slug";
+import { parseSlug } from "./parse-slug";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -114,16 +114,16 @@ export function createFormInfo<T extends { _id: string }>(
 }
 
 // =========================================
-// GET BOARD QUESTION DETAILS from slug
+// GET SLUG DETAILS from slug
 // =========================================
-export const getBoardQusetonDetails = (
+export const getSlugDetails = (
   masterData: IMasterData,
   slug: string,
 ): IqDetails => {
   if (!slug) return {} as IqDetails;
   // HSC_Physics-1st_mcq_dhaka_2024 — the grammar lives in board-slug.ts so the
   // SEO resolver can share it without importing this axios-bearing module.
-  const obj = parseBoardSlug(slug);
+  const obj = parseSlug(slug);
 
   const update: Record<string, string | string[]> = {};
   if (obj?.level) {
@@ -208,17 +208,18 @@ export function getQuestionDataOption<T>(
         case "subjectId":
           return {
             ...field,
+            // The background narrowing only applies when the form actually
+            // carries a background field (question upload, taxonomy forms).
+            // The institution form has none — formData.backgroundId is
+            // undefined there — so it filters by level alone.
             optionData: masterData.subjects?.filter((sub) => {
+              if (String(sub.levelId) !== String(formData["levelId" as keyof T]))
+                return false;
+              const bgIds = formData["backgroundId" as keyof T];
+              if (!Array.isArray(bgIds)) return true;
               return (
-                String(sub.levelId) ===
-                  String(formData["levelId" as keyof T]) &&
-                sub.backgroundId.length ===
-                  (formData["backgroundId" as keyof T] as string[]).length &&
-                sub.backgroundId.every((bgI) =>
-                  (formData["backgroundId" as keyof T] as string[]).includes(
-                    bgI,
-                  ),
-                )
+                sub.backgroundId.length === bgIds.length &&
+                sub.backgroundId.every((bgI) => bgIds.includes(bgI))
               );
             }),
           };
@@ -243,9 +244,30 @@ export function getQuestionDataOption<T>(
           // One option per institution × year combination for the chosen
           // level ("Dhaka-2024"); picking one stores the pair's ids.
           const levelId = formData["levelId" as keyof T];
-          const institutions = masterData.institutions?.filter(
-            (i) => i.levelId === levelId,
-          );
+          const subjectId = formData["subjectId" as keyof T] as
+            | string
+            | undefined;
+          const questionType = formData["questionType" as keyof T] as
+            | string
+            | undefined;
+          const institutions = masterData.institutions?.filter((i) => {
+            if (i.levelId !== levelId) return false;
+            // An institution configured with subjects only matches when the
+            // question's subject is one of them; unconfigured matches all.
+            const subjects = i.subjectId ?? [];
+            if (subjects.length > 0 && subjectId && !subjects.includes(subjectId))
+              return false;
+            // Same for its question types; forms without a type in play
+            // (the extractor's global panel) skip this narrowing.
+            const types = i.questionTypes ?? [];
+            if (
+              types.length > 0 &&
+              questionType &&
+              !types.includes(questionType)
+            )
+              return false;
+            return true;
+          });
           const years = masterData.years?.filter((y) => y.levelId === levelId);
           const pairOptions: IRecordPairOption[] = (institutions ?? []).flatMap(
             (inst) =>

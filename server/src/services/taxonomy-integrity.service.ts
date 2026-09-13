@@ -798,6 +798,12 @@ export const cascadeDelete = async (
   }
   if (doomed.subjects.length) {
     await Subject.deleteMany({ _id: { $in: doomed.subjects } }, { session });
+    // Institutions reference subjects by id; the survivors must not dangle.
+    await Institution.updateMany(
+      { subjectId: { $in: doomed.subjects } },
+      { $pull: { subjectId: { $in: doomed.subjects } } },
+      { session },
+    );
   }
   if (doomed.backgrounds.length) {
     await Background.deleteMany(

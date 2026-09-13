@@ -348,7 +348,15 @@ export interface IMasterData {
     backgroundId: string[];
     levelId: string;
   }[];
-  institutions: { _id: string; name: string; levelId: string }[];
+  // Pre-feature rows return subjectId/questionTypes as undefined — readers
+  // must guard with ?? [].
+  institutions: {
+    _id: string;
+    name: string;
+    levelId: string;
+    subjectId: string[];
+    questionTypes: string[];
+  }[];
   years: { _id: string; name: string; levelId: string }[];
   collections: (ICollection & { _id: string; createdAt: string })[];
 }
@@ -442,7 +450,7 @@ export interface IqDetails {
 // (e.g. "HSC_Physics-1st_MCQ_Dhaka_2024"). A type, not an interface, so it
 // keeps the implicit index signature that the `withName: obj` assignment in
 // getBoardQusetonDetails relies on.
-export type BoardSlugParts = {
+export type SlugParts = {
   level?: string;
   subject?: string;
   questionType?: string;

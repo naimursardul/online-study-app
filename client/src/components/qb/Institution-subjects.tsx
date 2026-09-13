@@ -7,6 +7,7 @@ import { useMasterData } from "@/lib/MasterData-context";
 import { extractIdTo_ } from "@/utils/utils";
 import { Badge } from "../ui/badge";
 import Tile from "./Tile";
+import { Input } from "../ui/input";
 
 export default function InstitutionSubject({
   level,
@@ -14,16 +15,31 @@ export default function InstitutionSubject({
   level: IMasterData["levels"][number];
 }) {
   const [filter, setFilter] = useState<string[]>([]);
+  const [search, setSearch] = useState<string>("");
 
   const { masterData } = useMasterData();
+
+  // =========================================
+  // Filter institutions belonging to this level
+  // =========================================
+  const institutions = useMemo(() => {
+    return masterData.institutions?.filter((i) => {
+      if (search.trim() !== "") {
+        return (
+          i.levelId === level._id &&
+          i.name.toLowerCase().includes(search.toLowerCase())
+        );
+      }
+      return i.levelId === level._id;
+    });
+  }, [masterData.institutions, level._id, search]);
 
   // =========================================
   // Filter backgrounds belonging to this level
   // =========================================
   const backgrounds = useMemo(() => {
     return masterData.backgrounds?.filter((b) => {
-      const levelId = b.levelId;
-      return levelId === level._id;
+      return b.levelId === level._id;
     });
   }, [masterData.backgrounds, level._id]);
 
@@ -60,24 +76,28 @@ export default function InstitutionSubject({
           </div>
           <Badge variant="secondary">Subjects: {(subjects || []).length}</Badge>
         </div>
-
         {/* BACKGROUND FILTERS */}
-        <ToggleGroup
-          type="multiple"
-          spacing={2}
-          className="flex-wrap gap-2"
-          onValueChange={(value) => setFilter(value)}
-        >
-          {backgrounds.map((b) => (
-            <ToggleGroupItem
-              key={b._id}
-              value={b._id}
-              className="h-auto rounded-full border border-input px-3.5 py-1.5 text-xs max-md:text-[11px] font-medium text-muted-foreground cursor-pointer hover:border-primary/40 hover:text-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:border-primary data-[state=on]:hover:bg-primary"
-            >
-              {extractIdTo_(masterData.backgrounds, b._id, "name")}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
+        {(level?.name === "HSC" || level?.name === "SSC") && (
+          <ToggleGroup
+            type="multiple"
+            spacing={2}
+            className="flex-wrap gap-2"
+            onValueChange={(value) => setFilter(value)}
+          >
+            {backgrounds.map((b) => (
+              <ToggleGroupItem
+                key={b._id}
+                value={b._id}
+                className="h-auto rounded-full border border-input px-3.5 py-1.5 text-xs max-md:text-[11px] font-medium text-muted-foreground cursor-pointer hover:border-primary/40 hover:text-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:border-primary data-[state=on]:hover:bg-primary"
+              >
+                {extractIdTo_(masterData.backgrounds, b._id, "name")}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        )}
+        {level?.name === "JOB" && (
+          <Input onChange={(e) => setSearch(e.target.value)} />
+        )}
       </CardTitle>
 
       <CardContent>
@@ -92,11 +112,11 @@ export default function InstitutionSubject({
               />
             ))}
           {level?.name === "JOB" &&
-            subjects.map((s) => (
+            institutions.map((i) => (
               <Tile
-                key={s._id}
-                to={`${extractIdTo_(masterData.levels, s.levelId, "name")}_${s.name}`}
-                name={s.name}
+                key={i._id}
+                to={`${extractIdTo_(masterData.levels, i.levelId, "name")}_${i.name}`}
+                name={i.name}
               />
             ))}
         </div>

@@ -2,6 +2,7 @@ import AllData from "@/components/admin/all-data";
 import UploadForm from "@/components/admin/upload-form";
 import { Card, CardContent } from "@/components/ui/card";
 import type { IField } from "@/types/types";
+import { QUESTION_TYPE_OPTIONS } from "@/utils/questionTypes";
 import { createFormInfo } from "@/utils/utils";
 import { PlusCircle } from "lucide-react";
 
@@ -12,10 +13,27 @@ export default function Institution() {
       inputType: "select",
       name: "levelId",
     },
+    // Which subjects this institution covers. Options come from master data
+    // (filtered by the chosen level); leaving it empty means every subject.
+    {
+      label: "Subject",
+      inputType: "checkbox",
+      name: "subjectId",
+    },
     {
       label: "Name",
       inputType: "input",
       name: "name",
+    },
+    // Which question types this institution offers. The options are literal codes —
+    // they are stored on the institution verbatim, not looked up in master data.
+    // Leaving it empty means "every type", so existing institutions keep working.
+    {
+      label: "Question Types",
+      inputType: "checkbox",
+      name: "questionTypes",
+      manualOptionData: true,
+      optionData: QUESTION_TYPE_OPTIONS,
     },
   ];
 

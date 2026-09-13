@@ -30,7 +30,7 @@ export const getMasterQuestionData = async (req: Request, res: Response) => {
       Subject.find().select("name levelId backgroundId questionTypes"),
       Chapter.find().select("name subjectId levelId backgroundId"),
       Topic.find().select("name chapterId subjectId"),
-      Institution.find().select("name levelId"),
+      Institution.find().select("name levelId subjectId questionTypes"),
       Year.find().select("name levelId"),
       userId ? Collection.find({ userId }) : Promise.resolve([]),
     ]);

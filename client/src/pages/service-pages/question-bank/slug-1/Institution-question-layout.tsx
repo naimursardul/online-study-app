@@ -1,6 +1,6 @@
 import SingleQuestionBankSidebar from "@/components/qb/institution-question/institution-question-bar/institution-question-sidebar";
 import InstitutionQuestionTopbar from "@/components/qb/institution-question/institution-question-bar/institution-question-topbar";
-import { getBoardQusetonDetails } from "@/utils/utils";
+import { getSlugDetails } from "@/utils/utils";
 import type { ExamStatusType, ViewModeType } from "@/types/types";
 import { useEffect, useMemo, useState } from "react";
 import { Outlet, useParams } from "react-router-dom";
@@ -11,8 +11,7 @@ function InstitutionQuestionLayout() {
   const { masterData } = useMasterData();
 
   const qDetails = useMemo(
-    () =>
-      getBoardQusetonDetails(masterData, slug1 + (slug2 ? `_${slug2}` : "")),
+    () => getSlugDetails(masterData, slug1 + (slug2 ? `_${slug2}` : "")),
 
     [masterData, slug1, slug2],
   );
@@ -33,7 +32,7 @@ function InstitutionQuestionLayout() {
   }, [slug1, slug2]);
   return (
     <div className="flex flex-col md:flex-row gap-3 mt-10">
-      <SingleQuestionBankSidebar slug={slug1} />
+      <SingleQuestionBankSidebar slug={slug1} details={qDetails} />
 
       <div className="w-full space-y-8">
         <InstitutionQuestionTopbar
