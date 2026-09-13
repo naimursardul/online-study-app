@@ -146,10 +146,14 @@ const YEAR_RE = /^(19|20)\d{2}$/;
  * canonical.
  */
 function questionBankSlug1(slug1: string): SeoHead {
-  const { level, subject } = parseSlug(slug1);
+  const { level, subject, institution } = parseSlug(slug1);
   const parts = slug1.split("_").filter(Boolean);
-
-  const valid = parts.length === 2 && Boolean(level) && Boolean(subject);
+  let valid = false;
+  if (level === "HSC" || level === "SSC") {
+    valid = parts.length === 2 && Boolean(level) && Boolean(subject);
+  } else {
+    valid = parts.length === 2 && Boolean(level) && Boolean(institution);
+  }
   if (!valid) {
     return head({
       title: "Page not found",
@@ -160,8 +164,14 @@ function questionBankSlug1(slug1: string): SeoHead {
     });
   }
 
-  const title = `${level} ${subject} board questions`;
-  const description = `Every ${level} ${subject} board paper on Poruya — pick an institution and year from the sidebar to open the full paper, question by question.`;
+  const title =
+    level === "HSC" || level === "SSC"
+      ? `${level} ${subject} board questions`
+      : `${level} — ${institution} previous year questions`;
+  const description =
+    level === "HSC" || level === "SSC"
+      ? `Every ${level} ${subject} board paper on Poruya — pick an institution and year from the sidebar to open the full paper, question by question.`
+      : `Every ${level} — ${institution} previous year question paper on Poruya — pick a year from the sidebar to open the full paper, question by question.`;
 
   return head({
     title,
@@ -179,16 +189,19 @@ function questionBankSlug1(slug1: string): SeoHead {
  * indexable under arbitrarily many URLs.
  */
 function questionBankSlug2(slug1: string, slug2: string): SeoHead {
-  const { level, subject } = parseSlug(slug1);
+  const { level, subject, questionType, institution, year } = parseSlug(
+    slug1 + "_" + slug2,
+  );
   // slug2 continues the grammar at position 2: type, institution, year.
-  const { questionType, institution, year } = parseSlug(slug2, "questionType");
   const parts = slug2.split("_").filter(Boolean);
 
   const valid =
-    parts.length === 3 &&
-    isQuestionTypeCode(questionType) &&
-    Boolean(institution) &&
-    YEAR_RE.test(year ?? "");
+    level === "HSC" || level === "SSC"
+      ? parts.length === 3 &&
+        isQuestionTypeCode(questionType) &&
+        Boolean(institution) &&
+        YEAR_RE.test(year ?? "")
+      : parts.length === 2 && Boolean(questionType) && YEAR_RE.test(year ?? "");
 
   if (!valid) {
     return head({
@@ -201,8 +214,14 @@ function questionBankSlug2(slug1: string, slug2: string): SeoHead {
   }
 
   const label = labelOf(questionType!);
-  const title = `${institution} ${year} ${label} — ${level} ${subject}`;
-  const description = `Every question from the ${institution} ${year} ${label} paper for ${level} ${subject}, question by question. Sign in to check your answers.`;
+  const title =
+    level === "HSC" || level === "SSC"
+      ? `${institution} ${year} ${label} — ${level} ${subject}`
+      : `${level} — ${institution} ${year} ${label}`;
+  const description =
+    level === "HSC" || level === "SSC"
+      ? `Every question from the ${institution} ${year} ${label} paper for ${level} ${subject}, question by question. Sign in to check your answers.`
+      : `Every question from the  ${level} — ${institution} ${year}. Sign in to check your answers.`;
 
   return head({
     title,
